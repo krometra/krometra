@@ -118,13 +118,18 @@ if (\$to_https) {
 }
 CONF
 
-echo "--- Перезапускаю web"
+echo "--- Перечитываю конфиг nginx"
 $COMPOSE up -d web
 sleep 2
 $COMPOSE exec -T web nginx -t
+# up -d не трогает уже запущенный контейнер: без reload nginx продолжает
+# отдавать прежний сертификат и прежние виртуалхосты.
+$COMPOSE exec -T web nginx -s reload
+sleep 2
 
 echo "--- Проверка"
-curl -fsS "https://$PRIMARY/api/health" && echo
+curl -fsS "https://$PRIMARY/api/health"
+echo
 
 # Клиент без ECDSA обязан получить RSA-сертификат, а не handshake failure —
 # именно так выглядел «сайт не открывается» у пользователей.
