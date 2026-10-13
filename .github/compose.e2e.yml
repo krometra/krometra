@@ -1,0 +1,61 @@
+services:
+  app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      args:
+        INSTALL_DEV: "true"
+    ports:
+      - "${E2E_APP_PORT:-8000}:8000"
+    env_file:
+      - ../.env
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    volumes:
+      - ../backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cadstudio
+      POSTGRES_PASSWORD: cadstudio
+      POSTGRES_DB: cadstudio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cadstudio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: chrislusf/seaweedfs@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
+    environment:
+      S3_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      S3_SECRET_KEY: ${MINIO_SECRET_KEY}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        cat > /tmp/s3.json <<JSON
+        {"identities":[{"name":"app","credentials":[{"accessKey":"$$S3_ACCESS_KEY","secretKey":"$$S3_SECRET_KEY"}],"actions":["Admin","Read","Write","List","Tagging"]}]}
+        JSON
+        exec weed server -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=1024 -volume.max=0 -s3 -s3.port=9000 -s3.config=/tmp/s3.json
+    volumes:
+      - s3_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status && echo 's3.bucket.list' | weed shell -master=127.0.0.1:9333 >/dev/null"]
+      interval: 5s
+      retries: 40
+
+volumes:
+  postgres_data:
+  redis_data:
+  s3_data:

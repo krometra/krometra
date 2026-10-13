@@ -1,0 +1,68 @@
+.overlay {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--cs-surface-raised, #252535);
+  border: 1px solid oklch(0.78 0.13 75 / 0.5);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.input {
+  width: 80px;
+}
+
+.input :global(.fx-input__box) {
+  height: 30px;
+  padding: 0 8px;
+  background: var(--cs-surface-sunken);
+  border-color: var(--cs-border-strong);
+}
+
+.input :global(.fx-input__field) {
+  color: var(--cs-text);
+  font-family: var(--cs-font-mono);
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  gap: 3px;
+}
+
+.okBtn.okBtn,
+.cancelBtn.cancelBtn {
+  width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--cs-border-strong);
+  color: var(--cs-text-secondary);
+  font-size: 13px;
+}
+
+.okBtn.okBtn:hover {
+  background: var(--cs-primary-soft);
+  color: var(--cs-primary);
+}
+
+.cancelBtn.cancelBtn:hover {
+  background: var(--cs-surface-hover);
+  color: var(--cs-error);
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-family: var(--cs-font-mono);
+  color: var(--cs-text-secondary);
+}
+
+.fieldInput {
+  width: 60px;
+}

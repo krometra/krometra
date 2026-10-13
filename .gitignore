@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.env
+.playwright-mcp/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Playwright e2e
+web/e2e/.auth/
+web/playwright-report/
+web/test-results/
+
+# Бенчмарки: база и прогоны зависят от машины
+web/bench-results/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+
+# Deploy secrets
+DEPLOY_INFO.md
+
+# MinIO data
+minio_data/
+
+# Claude Code — локальные (персональные) настройки агента
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+
+# playwright из корня
+test-results/
+
+# скриншоты e2e-прогонов
+.docs/shots/
+
+# Конфиги https генерируются на сервере scripts/enable-https.sh
+deploy/nginx/ssl-vhost/*.conf
+deploy/nginx/redirect/*.conf

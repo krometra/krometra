@@ -1,0 +1,25 @@
+"""Лимиты загрузки browser-геометрии.
+
+Самый тяжёлый реальный меш (гайка с резьбой) — ~68 тыс. вершин, 62 тыс.
+треугольников, 3 тыс. граней, 7 тыс. рёбер и 320 тыс. чисел полилиний;
+лимиты взяты с запасом в 10–15 раз.
+"""
+
+MAX_STEP_BYTES = 10 * 1024 * 1024
+MAX_MESH_BYTES = 50 * 1024 * 1024
+MAX_NAMING_BYTES = 2 * 1024 * 1024
+MAX_PARAMS_BYTES = 64 * 1024
+
+MAX_MESH_VERTICES = 1_000_000
+MAX_MESH_TRIANGLES = 1_000_000
+MAX_MESH_FACES = 50_000
+MAX_MESH_EDGES = 100_000
+MAX_MESH_POLYLINE_VALUES = 5_000_000
+MAX_EDGE_REFERENCES = 1_000_000
+
+MAX_REBUILD_BODIES = 30
+MAX_IMPORT_BODIES = 50
+MAX_IMPORT_FILE_NAME = 120
+MAX_UPLOAD_FIELDS = 24
+MAX_UPLOAD_BYTES = MAX_STEP_BYTES + MAX_MESH_BYTES + MAX_NAMING_BYTES + 1024 * 1024
+MAX_REBUILD_UPLOAD_BYTES = 256 * 1024 * 1024

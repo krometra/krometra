@@ -1,0 +1,91 @@
+:root {
+  /* --- Surfaces --- */
+  --cs-surface: oklch(0.985 0.006 95);
+  --cs-surface-alt: oklch(0.965 0.008 95);
+  --cs-surface-raised: oklch(1 0 0);
+  --cs-surface-sunken: oklch(0.945 0.009 95);
+  --cs-surface-hover: oklch(0.93 0.014 233);
+
+  /* --- Brand / accents --- */
+  --cs-primary: oklch(0.52 0.15 244);
+  --cs-primary-hover: oklch(0.47 0.15 244);
+  --cs-primary-active: oklch(0.42 0.14 244);
+  --cs-primary-fg: oklch(0.99 0.004 244);
+  --cs-primary-border: oklch(0.72 0.09 244);
+  --cs-primary-soft: oklch(0.93 0.035 244);
+
+  --cs-amber: oklch(0.62 0.14 75);
+  --cs-amber-border: oklch(0.75 0.09 75);
+  --cs-green: oklch(0.56 0.13 150);
+  --cs-green-border: oklch(0.72 0.08 150);
+  --cs-red: oklch(0.55 0.20 25);
+  --cs-accent: oklch(0.56 0.18 25);
+
+  /* --- Text --- */
+  --cs-text: oklch(0.27 0.022 250);
+  --cs-text-secondary: oklch(0.44 0.018 250);
+  --cs-text-muted: oklch(0.59 0.014 250);
+  --cs-text-disabled: oklch(0.70 0.01 250);
+
+  /* --- Lines --- */
+  --cs-border: oklch(0.86 0.012 250);
+  --cs-border-strong: oklch(0.79 0.016 250);
+  --cs-border-subtle: oklch(0.91 0.009 250);
+  --cs-border-focus: oklch(0.52 0.15 244);
+  --cs-grid-line: oklch(0.76 0.012 250 / 0.55);
+  --cs-overlay: oklch(0.22 0.02 250 / 0.38);
+
+  --cs-success: oklch(0.74 0.13 150);
+  --cs-warning: oklch(0.78 0.13 75);
+  --cs-error: oklch(0.60 0.20 25);
+
+  /* --- Typography --- */
+  --cs-font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --cs-font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
+  --cs-font-size-xs: 0.75rem;
+  --cs-font-size-sm: 0.875rem;
+  --cs-font-size-md: 1rem;
+  --cs-font-size-lg: 1.25rem;
+  --cs-font-size-xl: 1.5rem;
+  --cs-font-size-2xl: 2rem;
+  --cs-font-weight-normal: 400;
+  --cs-font-weight-medium: 500;
+  --cs-font-weight-bold: 600;
+  --cs-line-height: 1.5;
+  --cs-tracking: -0.01em;
+
+  /* --- Spacing --- */
+  --cs-spacing-xs: 4px;
+  --cs-spacing-sm: 8px;
+  --cs-spacing-md: 16px;
+  --cs-spacing-lg: 24px;
+  --cs-spacing-xl: 32px;
+  --cs-spacing-2xl: 48px;
+
+  /* --- Border Radius --- */
+  --cs-radius-sm: 4px;
+  --cs-radius-md: 8px;
+  --cs-radius-lg: 12px;
+  --cs-radius-xl: 16px;
+  --cs-radius-full: 9999px;
+
+  /* --- Shadows --- */
+  --cs-shadow-sm: 0 1px 3px oklch(0.30 0.02 250 / 0.10);
+  --cs-shadow-md: 0 10px 28px -12px oklch(0.30 0.02 250 / 0.18);
+  --cs-shadow-lg: 0 32px 72px -28px oklch(0.30 0.02 250 / 0.24);
+
+  /* --- Transitions --- */
+  --cs-transition-fast: 120ms ease;
+  --cs-transition-normal: 250ms ease;
+  --cs-transition-slow: 400ms ease;
+
+  /* --- Layout --- */
+  --cs-toolbar-height: 48px;
+  --cs-sidebar-width: 280px;
+
+  /* --- Engineering grid backdrop (viewport / hero / cards) --- */
+  --cs-grid-backdrop:
+    radial-gradient(130% 110% at 50% 36%, oklch(0.99 0.012 244), oklch(0.94 0.009 250)),
+    linear-gradient(var(--cs-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cs-grid-line) 1px, transparent 1px);
+}

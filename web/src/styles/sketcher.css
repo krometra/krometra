@@ -1,0 +1,22 @@
+/* Sketcher styles */
+
+:root {
+  /* Grid colors */
+  --sk-grid-color: rgba(255, 255, 255, 0.06);
+  --sk-grid-major-color: rgba(255, 255, 255, 0.1);
+  --sk-axis-x-color: rgba(255, 80, 80, 0.5);
+  --sk-axis-y-color: rgba(80, 255, 80, 0.5);
+
+  /* Entity colors */
+  --sk-entity-color: rgba(200, 200, 255, 0.9);
+  --sk-entity-hover-color: rgba(100, 180, 255, 0.9);
+  --sk-entity-preview-color: rgba(200, 200, 255, 0.5);
+}
+
+/* Cursors */
+.sketcher-line { cursor: crosshair; }
+.sketcher-rectangle { cursor: crosshair; }
+.sketcher-circle { cursor: crosshair; }
+.sketcher-arc { cursor: crosshair; }
+.sketcher-pan { cursor: grab; }
+.sketcher-pan-active { cursor: grabbing; }

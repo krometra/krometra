@@ -1,0 +1,28 @@
+name: Предложение
+description: Новая возможность или улучшение
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую задачу это решает
+      description: Опишите сценарий моделирования, в котором сейчас неудобно или невозможно.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Как это должно работать
+      description: Поведение, интерфейс, примеры из других CAD (Fusion 360, Onshape, КОМПАС-3D), если есть.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Как вы обходитесь сейчас
+  - type: checkboxes
+    id: roadmap
+    attributes:
+      label: Проверка
+      options:
+        - label: Я посмотрел(а) .docs/ROADMAP.md и открытые Issues — такого предложения там нет

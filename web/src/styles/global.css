@@ -1,0 +1,77 @@
+@import "./variables.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--cs-font-family);
+  font-size: var(--cs-font-size-md);
+  line-height: var(--cs-line-height);
+  letter-spacing: var(--cs-tracking);
+  color: var(--cs-text);
+  background-color: var(--cs-surface);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--cs-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--cs-primary-hover);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+::selection {
+  background-color: var(--cs-primary);
+  color: var(--cs-surface);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cs-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cs-border);
+  border-radius: var(--cs-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cs-text-secondary);
+}

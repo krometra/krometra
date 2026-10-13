@@ -1,0 +1,50 @@
+name: Баг
+description: Что-то работает не так, как ожидалось
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Что произошло
+      description: Кратко опишите проблему.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения
+      description: Для багов геометрии — последовательность операций (эскиз → фичи) с размерами.
+      placeholder: |
+        1. Создать эскиз на плоскости XY, прямоугольник 40×20
+        2. Выдавить на 10 мм
+        3. Скруглить верхнее ребро радиусом 2
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемое поведение
+    validations:
+      required: true
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Скриншоты, STEP, ошибки консоли
+      description: Приложите скриншот, экспортированный STEP или текст ошибки из консоли браузера, если есть.
+  - type: input
+    id: browser
+    attributes:
+      label: Браузер и ОС
+      placeholder: Chrome 140, macOS 15
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Где воспроизводится
+      options:
+        - krometra.ru
+        - cad-studio.ru (старый домен)
+        - Локальный запуск из репозитория
+    validations:
+      required: true

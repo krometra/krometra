@@ -1,0 +1,61 @@
+Крометра (Krometra): сторонние компоненты и их лицензии
+=======================================================
+
+Сама Крометра распространяется под Functional Source License 1.1 (FSL-1.1-ALv2),
+см. LICENSE.md в репозитории. Компоненты ниже принадлежат их авторам и
+распространяются под собственными лицензиями.
+
+Лицензии указаны по метаданным пакетов тех версий, которые закреплены в
+web/package.json и backend/requirements.txt.
+
+
+1. Геометрическое ядро (LGPL-2.1)
+---------------------------------
+
+replicad-opencascadejs 1.1.0, лицензия LGPL-2.1-only.
+Сборка Open CASCADE Technology (OCCT) в WebAssembly, выполненная проектом
+opencascade.js для библиотеки replicad.
+
+  Open CASCADE Technology  https://dev.opencascade.org
+  opencascade.js           https://github.com/donalffons/opencascade.js
+  replicad                 https://github.com/sgenoud/replicad
+
+Полный текст лицензии: /licenses/LGPL-2.1.txt (в репозитории
+web/public/licenses/LGPL-2.1.txt).
+
+Ядро используется без изменений и поставляется отдельным файлом .wasm, который
+браузер загружает во время работы. Его можно заменить собственной сборкой той же
+библиотеки: файл берётся из npm-пакета replicad-opencascadejs при сборке
+фронтенда (web/package.json), исходный код и способ сборки описаны в
+репозиториях выше.
+
+
+2. Фронтенд (MIT)
+-----------------
+
+  replicad 1.1.0                     https://github.com/sgenoud/replicad
+  three 0.170.0                      https://github.com/mrdoob/three.js
+  vue 3.5                            https://github.com/vuejs/core
+  vue-router 4                       https://github.com/vuejs/router
+  @vueuse/core 11                    https://github.com/vueuse/vueuse
+  @zag-js/* 0.77                     https://github.com/chakra-ui/zag
+  foxy-ui-kit 0.2                    https://github.com/nia-sempai/foxy-ui-kit
+  @types/three 0.170.0               https://github.com/DefinitelyTyped/DefinitelyTyped
+
+
+3. Backend
+----------
+
+MIT:
+  fastapi 0.141.1, sqlalchemy 2.0.52, alembic 1.20.0, redis 8.1.0,
+  pydantic 2.13.5, pydantic-settings 2.15.0, PyJWT 2.14.0
+
+BSD-3-Clause:
+  uvicorn 0.52.4
+
+Apache-2.0:
+  asyncpg 0.31.0, bcrypt 4.3.0, python-multipart 0.0.32, minio 7.2.20
+
+
+Транзитивные зависимости перечислены в web/package-lock.json и ставятся из
+registry.npmjs.org и PyPI; у каждой лицензия указана в её пакете.
