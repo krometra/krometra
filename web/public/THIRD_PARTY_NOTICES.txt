@@ -43,6 +43,12 @@ web/public/licenses/LGPL-2.1.txt).
   @types/three 0.170.0               https://github.com/DefinitelyTyped/DefinitelyTyped
 
 
+Подпись логотипа - контуры глифов шрифта Montserrat Alternates Bold
+(Copyright 2011 The Montserrat Project Authors,
+https://github.com/JulietaUla/Montserrat), SIL Open Font License 1.1:
+https://openfontlicense.org. Сам шрифт сайт не загружает.
+
+
 3. Backend
 ----------
 
