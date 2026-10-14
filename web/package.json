@@ -20,7 +20,8 @@
     "bench:save": "vitest bench --run --outputJson bench-results/baseline.json",
     "bench:compare": "vitest bench --run --compare bench-results/baseline.json",
     "mcp": "node mcp/server.mjs",
-    "test:mcp": "node --test \"mcp/test/*.test.mjs\""
+    "test:mcp": "node --test \"mcp/test/*.test.mjs\"",
+    "e2e:mcp": "playwright test e2e/mcp-maixcam.spec.ts"
   },
   "dependencies": {
     "@types/three": "^0.170.0",

@@ -167,7 +167,15 @@ cad_export { "format": "stl", "path": "/Users/me/print/" }
 cd web && node --test "mcp/test/*.test.mjs"
 ```
 
-Тестам не нужен поднятый стек: они запускают локальный http-сервер со страницей-заглушкой, которая реализует `window.cadControl` и нужные ручки API, поднимают MCP-сервер дочерним процессом и гоняют JSON-RPC сценарии в headless Chromium. `export.test.mjs` пишет файлы во временный каталог и удаляет его. `labels.test.mjs` и `core.test.mjs` проверяют чистую логику без браузера.
+Тестам не нужен поднятый стек: они запускают локальный http-сервер со страницей-заглушкой, которая реализует `window.cadControl` и нужные ручки API, поднимают MCP-сервер дочерним процессом и гоняют JSON-RPC сценарии в headless Chromium. `export.test.mjs` пишет файлы во временный каталог и удаляет его. `labels.test.mjs`, `core.test.mjs` и `maixcam.test.mjs` проверяют чистую логику без браузера.
+
+e2e на живом стеке (`make up`, `cd web && npm run dev`, `/api/health` отвечает `"app":"Крометра"`):
+
+```bash
+cd web && npm run e2e:mcp
+```
+
+`e2e/mcp-maixcam.spec.ts` запускает `server.mjs` дочерним процессом с `CAD_STUDIO_URL=E2E_BASE_URL` (по умолчанию `http://localhost:5173`) и входом e2e-пользователя (`E2E_USER_EMAIL`, `E2E_USER_PASSWORD`), рисует уменьшенную плату MaixCAM (контур из `line` и `arc` с отверстиями, цепочка join, камера на стойках обратным cut, эскиз на грани), экспортирует STEP и STL во временный каталог и снимает вьюпорт. Созданные проекты удаляются в конце, адрес `krometra.ru` тест отклоняет. Регрессии из ревью живого рисования помечены `test.fail`: после фикса бага такой тест начнёт проходить, Playwright покажет это падением, и `test.fail` меняется на `test`.
 
 ## Устройство
 
