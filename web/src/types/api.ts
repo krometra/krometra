@@ -46,7 +46,7 @@ export interface DocumentUpdate {
 export interface TimelineEntry {
   id: string;
   timestamp: string;
-  kind: "sketch" | "extrude" | "boolean" | "revolve" | "fillet" | "chamfer" | "thread" | "import";
+  kind: "sketch" | "extrude" | "boolean" | "revolve" | "fillet" | "chamfer" | "thread" | "import" | "transform";
   label: string;
   status: "ok" | "warning" | "error" | "dirty";
   sketch_id?: string;
@@ -123,6 +123,7 @@ export interface SketchArc {
   radius: number;
   startAngle: number;
   endAngle: number;
+  construction?: boolean;
 }
 
 export interface SketchRectangle {

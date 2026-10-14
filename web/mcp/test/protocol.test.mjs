@@ -11,7 +11,9 @@ const TOOL_NAMES = [
   "cad_state",
   "cad_request",
   "cad_snapshot",
+  "cad_section",
   "cad_export",
+  "cad_import",
 ];
 const UNREACHABLE_URL = "http://127.0.0.1:9";
 const CLIENT = { capabilities: {}, clientInfo: { name: "node-test", version: "1" } };

@@ -1,4 +1,4 @@
-"""Сохранение резьбы, нарезанной браузерным ядром OCCT/WASM."""
+"""Сохранение резьбы и перемещения тела, построенных браузерным ядром OCCT/WASM."""
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_active_user, get_db, get_storage
 from app.core.storage import AsyncStorageClient
 from app.models.user import User
-from app.schemas.geometry import MeshResponse, ThreadResponse
+from app.schemas.geometry import ExtrudeResponse, MeshResponse, ThreadResponse
 from app.services.geometry_ops.browser_naming import validated_browser_naming, validated_feature_key
 from app.services.geometry_ops.browser_thread import BrowserThreadParams, save_browser_thread
+from app.services.geometry_ops.browser_transform import parse_rotate, parse_translate, save_browser_transform
 from app.services.geometry_ops.limits import MAX_STEP_BYTES
 from app.api.browser_upload_route import BrowserUploadRoute
 
@@ -47,3 +48,31 @@ async def browser_thread_endpoint(
         naming=validated_browser_naming(naming), feature_key=validated_feature_key(feature_key),
     )
     return ThreadResponse(**{**result, "mesh": MeshResponse(**result["mesh"])})
+
+
+@router.post("/{project_id}/geometry/browser-transform", response_model=ExtrudeResponse)
+async def browser_transform_endpoint(
+    project_id: str,
+    step: UploadFile = File(...),
+    mesh: str = Form(...),
+    body_id: str = Form(...),
+    translate: str = Form(...),
+    rotate: str | None = Form(None),
+    keep_source: bool = Form(False),
+    document_version: int = Form(...),
+    naming: str | None = Form(None),
+    feature_key: str | None = Form(None),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+    storage: AsyncStorageClient = Depends(get_storage),
+):
+    result = await save_browser_transform(
+        project_id, current_user.id, body_id, parse_translate(translate), parse_rotate(rotate), keep_source, document_version,
+        await step.read(MAX_STEP_BYTES + 1), mesh, db, storage,
+        naming=validated_browser_naming(naming), feature_key=validated_feature_key(feature_key),
+    )
+    return ExtrudeResponse(
+        body_id=result["body_id"],
+        mesh=MeshResponse(**result["mesh"]),
+        hidden_body_ids=result["hidden_body_ids"],
+    )

@@ -1,5 +1,3 @@
-// Shared undo/redo composable — wraps CommandHistory for the editor
-
 import { ref, computed } from "vue";
 import { createSharedComposable } from "@vueuse/core";
 import { CommandHistory } from "@/core/commands/CommandHistory";
@@ -20,37 +18,27 @@ export const useUndoRedo = createSharedComposable(() => {
     return history.canRedo;
   });
 
-  async function execute(cmd: Command): Promise<void> {
-    if (isExecuting.value) return;
+  async function run<T>(step: () => Promise<T>): Promise<T> {
+    if (isExecuting.value) throw new Error("Идёт другая операция истории: повторите позже.");
     isExecuting.value = true;
     try {
-      await history.execute(cmd);
+      return await step();
     } finally {
       isExecuting.value = false;
       historyVersion.value++;
     }
   }
 
-  async function undo(): Promise<void> {
-    if (isExecuting.value || !canUndo.value) return;
-    isExecuting.value = true;
-    try {
-      await history.undo();
-    } finally {
-      isExecuting.value = false;
-      historyVersion.value++;
-    }
+  function execute(cmd: Command): Promise<void> {
+    return run(() => history.execute(cmd));
   }
 
-  async function redo(): Promise<void> {
-    if (isExecuting.value || !canRedo.value) return;
-    isExecuting.value = true;
-    try {
-      await history.redo();
-    } finally {
-      isExecuting.value = false;
-      historyVersion.value++;
-    }
+  function undo(): Promise<Command | null> {
+    return run(() => history.undo());
+  }
+
+  function redo(): Promise<Command | null> {
+    return run(() => history.redo());
   }
 
   return { execute, undo, redo, canUndo, canRedo, isExecuting };

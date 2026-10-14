@@ -39,7 +39,9 @@ web/
     bench/       бенчмарки производительности (vitest bench), в npm test не входят
     router/      Vue Router + auth guards
     styles/      CSS-переменные дизайн-системы
-  mcp/           MCP-сервер: управление живым редактором через window.cadControl
+  mcp/           MCP-сервер: управление живым редактором через window.cadControl —
+                 локальный (server.mjs: stdio + Playwright) и удалённый (remote-server.mjs:
+                 HTTP /mcp + WebSocket во вкладку пользователя, сервис mcp в compose)
 ```
 
 ## Стек
@@ -75,13 +77,14 @@ npm run bench         # бенчмарки ядра, вьюпорта и ске�
 npm run bench:smoke   # те же бенчмарки по одной итерации, секунды: проверить, что они живы
 npm run bench:save    # полный прогон + локальная база bench-results/baseline.json (в .gitignore)
 npm run bench:compare # полный прогон против базы; каталог метрик и чтение таблицы — src/bench/README.md
-npm run mcp           # MCP-сервер управления редактором через window.cadControl (stdio); подключение — mcp/README.md
-npm run test:mcp      # тесты MCP-сервера на странице-заглушке (нужен Chromium от Playwright, стек не нужен)
+npm run mcp           # локальный MCP-сервер управления редактором через window.cadControl (stdio); подключение — mcp/README.md
+                      # удалённый — node mcp/remote-server.mjs (сервис mcp, порт 8787); вкладка подключается при VITE_MCP_RELAY=1
+npm run test:mcp      # тесты локального и удалённого MCP-сервера на заглушке (нужен Chromium от Playwright, стек не нужен)
 
 # Backend (из backend/): pytest
 ```
 
-Health-check: `GET /api/health`. Vite проксирует `/api` → `http://localhost:8000`.
+Health-check: `GET /api/health`. Vite проксирует `/api` → `http://localhost:8000` и `/mcp` (с WebSocket) → `http://localhost:8787`.
 
 ## Конвенции
 

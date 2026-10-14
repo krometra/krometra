@@ -32,8 +32,13 @@ export function useBodyMeshes(deps: {
   const totalFaces = computed(() => stats.value.faces);
   const totalEdges = computed(() => stats.value.edges);
 
+  function colorOf(bodyId: string): string | null {
+    const color = bodies.value.find((body) => body.id === bodyId)?.color;
+    return typeof color === "string" ? color : null;
+  }
+
   function trackMesh(bodyId: string, mesh: MeshData) {
-    viewportRef.value?.addMesh(mesh, bodyId);
+    viewportRef.value?.addMesh(mesh, bodyId, true, colorOf(bodyId));
     meshBodies.value = [
       ...meshBodies.value.filter((body) => body.body_id !== bodyId),
       { body_id: bodyId, mesh },
@@ -53,13 +58,18 @@ export function useBodyMeshes(deps: {
   function refreshMesh(bodyId: string, mesh: MeshData) {
     const visible = bodies.value.find((body) => body.id === bodyId)?.visible !== false;
     viewportRef.value?.removeMesh(bodyId);
-    viewportRef.value?.addMesh(mesh, bodyId, visible);
+    viewportRef.value?.addMesh(mesh, bodyId, visible, colorOf(bodyId));
     meshBodies.value = meshBodies.value.map((body) => (body.body_id === bodyId ? { body_id: bodyId, mesh } : body));
   }
 
   let hydrateInFlight: Promise<void> | null = null;
 
-  function hydrateBodyMeshes(): Promise<void> {
+  async function hydrateBodyMeshes(): Promise<void> {
+    await reloadBodyMeshes();
+    viewportRef.value?.fitAllBodies();
+  }
+
+  function reloadBodyMeshes(): Promise<void> {
     // Параллельные проходы интерливятся на await и оставляют в сцене
     // меши-сироты — второй вызов переиспользует текущий проход
     if (!hydrateInFlight) {
@@ -85,7 +95,7 @@ export function useBodyMeshes(deps: {
     for (const body of bodies.value) {
       try {
         const mesh = await api.get<MeshData>(`/projects/${projectId}/geometry/${body.id}/mesh`);
-        viewportRef.value?.addMesh(mesh, body.id, body.visible !== false);
+        viewportRef.value?.addMesh(mesh, body.id, body.visible !== false, colorOf(body.id));
         meshBodies.value.push({ body_id: body.id, mesh });
         browserHydrations.push(browserShapes.hydrate(body));
       } catch (err) {
@@ -106,7 +116,6 @@ export function useBodyMeshes(deps: {
       toast("Не удалось восстановить браузерную геометрию. Обновите документ, чтобы повторить попытку.", "warning");
     }
     sketchOutlines.drawAll();
-    viewportRef.value?.fitAllBodies();
   }
 
   return {
@@ -122,6 +131,7 @@ export function useBodyMeshes(deps: {
     replaceMesh,
     refreshMesh,
     hydrateBodyMeshes,
+    reloadBodyMeshes,
   };
 }
 

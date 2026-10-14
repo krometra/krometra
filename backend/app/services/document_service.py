@@ -59,6 +59,12 @@ async def get_document(db: AsyncSession, project_id: str, user_id: str) -> Docum
     return doc
 
 
+async def get_document_version(db: AsyncSession, project_id: str, user_id: str) -> int:
+    await _get_project_or_404(db, project_id, user_id)
+    result = await db.execute(select(Document.version).where(Document.project_id == project_id))
+    return result.scalar_one_or_none() or 0
+
+
 async def save_document(
     db: AsyncSession, project_id: str, user_id: str, update_data: DocumentUpdate
 ) -> Document:

@@ -4,6 +4,7 @@ import { useI18n } from "@/composables/shared/useI18n";
 import { connectCommand } from "@/lib/mcpConnect";
 import type { ApiKeyCreated } from "@/types/api";
 import CsButton from "@/components/ui/CsButton.vue";
+import AgentPromptCopy from "./AgentPromptCopy.vue";
 import CopyField from "./CopyField.vue";
 
 const props = defineProps<{ created: ApiKeyCreated; origin: string }>();
@@ -20,6 +21,7 @@ const command = computed(() => connectCommand(props.origin, props.created.key));
     <CopyField :label="t('account.created.keyLabel')" :value="created.key" test-id="api-key-value" />
     <CopyField :label="t('account.created.commandLabel')" :value="command" test-id="api-key-command" />
     <div :class="$style.actions">
+      <AgentPromptCopy :origin="origin" :api-key="created.key" />
       <CsButton variant="secondary" size="md" @click="emit('dismiss')">{{ t("account.created.done") }}</CsButton>
     </div>
   </div>
@@ -52,6 +54,8 @@ const command = computed(() => connectCommand(props.origin, props.created.key));
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: flex-end;
 }
 </style>

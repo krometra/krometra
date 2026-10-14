@@ -21,7 +21,18 @@ export const VERIFY_COMMAND = "claude mcp list";
 
 export const REMOVE_COMMAND = `claude mcp remove ${MCP_SERVER_NAME} -s user`;
 
+export function mcpEndpoint(origin: string): string {
+  return `${origin}/mcp`;
+}
+
 export function connectCommand(origin: string, apiKey: string): string {
+  return [
+    `claude mcp add ${MCP_SERVER_NAME} -s user --transport http ${shellQuote(mcpEndpoint(origin))}`,
+    `  --header ${shellQuote(`Authorization: Bearer ${apiKey}`)}`,
+  ].join(" \\\n");
+}
+
+export function localConnectCommand(origin: string, apiKey: string): string {
   return [
     `claude mcp add ${MCP_SERVER_NAME} -s user`,
     `  -e ${shellQuote(`CAD_STUDIO_URL=${origin}`)}`,

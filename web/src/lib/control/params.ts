@@ -91,6 +91,12 @@ export const param = {
     );
   },
 
+  color(description: string): ParamSpec<string> {
+    return spec("string", description, "цвет в виде #rrggbb", (value) =>
+      typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : INVALID,
+    );
+  },
+
   boolean(description: string): ParamSpec<boolean> {
     return spec("boolean", description, "true или false", (value) => (typeof value === "boolean" ? value : INVALID));
   },

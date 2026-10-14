@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_DEFAULT_LOCALE?: string;
+  readonly VITE_MCP_RELAY?: string;
 }
 
 interface ImportMeta {

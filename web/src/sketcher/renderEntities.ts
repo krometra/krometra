@@ -57,6 +57,17 @@ function strokeColor(hovered: boolean, alpha: number): string {
   return hovered ? `rgba(${HOVER_COLOR}, ${alpha})` : `rgba(${ENTITY_COLOR}, ${alpha})`;
 }
 
+function applyStroke(ctx: CanvasRenderingContext2D, construction: boolean, hovered: boolean, alpha: number, zoom: number) {
+  if (construction) {
+    ctx.strokeStyle = hovered ? `rgba(${HOVER_COLOR}, ${alpha})` : `rgba(${CONSTRUCTION_COLOR}, ${alpha * 0.9})`;
+    ctx.lineWidth = (hovered ? 2.5 : 1.5) / zoom;
+    ctx.setLineDash([8 / zoom, 5 / zoom]);
+    return;
+  }
+  ctx.strokeStyle = strokeColor(hovered, alpha);
+  ctx.lineWidth = (hovered ? 3 : 2) / zoom;
+}
+
 function drawInfiniteLine(
   ctx: CanvasRenderingContext2D,
   view: ViewParams,
@@ -134,16 +145,7 @@ export function drawEntity(
       break;
 
     case "line":
-      if (entity.construction) {
-        ctx.strokeStyle = hovered
-          ? `rgba(${HOVER_COLOR}, ${alpha})`
-          : `rgba(${CONSTRUCTION_COLOR}, ${alpha * 0.9})`;
-        ctx.lineWidth = (hovered ? 2.5 : 1.5) / zoom;
-        ctx.setLineDash([8 / zoom, 5 / zoom]);
-      } else {
-        ctx.strokeStyle = strokeColor(hovered, alpha);
-        ctx.lineWidth = (hovered ? 3 : 2) / zoom;
-      }
+      applyStroke(ctx, Boolean(entity.construction), hovered, alpha, zoom);
       ctx.beginPath();
       ctx.moveTo(entity.start.x, entity.start.y);
       ctx.lineTo(entity.end.x, entity.end.y);
@@ -167,16 +169,7 @@ export function drawEntity(
     }
 
     case "circle":
-      if (entity.construction) {
-        ctx.strokeStyle = hovered
-          ? `rgba(${HOVER_COLOR}, ${alpha})`
-          : `rgba(${CONSTRUCTION_COLOR}, ${alpha * 0.9})`;
-        ctx.lineWidth = (hovered ? 2.5 : 1.5) / zoom;
-        ctx.setLineDash([8 / zoom, 5 / zoom]);
-      } else {
-        ctx.strokeStyle = strokeColor(hovered, alpha);
-        ctx.lineWidth = (hovered ? 3 : 2) / zoom;
-      }
+      applyStroke(ctx, Boolean(entity.construction), hovered, alpha, zoom);
       if (isPreview) {
         ctx.fillStyle = "rgba(38, 55, 77, 0.08)";
         ctx.fill();
@@ -188,11 +181,12 @@ export function drawEntity(
       break;
 
     case "arc":
-      ctx.strokeStyle = strokeColor(hovered, alpha);
-      ctx.lineWidth = (hovered ? 3 : 2) / zoom;
+      applyStroke(ctx, Boolean(entity.construction), hovered, alpha, zoom);
       ctx.beginPath();
       ctx.arc(entity.center.x, entity.center.y, entity.radius, entity.startAngle, entity.endAngle);
       ctx.stroke();
+      ctx.setLineDash([]);
+      if (entity.construction) break;
 
       // Draw lines from center to arc endpoints for clarity
       ctx.strokeStyle = `rgba(${ENTITY_COLOR}, ${alpha * 0.3})`;

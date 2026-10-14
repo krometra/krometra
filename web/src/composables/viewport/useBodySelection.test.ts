@@ -9,7 +9,7 @@ function makeEntry(bodyId: string): MeshEntry {
     new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshStandardMaterial({ color: DEFAULT_BODY_COLOR }),
   );
-  return { bodyId, mesh, faceTriangleMap: [], brepTopo: { faces: [], edges: [] }, visible: true };
+  return { bodyId, mesh, faceTriangleMap: [], brepTopo: { faces: [], edges: [] }, visible: true, color: DEFAULT_BODY_COLOR.clone() };
 }
 
 function makeContext(entries: MeshEntry[]): SceneContext {

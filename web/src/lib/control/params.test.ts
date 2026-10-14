@@ -10,6 +10,7 @@ const schema = {
   position: param.optional(param.vec3("Позиция.")),
   points: param.optional(param.list(param.vec2("Точка."), "Точки.")),
   flag: param.optional(param.boolean("Флаг.")),
+  color: param.optional(param.color("Цвет.")),
 };
 
 function invalid(raw: unknown): string {
@@ -60,6 +61,11 @@ describe("parseParams", () => {
     expect(invalid({ bodyId: "b", radius: 1, points: [[1, 2], [3]] })).toContain("«points»");
     expect(invalid({ bodyId: "b", radius: 1, points: [] })).toContain("«points»");
     expect(invalid({ bodyId: "b", radius: 1, flag: "yes" })).toContain("«flag»");
+  });
+
+  it("цвет принимает только #rrggbb и приводит к нижнему регистру", () => {
+    expect(parseParams(schema, { bodyId: "b", radius: 1, color: "#FFAA00" }).color).toBe("#ffaa00");
+    expect(invalid({ bodyId: "b", radius: 1, color: "red" })).toContain("#rrggbb");
   });
 
   it("params обязан быть объектом", () => {

@@ -1,6 +1,7 @@
 import type { SketchArc, SketchCircle, SketchEntity, SketchLine, SketchPoint, SketchRectangle } from "@/types/api";
-import { INVALID, isPlainObject, param, type ParamSpec } from "./params";
+import { INVALID, isPlainObject, type ParamSpec } from "./params";
 import { fail } from "./protocol";
+import { circularPattern, linearPattern } from "./sketchPatterns";
 
 type WithOptionalId<T extends { id: string }> = Omit<T, "id"> & { id?: string };
 
@@ -13,7 +14,14 @@ export type SketchEntityInput =
 export const SKETCH_ENTITY_FORMAT =
   'объект { type: "line", start: {x,y}, end: {x,y} } | { type: "rectangle", corner1: {x,y}, corner2: {x,y} } | ' +
   '{ type: "circle", center: {x,y}, radius } | { type: "arc", center: {x,y}, radius, startAngle, endAngle }; ' +
-  "координаты в мм в системе эскиза, углы в радианах против часовой стрелки; необязательные поля: id, construction (для line и circle)";
+  "координаты в мм в системе эскиза, углы в радианах против часовой стрелки; необязательные поля: id, construction (для line, circle и arc). " +
+  'Массивы: { type: "linear_pattern", entities: [...], count, step: {x,y}, count2?, step2?: {x,y} } — сетка count × count2 копий со сдвигами step и step2; ' +
+  '{ type: "circular_pattern", entities: [...], count, center: {x,y}, angle? } — count копий по окружности вокруг center, angle — общий угол в радианах (по умолчанию полный круг). ' +
+  "Первая копия — сами entities, у копий с id к нему добавляется -1, -2 и т. д.; массивы можно вкладывать";
+
+const MAX_PATTERN_COUNT = 500;
+const MAX_ENTITIES = 2000;
+const MAX_PATTERN_DEPTH = 3;
 
 const MIN_SIZE = 1e-9;
 
@@ -62,9 +70,10 @@ function readCircle(raw: Record<string, unknown>): SketchEntityInput | null {
 
 function readArc(raw: Record<string, unknown>): SketchEntityInput | null {
   const center = point(raw.center);
-  if (!center || !finite(raw.radius) || raw.radius < MIN_SIZE) return null;
+  const flags = construction(raw);
+  if (!center || !flags || !finite(raw.radius) || raw.radius < MIN_SIZE) return null;
   if (!finite(raw.startAngle) || !finite(raw.endAngle) || Math.abs(raw.endAngle - raw.startAngle) < MIN_SIZE) return null;
-  return { type: "arc", center, radius: raw.radius, startAngle: raw.startAngle, endAngle: raw.endAngle };
+  return { type: "arc", center, radius: raw.radius, startAngle: raw.startAngle, endAngle: raw.endAngle, ...flags };
 }
 
 const READERS = new Map<unknown, (raw: Record<string, unknown>) => SketchEntityInput | null>([
@@ -81,8 +90,54 @@ function readSketchEntityInput(raw: Record<string, unknown>): SketchEntityInput 
   return entity && id ? { ...entity, ...id } : INVALID;
 }
 
+function patternCount(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= MAX_PATTERN_COUNT ? value : null;
+}
+
+function readPattern(raw: Record<string, unknown>, depth: number): SketchEntityInput[] | null {
+  const inner = readItems(raw.entities, depth + 1);
+  const count = patternCount(raw.count);
+  if (inner === null || count === null) return null;
+  if (raw.type === "circular_pattern") {
+    const center = point(raw.center);
+    if (!center || (raw.angle !== undefined && !finite(raw.angle))) return null;
+    return circularPattern(inner, { count, center, angle: raw.angle as number | undefined });
+  }
+  const step = point(raw.step);
+  const count2 = raw.count2 === undefined ? 1 : patternCount(raw.count2);
+  const step2 = raw.step2 === undefined ? { x: 0, y: 0 } : point(raw.step2);
+  if (!step || count2 === null || !step2) return null;
+  return linearPattern(inner, { count, step, count2, step2 });
+}
+
+function readItem(raw: unknown, depth: number): SketchEntityInput[] | null {
+  if (!isPlainObject(raw)) return null;
+  if (raw.type === "linear_pattern" || raw.type === "circular_pattern") {
+    return depth < MAX_PATTERN_DEPTH ? readPattern(raw, depth) : null;
+  }
+  const entity = readSketchEntityInput(raw);
+  return entity === INVALID ? null : [entity];
+}
+
+function readItems(value: unknown, depth: number): SketchEntityInput[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const result: SketchEntityInput[] = [];
+  for (const raw of value) {
+    const items = readItem(raw, depth);
+    if (!items || result.length + items.length > MAX_ENTITIES) return null;
+    result.push(...items);
+  }
+  return result;
+}
+
 export function sketchEntitiesParam(description: string): ParamSpec<SketchEntityInput[]> {
-  return param.list(param.object(description, SKETCH_ENTITY_FORMAT, readSketchEntityInput), description);
+  return {
+    type: "array",
+    required: true,
+    description,
+    expected: `непустой массив (не больше ${MAX_ENTITIES} сущностей после раскрытия массивов), элемент — ${SKETCH_ENTITY_FORMAT}`,
+    read: (value) => readItems(value, 0) ?? INVALID,
+  };
 }
 
 export function assignEntityIds(inputs: SketchEntityInput[], takenIds: Iterable<string>, stamp: number): SketchEntity[] {

@@ -3,7 +3,6 @@ import type { BrepTopo } from "@/types/api";
 import type { MeshEntry, SceneContext } from "./types";
 import { findByMesh } from "./types";
 import { raycastFace } from "./faceRaycast";
-import { DEFAULT_BODY_COLOR } from "./useBodyRegistry";
 
 const HIGHLIGHT_COLOR = new THREE.Color(0x4da6ff);
 const HOVER_COLOR = new THREE.Color(0x7fc4ff);
@@ -24,7 +23,7 @@ export function useFaceSelection(options: {
   let selected: { mesh: THREE.Mesh; faceId: string | number } | null = null;
 
   /** Перекрасить треугольники грани в буфере вершинных цветов. */
-  function paintFace(faceId: string | number, color: THREE.Color) {
+  function paintFace(faceId: string | number, color: THREE.Color | null) {
     if (!activeMesh) return;
     const entry = findByMesh(context.entries, activeMesh);
     if (!entry) return;
@@ -34,9 +33,9 @@ export function useFaceSelection(options: {
       const count = geo.getAttribute("position").count;
       const colors = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
-        colors[i * 3] = DEFAULT_BODY_COLOR.r;
-        colors[i * 3 + 1] = DEFAULT_BODY_COLOR.g;
-        colors[i * 3 + 2] = DEFAULT_BODY_COLOR.b;
+        colors[i * 3] = entry.color.r;
+        colors[i * 3 + 1] = entry.color.g;
+        colors[i * 3 + 2] = entry.color.b;
       }
       geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     }
@@ -51,15 +50,16 @@ export function useFaceSelection(options: {
       mat.needsUpdate = true;
     }
 
+    const paint = color ?? entry.color;
     const index = geo.index!;
     const colors = geo.getAttribute("color").array as Float32Array;
     for (let t = 0; t < entry.faceTriangleMap.length; t++) {
       if (entry.faceTriangleMap[t] !== faceId) continue;
       for (const corner of [0, 1, 2]) {
         const vi = index.getX(t * 3 + corner);
-        colors[vi * 3] = color.r;
-        colors[vi * 3 + 1] = color.g;
-        colors[vi * 3 + 2] = color.b;
+        colors[vi * 3] = paint.r;
+        colors[vi * 3 + 1] = paint.g;
+        colors[vi * 3 + 2] = paint.b;
       }
     }
     geo.getAttribute("color").needsUpdate = true;
@@ -67,7 +67,7 @@ export function useFaceSelection(options: {
 
   function highlightFace(faceId: string | number, color: THREE.Color = HIGHLIGHT_COLOR) {
     if (highlightedFaceId !== null && highlightedFaceId !== faceId) {
-      paintFace(highlightedFaceId, DEFAULT_BODY_COLOR);
+      paintFace(highlightedFaceId, null);
     }
     paintFace(faceId, color);
     highlightedFaceId = faceId;
@@ -75,7 +75,7 @@ export function useFaceSelection(options: {
 
   function clearHighlight() {
     if (highlightedFaceId === null) return;
-    paintFace(highlightedFaceId, DEFAULT_BODY_COLOR);
+    paintFace(highlightedFaceId, null);
     highlightedFaceId = null;
   }
 

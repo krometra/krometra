@@ -2,7 +2,8 @@
 // Does NOT use localStorage for tokens — only in-memory
 
 import { useAuth } from "./shared/useAuth";
-import { ApiError, toApiError } from "@/lib/apiError";
+import { ApiError, saveFailure, toApiError } from "@/lib/apiError";
+import { isTransientFailure, retryTransient } from "@/lib/transientRetry";
 
 const BASE_URL = "/api";
 
@@ -103,6 +104,15 @@ export function useApi() {
   }
 
   async function multipart<T>(method: "POST" | "PUT", path: string, body: FormData): Promise<T> {
+    try {
+      return await retryTransient(() => multipartOnce<T>(method, path, body));
+    } catch (error) {
+      if (isTransientFailure(error)) throw saveFailure(error as ApiError);
+      throw error;
+    }
+  }
+
+  async function multipartOnce<T>(method: "POST" | "PUT", path: string, body: FormData): Promise<T> {
     const headers: Record<string, string> = {};
     if (auth.accessToken.value) {
       headers["Authorization"] = `Bearer ${auth.accessToken.value}`;
@@ -126,7 +136,7 @@ export function useApi() {
   }
 
   return {
-    get: <T>(path: string) => request<T>(path),
+    get: <T>(path: string) => retryTransient(() => request<T>(path)),
     post: <T>(path: string, body?: unknown) =>
       request<T>(path, {
         method: "POST",

@@ -19,6 +19,13 @@ export class ApiError extends Error {
   }
 }
 
+export const SAVE_FAILED_MESSAGE =
+  "Геометрия построена, но сервер её не сохранил: нет связи или сервер недоступен. Модель не изменилась — повторите операцию через 10–20 секунд.";
+
+export function saveFailure(cause: ApiError): ApiError {
+  return new ApiError(cause.status, "save_failed", SAVE_FAILED_MESSAGE);
+}
+
 const STATUS_MESSAGES: Record<number, string> = {
   400: "Запрос отклонён сервером.",
   401: "Неверная почта или пароль.",
@@ -107,6 +114,7 @@ const CODE_MESSAGES: Record<string, string> = {
   target_changed: "Целевое тело изменилось во время построения. Выберите тело заново.",
   target_not_browser: "Браузерное ядро может изменять только тела, построенные в браузере.",
   invalid_thread_params: "Параметры резьбы недопустимы — проверьте шаг, глубину, длину и число заходов.",
+  invalid_transform_params: "Параметры перемещения недопустимы — задайте сдвиг или поворот с ненулевой осью.",
   mixed_browser_export_unsupported: "Экспорт пока не смешивает browser-тела и серверные тела.",
   multiple_browser_export_unsupported: "Экспорт нескольких browser-тел пока недоступен — объедините их или скройте лишние.",
   invalid_edge_ids: "Выберите хотя бы одно ребро тела.",

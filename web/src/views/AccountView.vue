@@ -96,7 +96,8 @@ async function confirmDelete() {
 
 <style module>
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   background: var(--cs-surface);
   color: var(--cs-text);
 }

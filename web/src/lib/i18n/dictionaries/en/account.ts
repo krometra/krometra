@@ -50,17 +50,30 @@ export const account: Translation<typeof source> = {
   "account.copyFailed": "Could not copy. Select the text and copy it manually.",
 
   "account.guide.title": "How to connect",
-  "account.guide.install.title": "Install the MCP server",
-  "account.guide.install.text":
-    "You need git, Node.js 22 or newer and Claude Code. The server drives the editor through a Chromium browser, so it is installed along with the dependencies:",
-  "account.guide.connect.title": "Connect it to Claude Code",
+  "account.guide.connect.title":
+    "Connect the server to Claude Code",
   "account.guide.connect.text":
-    "Create a key above and run the command shown next to it: the key and this site's address are already filled in. The general form of the command:",
+    "The server runs on this site — there is nothing to install. Create a key above and run the command shown next to it: the key and the site address are already filled in. The general form of the command:",
   "account.guide.verify.title": "Check the connection",
   "account.guide.verify.text":
     "The list should contain the {server} server with the Connected status. Then ask the assistant to list your projects.",
   "account.guide.revoke.title": "Revoke the key when you no longer need it",
   "account.guide.revoke.text":
     "Delete the key in the list above: access ends immediately, even for an assistant that is already running. To remove the server from Claude Code:",
+  "account.guide.open.title":
+    "Keep the project open in your browser",
+  "account.guide.open.text":
+    "The assistant works in the open editor tab: you watch the model change while the “AI agent is controlling the editor” badge is on. If the tab is closed, the assistant sends you a link to the project — open it.",
+  "account.guide.local.title":
+    "Local server — if keeping a tab open is inconvenient",
+  "account.guide.local.text":
+    "The server is installed on your computer and opens the editor in a background Chromium browser. You need git, Node.js 22 or newer and Claude Code. Installation:",
+  "account.guide.local.connect":
+    "Connection (instead of the command from step 1):",
   "account.guide.more": "Detailed guide and environment variables",
+  "account.guide.agent": "Copy instructions for an agent",
+  "account.agent.prompt":
+    "Connect the {product} MCP server (browser-based 3D CAD) to Claude Code and check that it works. The server runs on the site, there is nothing to install.\n\n1. Connect the server for all of the user's projects:\n\n```bash\n{connect}\n```\n\n{keyNote}\n\n2. Check the connection: the output must list the krometra server with the Connected status.\n\n```bash\n{verify}\n```\n\n3. Restart Claude Code or run /mcp, then call the cad_list_projects tool.\n\nHow to work with the editor: cad_open_project — commands run in the editor tab the user has open, so if the tool asks for it, give the user the project link. Then cad_capabilities (the only source of truth about operations), cad_state and cad_snapshot to read the model, cad_request to run operations. Sizes are in millimetres. Details: {readme}",
+  "account.agent.keyPlaceholder": "Replace krm_... with an access key from the Account page ({origin}/account): ask the user for it.",
+  "account.agent.keyFilled": "The access key and site address are already filled in.",
 };

@@ -1,33 +1,30 @@
-import type { Command } from "./Command";
 import type { Document, ExtrudeResponse, MeshData } from "@/types/api";
 import { useApi } from "@/composables/useApi";
 import type { BrowserExtrudeOptions, BrowserSketchPlacement } from "@/composables/editor/useBrowserGeometry";
 import { browserExtrudeForm, browserExtrudeLabel } from "@/lib/browserExtrudeForm";
-import { captureSnapshot, restoreSnapshot, type DocumentSnapshot } from "./documentSnapshot";
 import { browserBodyForm, newFeatureKey } from "./browserUpload";
+import { RecordedCommand } from "./RecordedCommand";
 
-export class BrowserExtrudeCommand implements Command {
+export class BrowserExtrudeCommand extends RecordedCommand {
   label = "Выдавить в браузере";
 
-  private snapshot: DocumentSnapshot | null;
   private resultBodyId: string | null = null;
   private resultMesh: MeshData | null = null;
   private featureKey = newFeatureKey();
 
   constructor(
-    private projectId: string,
+    projectId: string,
     private sketchId: string,
     private placement: BrowserSketchPlacement,
     private options: BrowserExtrudeOptions,
     private documentVersion: number,
     private getDoc: () => Document | null,
-    private reloadDoc: () => Promise<void>,
     private onMeshRemoved: (bodyId: string) => void,
   ) {
-    this.snapshot = captureSnapshot(getDoc());
+    super(projectId);
   }
 
-  async execute(): Promise<void> {
+  protected async perform(): Promise<void> {
     const { buildBrowserExtrude, discardBrowserShape, retainBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
     const browserResult = await buildBrowserExtrude({ ...this.placement, ...this.options }, this.featureKey);
     try {
@@ -50,18 +47,6 @@ export class BrowserExtrudeCommand implements Command {
       await discardBrowserShape(browserResult.shapeHandle).catch(() => undefined);
       throw error;
     }
-  }
-
-  async undo(): Promise<void> {
-    if (!this.snapshot || !(await restoreSnapshot(this.projectId, this.snapshot))) return;
-    if (this.resultBodyId) {
-      this.onMeshRemoved(this.resultBodyId);
-      const { releaseBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
-      await releaseBrowserShape(this.resultBodyId).catch(() => undefined);
-    }
-    this.resultBodyId = null;
-    this.resultMesh = null;
-    await this.reloadDoc();
   }
 
   getResult(): { bodyId: string; mesh: MeshData } | null {

@@ -57,6 +57,10 @@ def _check_timeline_entry(entry: object) -> None:
     _check_references(params or {}, "История")
 
 
+class DocumentVersionResponse(BaseModel):
+    version: int
+
+
 class DocumentUpdate(BaseModel):
     components: Optional[dict] = None
     timeline: Optional[list] = None

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ApiError, SAVE_FAILED_MESSAGE, saveFailure } from "../apiError";
 import { createControlDispatcher, defineOp, type DispatcherHooks } from "./dispatcher";
 import { param } from "./params";
 import { fail, type ControlReply } from "./protocol";
@@ -116,6 +117,14 @@ describe("createControlDispatcher: ошибки обработчика", () => {
     expect(errorOf(await dispatcher.request({ op: "throw" }))).toEqual({ code: "operation_failed", message: "ядро упало" });
     expect(errorOf(await dispatcher.request({ op: "reject" })).message).toBe("строка вместо ошибки");
     expect(errorOf(await dispatcher.request({ op: "silent" })).message.length).toBeGreaterThan(0);
+  });
+
+  it("сбой сохранения на сервере даёт save_failed, а не operation_failed", async () => {
+    const dispatcher = readyDispatcher();
+    dispatcher.register([
+      defineOp({ op: "save", description: "Не сохраняет.", run: () => Promise.reject(saveFailure(new ApiError(502, "error", "502"))) }),
+    ]);
+    expect(errorOf(await dispatcher.request({ op: "save" }))).toEqual({ code: "save_failed", message: SAVE_FAILED_MESSAGE });
   });
 
   it("результат приводится к JSON: undefined становится null, несериализуемое — ошибкой", async () => {

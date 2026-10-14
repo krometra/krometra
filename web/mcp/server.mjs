@@ -4,6 +4,7 @@ import { Editor } from "./editor.mjs";
 import { createRedactor } from "./errors.mjs";
 import { createProtocol } from "./protocol.mjs";
 import { Session } from "./session.mjs";
+import { createLocalFileTools } from "./localFiles.mjs";
 import { INSTRUCTIONS, createTools } from "./tools.mjs";
 
 const SERVER_INFO = { name: "krometra", version: "0.1.0" };
@@ -18,7 +19,7 @@ const editor = new Editor(config, session, log);
 const handle = createProtocol({
   serverInfo: SERVER_INFO,
   instructions: INSTRUCTIONS,
-  tools: createTools({ session, editor }),
+  tools: createTools({ session, editor, fileTools: createLocalFileTools({ editor }) }),
   redact: redactor.redact,
   log,
 });

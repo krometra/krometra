@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useSketch } from "@/composables/shared/useSketch";
-import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useApi } from "@/composables/useApi";
 import { useAutoSave } from "@/composables/useAutoSave";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -20,9 +19,14 @@ import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
 import { useStepImport } from "@/composables/editor/useStepImport";
+import { useModelHistory, type HistoryDirection } from "@/composables/editor/useModelHistory";
+import { useBodyPresentation } from "@/composables/editor/useBodyPresentation";
+import { useBodyTransform } from "@/composables/editor/useBodyTransform";
+import { useDocumentWatch } from "@/composables/editor/useDocumentWatch";
+import { useTreeContextMenu } from "@/composables/editor/useTreeContextMenu";
 import { useProjectThumbnail } from "@/composables/editor/useProjectThumbnail";
 import { useEditorControl } from "@/composables/editor/useEditorControl";
-import { toast } from "@/composables/useToast";
+import { apiErrorMessage, toast } from "@/composables/useToast";
 import ViewportContainer from "@/components/viewport/ViewportContainer.vue";
 import ViewCube from "@/components/viewport/ViewCube.vue";
 import SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
@@ -43,17 +47,18 @@ import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
 import AxisTriad from "@/components/editor/AxisTriad.vue";
 import LegacyProjectNotice from "@/components/editor/LegacyProjectNotice.vue";
+import WatchModeBanner from "@/components/editor/WatchModeBanner.vue";
+import AiControlBadge from "@/components/editor/AiControlBadge.vue";
 import { pluralize } from "@/lib/plural";
-import type { CtxItem, RenderingMode, RibbonAction, SelectionMode, TreeItemKind } from "@/composables/editor/types";
+import type { RenderingMode, RibbonAction, SelectionMode } from "@/composables/editor/types";
 import type { BrepTopo, Project } from "@/types/api";
 
-const props = defineProps<{ id: string }>();
+const props = defineProps<{ id: string; watch?: boolean }>();
 
 const api = useApi();
 const documentStore = useDocument();
 const selection = useSelection();
 const sketch = useSketch();
-const undoRedo = useUndoRedo();
 const names = useDisplayNames();
 const model = useDocumentModel();
 
@@ -73,6 +78,9 @@ const meshes = useBodyMeshes({
 const status = useDocumentStatus(props.id);
 const camera = useCameraSync(viewportRef);
 const extrude = useExtrudeRevolve({ projectId: props.id, viewportRef, meshes, model });
+const history = useModelHistory({ projectId: props.id, meshes });
+const bodyPresentation = useBodyPresentation({ projectId: props.id, viewportRef });
+const bodyTransform = useBodyTransform({ projectId: props.id, meshes });
 const sketchFlow = useSketchLifecycle({
   projectId: props.id,
   viewportRef,
@@ -81,6 +89,7 @@ const sketchFlow = useSketchLifecycle({
   meshes,
   model,
   extrude,
+  history,
 });
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
@@ -91,6 +100,8 @@ const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
 useProjectThumbnail({ projectId: props.id, viewportRef, visibleBodies: meshes.totalBodies, legacyProject: meshes.legacyProject });
 
 const { start: startAutoSave } = useAutoSave(props.id, 30000);
+const documentWatch = useDocumentWatch({ projectId: props.id, meshes });
+const watchInert = props.watch ? true : undefined;
 
 onMounted(async () => {
   status.docStatus.value = "loading";
@@ -106,7 +117,8 @@ onMounted(async () => {
   } catch {
     status.docStatus.value = "unsaved";
   }
-  startAutoSave();
+  if (props.watch) documentWatch.start();
+  else startAutoSave();
 });
 
 // --- Режимы: эскиз выходит из остальных, между собой они не пересекаются ---
@@ -156,121 +168,40 @@ function onSelectionCleared() {
   selection.clearSelection();
 }
 
-async function toggleBodyVisibility(bodyId: string) {
-  const doc = documentStore.document.value;
-  if (!doc) return;
-  const comp = doc.components[bodyId] as Record<string, unknown> | undefined;
-  if (!comp) return;
-  const nowVisible = comp.visible === false;
-  documentStore.document.value = {
-    ...doc,
-    components: { ...doc.components, [bodyId]: { ...comp, visible: nowVisible } },
-  };
-  viewportRef.value?.setMeshVisibility(bodyId, nowVisible);
-  documentStore.markDirty();
-  await documentStore.save(props.id);
-}
-
-// --- Контекстное меню дерева и таймлайна ---
-
-const ctxMenu = ref<{ x: number; y: number; kind: TreeItemKind; id: string } | null>(null);
-
-function openContextMenu(e: MouseEvent, kind: TreeItemKind, id: string) {
-  ctxMenu.value = { x: e.clientX, y: e.clientY, kind, id };
-}
-
-function closeContextMenu() {
-  ctxMenu.value = null;
-}
-
-const ctxItems = computed<CtxItem[]>(() => {
-  const m = ctxMenu.value;
-  if (!m) return [];
-  if (m.kind === "sketch") {
-    const items: CtxItem[] = [
-      { label: "Редактировать эскиз", action: () => sketchFlow.editSketch(m.id) },
-      { label: "Выдавить", action: () => extrude.startExtrudeFromSketch(m.id, "extrude") },
-      { label: "Вращать", action: () => extrude.startExtrudeFromSketch(m.id, "revolve") },
-      { label: "Переименовать", action: () => treeRef.value?.startRename(m.id, names.sketchLabel(m.id)) },
-    ];
-    if (!model.sketchHasFeature(m.id)) {
-      items.push({ label: "Удалить", danger: true, action: () => sketchFlow.deleteSketch(m.id) });
-    }
-    return items;
-  }
-  if (m.kind === "body") {
-    const body = model.bodies.value.find((b) => b.id === m.id);
-    return [
-      {
-        label: body?.visible !== false ? "Скрыть" : "Показать",
-        action: () => toggleBodyVisibility(m.id),
-      },
-      { label: "Переименовать", action: () => treeRef.value?.startRename(m.id, names.bodyLabel(m.id)) },
-    ];
-  }
-  const entry = model.timelineEntries.value.find((e) => e.id === m.id);
-  const items: CtxItem[] = [
-    { label: "Показать свойства", action: () => selection.selectFeature(m.id) },
-  ];
-  if (entry?.kind === "sketch" && entry.sketch_id) {
-    const sketchId = entry.sketch_id;
-    items.push({ label: "Редактировать эскиз", action: () => sketchFlow.editSketch(sketchId) });
-  }
-  if (entry) {
-    items.push({ label: "Переименовать", action: () => treeRef.value?.startRename(m.id, names.entryLabel(entry)) });
-  }
-  return items;
-});
+const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation });
 
 // --- Undo / Redo ---
 
 // В эскизе Ctrl+Z правит эскиз, а не историю фич модели: раньше он проваливался
 // в CommandHistory и откатывал ПРЕДЫДУЩУЮ операцию модели вместо линии эскиза.
-async function handleUndo() {
+async function handleHistory(direction: HistoryDirection) {
+  const nothing = direction === "undo" ? "Отменять нечего" : "Повторять нечего";
   if (sketch.sketchMode.value) {
-    if (!(await sketch.undo())) toast("Отменять нечего", "info");
+    if (!(await (direction === "undo" ? sketch.undo() : sketch.redo()))) toast(nothing, "info");
     return;
   }
-  if (!undoRedo.canUndo.value) {
-    toast("Отменять нечего", "info");
-    return;
+  try {
+    if (!(await history.step(direction))) toast(nothing, "info");
+  } catch (error) {
+    toast(apiErrorMessage(error, "Не удалось изменить историю"), "warning");
   }
-  await undoRedo.undo();
-  await refreshAfterHistoryChange();
 }
 
-async function handleRedo() {
-  if (sketch.sketchMode.value) {
-    if (!(await sketch.redo())) toast("Повторять нечего", "info");
-    return;
-  }
-  if (!undoRedo.canRedo.value) {
-    toast("Повторять нечего", "info");
-    return;
-  }
-  await undoRedo.redo();
-  await refreshAfterHistoryChange();
-}
+const handleUndo = () => handleHistory("undo");
+const handleRedo = () => handleHistory("redo");
 
-// Undo/redo уже записали своё состояние на сервер, поэтому markDirty здесь
-// НЕЛЬЗЯ: автосейв затем перезаписывал бы документ устаревшим снимком из
-// памяти — из-за этого после перезагрузки модель откатывалась к ранней версии.
-// Сцена перестраивается из документа, а не точечными мутациями (AGENTS.md).
-async function refreshAfterHistoryChange() {
-  await documentStore.load(props.id);
-  await meshes.hydrateBodyMeshes();
-}
-
-useEditorControl({
-  projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
-  exportApi, stepImport, leaveActiveTools, undo: handleUndo, redo: handleRedo,
-});
+const control = props.watch
+  ? null
+  : useEditorControl({
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
+      exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
+    });
 
 // --- Горячие клавиши ---
 
 function handleEscape() {
-  if (ctxMenu.value) {
-    closeContextMenu();
+  if (contextMenu.menu.value) {
+    contextMenu.close();
     return;
   }
   if (treeRef.value?.isRenaming) {
@@ -304,7 +235,7 @@ function handleEscape() {
 
 const showShortcuts = ref(false);
 
-useEditorHotkeys({
+if (!props.watch) useEditorHotkeys({
   onEscape: handleEscape,
   onUndo: handleUndo,
   onRedo: handleRedo,
@@ -366,6 +297,7 @@ const selectionLabel = computed(() => {
 <template>
   <div :class="$style.editor">
     <EditorMenuBar
+      :inert="watchInert"
       :project-name="projectName"
       :doc-status="status.docStatus.value"
       :status-label="status.statusLabel.value"
@@ -380,8 +312,9 @@ const selectionLabel = computed(() => {
     />
 
     <EditorRibbon
-      :can-undo="sketch.sketchMode.value ? sketch.canUndo.value : undoRedo.canUndo.value"
-      :can-redo="sketch.sketchMode.value ? sketch.canRedo.value : undoRedo.canRedo.value"
+      :inert="watchInert"
+      :can-undo="sketch.sketchMode.value ? sketch.canUndo.value : history.canUndo.value"
+      :can-redo="sketch.sketchMode.value ? sketch.canRedo.value : history.canRedo.value"
       :body-count="model.bodies.value.length"
       @action="handleRibbonAction"
       @undo="handleUndo"
@@ -392,9 +325,10 @@ const selectionLabel = computed(() => {
     <div :class="$style.middle">
       <ModelTree
         ref="treeRef"
+        :inert="watchInert"
         :project-id="props.id"
-        @context-menu="openContextMenu"
-        @toggle-visibility="toggleBodyVisibility"
+        @context-menu="contextMenu.open"
+        @toggle-visibility="contextMenu.toggleVisibility"
       />
 
       <div :class="$style.viewport">
@@ -418,11 +352,14 @@ const selectionLabel = computed(() => {
         </div>
 
         <OnboardingHint
-          v-if="onboarding.hint.value"
+          v-if="onboarding.hint.value && !props.watch"
           :hint="onboarding.hint.value"
           @act="runOnboardingStep(onboarding.hint.value.step)"
           @dismiss="onboarding.dismiss(onboarding.hint.value.step)"
         />
+
+        <WatchModeBanner v-if="props.watch" :project-id="props.id" :last-synced-at="documentWatch.lastSyncedAt.value" />
+        <AiControlBadge v-else-if="control?.relay.attached.value" />
 
         <div v-if="busyLabel" :class="$style.busyBadge">
           <span :class="$style.busySpinner" />{{ busyLabel }}
@@ -469,7 +406,7 @@ const selectionLabel = computed(() => {
         </div>
       </div>
 
-      <aside :class="$style.props">
+      <aside :class="$style.props" :inert="watchInert">
         <SketchPropsPanel
           v-if="sketch.sketchMode.value"
           @ok="sketchFlow.handleSketchOk"
@@ -500,10 +437,11 @@ const selectionLabel = computed(() => {
     </div>
 
     <TimelineStrip
+      :inert="watchInert"
       :entries="model.timelineEntries.value"
       :selected-id="selection.selectedFeatureId.value"
       @select="selection.selectFeature($event)"
-      @context-menu="(e, id) => openContextMenu(e, 'feature', id)"
+      @context-menu="(e, id) => contextMenu.open(e, 'feature', id)"
       @add-sketch="enterSketchMode()"
     />
 
@@ -516,11 +454,11 @@ const selectionLabel = computed(() => {
     <LegacyProjectNotice v-if="meshes.legacyProject.value" />
 
     <TreeContextMenu
-      v-if="ctxMenu"
-      :x="ctxMenu.x"
-      :y="ctxMenu.y"
-      :items="ctxItems"
-      @close="closeContextMenu"
+      v-if="contextMenu.menu.value"
+      :x="contextMenu.menu.value.x"
+      :y="contextMenu.menu.value.y"
+      :items="contextMenu.items.value"
+      @close="contextMenu.close"
     />
   </div>
 </template>

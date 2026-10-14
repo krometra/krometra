@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import type { MeshEntry } from "./types";
 import { findByBody, findByMesh, visibleMeshes } from "./types";
-import { DEFAULT_BODY_COLOR } from "./useBodyRegistry";
 import type { SceneContext } from "./types";
 
 /** Роль тела в булевой операции. Слоты симметричны — код у них общий. */
@@ -30,7 +29,7 @@ export function useBodySelection(options: {
   const { context } = options;
   const slots: Record<BodyRole, string | null> = { target: null, tool: null };
 
-  function paint(bodyId: string, color: THREE.Color) {
+  function paint(bodyId: string, color: THREE.Color | null) {
     const entry = findByBody(context.entries, bodyId);
     if (!entry) return;
     const mat = entry.mesh.material as THREE.MeshStandardMaterial;
@@ -40,7 +39,7 @@ export function useBodySelection(options: {
       mat.vertexColors = false;
       mat.needsUpdate = true;
     }
-    mat.color.copy(color);
+    mat.color.copy(color ?? entry.color);
   }
 
   function roleOf(bodyId: string): BodyRole | null {
@@ -50,7 +49,7 @@ export function useBodySelection(options: {
   function release(role: BodyRole) {
     const bodyId = slots[role];
     if (!bodyId) return;
-    paint(bodyId, DEFAULT_BODY_COLOR);
+    paint(bodyId, null);
     slots[role] = null;
     options.onDeselected(bodyId);
   }

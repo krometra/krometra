@@ -38,7 +38,7 @@ const router = createRouter({
       name: "editor",
       component: () => import("@/views/EditorView.vue"),
       meta: { requiresAuth: true },
-      props: true,
+      props: (route) => ({ id: route.params.id, watch: route.query.watch === "1" }),
     },
   ],
 });

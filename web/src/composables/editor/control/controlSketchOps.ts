@@ -10,14 +10,18 @@ const PNG_PREFIX = "data:image/png;base64,";
 
 interface SketchPlacement {
   plane?: SketchPlane;
+  offset?: number;
   bodyId?: string;
   faceId?: string;
 }
 
-type SketchTarget = { kind: "plane"; plane: SketchPlane } | { kind: "face"; bodyId: string; faceId: string | number };
+type SketchTarget = { kind: "plane"; plane: SketchPlane; offset: number } | { kind: "face"; bodyId: string; faceId: string | number };
 
 const placementParams = {
   plane: param.optional(param.oneOf(["XY", "XZ", "YZ"], "Базовая плоскость эскиза. Задаётся вместо bodyId и faceId.")),
+  offset: param.optional(
+    param.number("Смещение базовой плоскости вдоль её нормали в мм (XY — по Z, XZ — по Y, YZ — по X), только вместе с plane. Так эскиз и выдавленное из него тело начинаются на нужной высоте. По умолчанию 0."),
+  ),
   bodyId: param.optional(param.id("Тело, на плоской грани которого строится эскиз. Задаётся вместе с faceId.")),
   faceId: param.optional(param.id("Плоская грань тела из op topology (поле planar). Задаётся вместе с bodyId.")),
 };
@@ -66,7 +70,8 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     if (placement.plane !== undefined && onFace) {
       throw fail("invalid_params", "Задайте либо plane, либо пару bodyId и faceId, но не всё сразу.");
     }
-    if (placement.plane !== undefined) return { kind: "plane", plane: placement.plane };
+    if (placement.plane !== undefined) return { kind: "plane", plane: placement.plane, offset: placement.offset ?? 0 };
+    if (placement.offset !== undefined) throw fail("invalid_params", "offset задаётся только вместе с plane: эскиз на грани лежит в её плоскости.");
     if (placement.bodyId === undefined || placement.faceId === undefined) {
       throw fail("invalid_params", "Задайте plane (XY | XZ | YZ) либо bodyId вместе с faceId.");
     }
@@ -78,7 +83,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     context.leaveTools();
     sketchFlow.beginPlanePick();
     if (target.kind === "plane") {
-      sketchFlow.onPlanePicked({ plane: target.plane });
+      sketchFlow.onPlanePicked({ plane: target.plane, offset: target.offset });
     } else {
       sketchFlow.handleFaceSketchStart({ bodyId: target.bodyId, faceId: target.faceId });
       if (sketchFlow.facePickMode.value) {
@@ -162,7 +167,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.start",
       description:
-        "Открывает новый эскиз на базовой плоскости (plane) или на плоской грани тела (bodyId + faceId) — то же, что кнопка «Эскиз» и клик по плоскости. Открытая панель инструмента закрывается. У эскиза на грани в сущностях появляются линии построения по контуру грани. Возвращает то же, что sketch.get. Дальше — sketch.addEntities и sketch.finish.",
+        "Открывает новый эскиз на базовой плоскости (plane, при необходимости смещённой на offset мм) или на плоской грани тела (bodyId + faceId) — то же, что кнопка «Эскиз» и клик по плоскости. Открытая панель инструмента закрывается. У эскиза на грани в сущностях появляются сущности построения (construction = true) по кромкам грани: прямая кромка — line, круглая — circle, дуга — arc. Возвращает то же, что sketch.get. Дальше — sketch.addEntities и sketch.finish.",
       mutates: true,
       params: placementParams,
       run: start,
@@ -199,7 +204,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.create",
       description:
-        "Создаёт эскиз целиком: открывает его на базовой плоскости или плоской грани, добавляет сущности, сохраняет и возвращается в режим модели. Возвращает { sketchId, entityCount, mode }. При ошибке эскиз закрывается без сохранения.",
+        "Создаёт эскиз целиком: открывает его на базовой плоскости (с offset — на смещённой) или плоской грани, добавляет сущности, сохраняет и возвращается в режим модели. Тело на высоте Z = h: plane XY, offset h, затем extrude. Возвращает { sketchId, entityCount, mode }. При ошибке эскиз закрывается без сохранения.",
       mutates: true,
       params: { ...placementParams, entities: sketchEntitiesParam(ENTITIES_HELP) },
       run: ({ entities, ...placement }) => create(placement, entities),

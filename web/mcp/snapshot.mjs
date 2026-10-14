@@ -9,41 +9,6 @@ const PNG_MIME = "image/png";
 const KIND_NAMES = { edges: "рёбер", faces: "граней" };
 const COLORS = { accent: "#ff3b6b", background: "#111418", text: "#ffffff" };
 
-async function drawMarks({ dataBase64, marks, style }) {
-  const bytes = Uint8Array.from(atob(dataBase64), (char) => char.charCodeAt(0));
-  const bitmap = await createImageBitmap(new Blob([bytes], { type: "image/png" }));
-  const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(bitmap, 0, 0);
-  ctx.lineWidth = style.lineWidth;
-  ctx.strokeStyle = style.accent;
-  for (const { anchor, box } of marks) {
-    ctx.beginPath();
-    ctx.moveTo(anchor.x, anchor.y);
-    ctx.lineTo(box.x + box.width / 2, box.y + box.height / 2);
-    ctx.stroke();
-  }
-  ctx.font = style.font;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  for (const { text, box } of marks) {
-    ctx.fillStyle = style.background;
-    ctx.fillRect(box.x, box.y, box.width, box.height);
-    ctx.strokeRect(box.x + 0.5, box.y + 0.5, box.width - 1, box.height - 1);
-    ctx.fillStyle = style.text;
-    ctx.fillText(text, box.x + box.width / 2, box.y + box.height / 2, box.width - style.padding);
-  }
-  ctx.fillStyle = style.accent;
-  for (const { anchor } of marks) {
-    ctx.beginPath();
-    ctx.arc(anchor.x, anchor.y, style.dotRadius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  return canvas.toDataURL("image/png").split(",")[1];
-}
-
 function markStyle(metrics) {
   return {
     ...COLORS,
@@ -104,13 +69,13 @@ export async function captureLabeled(editor, { kind, bodyId, labelText }) {
   const image = readPngSize(shot.dataBase64);
   if (!image) throw new ToolError(`viewport.capture вернул не PNG (${shot.mime}): подписи наносятся только на PNG.`);
   const plan = planLabels({ anchors, projection, image, labelText });
-  const dataBase64 = await editor.evaluate("подписи на снимке", drawMarks, {
+  const drawn = await editor.query("image.drawLabels", {
     dataBase64: shot.dataBase64,
     marks: plan.marks,
     style: markStyle(plan.metrics),
   });
   return {
-    shot: { mime: PNG_MIME, dataBase64 },
+    shot: { mime: PNG_MIME, dataBase64: drawn.dataBase64 },
     legend: formatLegend({ bodyId: body, kind, image, plan, unplaced, stable }),
   };
 }

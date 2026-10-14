@@ -50,6 +50,19 @@ services:
         condition: service_started
     restart: unless-stopped
 
+
+  mcp:
+    build:
+      context: ./web/mcp
+      dockerfile: Dockerfile
+    container_name: cad-studio-mcp
+    environment:
+      BACKEND_URL: http://app:8000
+      PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL не задан в .env (например https://krometra.ru)}
+    depends_on:
+      - app
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
     container_name: cad-studio-postgres

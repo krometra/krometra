@@ -75,3 +75,44 @@ describe("assignEntityIds", () => {
     expect(() => assignEntityIds([circle("a"), circle("a")], [], 1)).toThrow(ControlError);
   });
 });
+
+describe("массивы сущностей", () => {
+  const hole = { type: "circle", center: { x: 0, y: 0 }, radius: 0.5, id: "pin" };
+
+  it("линейный массив сеткой раскрывается в копии с id через суффикс", () => {
+    const entities = read([{ type: "linear_pattern", entities: [hole], count: 3, step: { x: 2.54, y: 0 }, count2: 2, step2: { x: 0, y: 2.54 } }]);
+    expect(entities).toHaveLength(6);
+    expect(entities.map((entity) => entity.id)).toEqual(["pin", "pin-1", "pin-2", "pin-3", "pin-4", "pin-5"]);
+    expect(entities[5]).toMatchObject({ type: "circle", center: { x: 5.08, y: 2.54 } });
+  });
+
+  it("круговой массив поворачивает центр и углы дуг", () => {
+    const entities = read([
+      {
+        type: "circular_pattern",
+        count: 4,
+        center: { x: 0, y: 0 },
+        entities: [{ type: "arc", center: { x: 10, y: 0 }, radius: 1, startAngle: 0, endAngle: 1 }],
+      },
+    ]) as Extract<SketchEntityInput, { type: "arc" }>[];
+    expect(entities).toHaveLength(4);
+    expect(entities[1].center.x).toBeCloseTo(0, 9);
+    expect(entities[1].center.y).toBeCloseTo(10, 9);
+    expect(entities[1].startAngle).toBeCloseTo(Math.PI / 2, 9);
+  });
+
+  it("повёрнутый прямоугольник становится четырьмя отрезками", () => {
+    const entities = read([
+      { type: "circular_pattern", count: 8, center: { x: 0, y: 0 }, entities: [{ type: "rectangle", corner1: { x: 5, y: -1 }, corner2: { x: 7, y: 1 } }] },
+    ]);
+    expect(entities.filter((entity) => entity.type === "rectangle")).toHaveLength(4);
+    expect(entities.filter((entity) => entity.type === "line")).toHaveLength(16);
+  });
+
+  it("отклоняет пустой, слишком большой и неполный массив", () => {
+    expect(rejected([{ type: "linear_pattern", entities: [], count: 2, step: { x: 1, y: 0 } }])).toBe(true);
+    expect(rejected([{ type: "linear_pattern", entities: [hole], count: 501, step: { x: 1, y: 0 } }])).toBe(true);
+    expect(rejected([{ type: "linear_pattern", entities: [hole], count: 50, step: { x: 1, y: 0 }, count2: 50 }])).toBe(true);
+    expect(rejected([{ type: "circular_pattern", entities: [hole], count: 3 }])).toBe(true);
+  });
+});

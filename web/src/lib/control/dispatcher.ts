@@ -1,3 +1,4 @@
+import { SAVE_FAILED_MESSAGE } from "../apiError";
 import { describeParams, isPlainObject, parseParams, type ParamSchema, type ParamsOf } from "./params";
 import {
   CONTROL_VERSION,
@@ -53,6 +54,7 @@ function toJson(value: unknown): unknown {
 
 function toError(error: unknown): { code: ControlErrorCode; message: string } {
   if (error instanceof ControlError) return { code: error.code, message: error.message };
+  if (error instanceof Error && error.message === SAVE_FAILED_MESSAGE) return { code: "save_failed", message: error.message };
   if (error instanceof Error && error.message) return { code: "operation_failed", message: error.message };
   return { code: "operation_failed", message: typeof error === "string" && error ? error : "Операция завершилась ошибкой." };
 }

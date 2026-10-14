@@ -244,7 +244,6 @@ export function useExtrudeRevolve(deps: {
         extent.options({ ...extrudeBase(), targetBodyId: browserTarget ? extrudeEffectiveTargetId.value : null }),
         documentStore.version.value,
         () => documentStore.document.value,
-        () => documentStore.load(projectId),
         (bodyId) => meshes.untrackMesh(bodyId),
       );
 
@@ -290,7 +289,6 @@ export function useExtrudeRevolve(deps: {
         (savedSketch.plane as SketchPlane) ?? "XY", typeof savedSketch.plane_offset === "number" ? savedSketch.plane_offset : 0,
         (savedSketch.plane_basis as PlaneBasis | null) ?? null, revolveAxisOrigin.value, revolveAxis.value,
         revolveAngle.value, revolveDirection.value, documentStore.version.value, () => documentStore.document.value,
-        () => documentStore.load(projectId), (bodyId) => meshes.untrackMesh(bodyId),
       );
 
       await undoRedo.execute(command);

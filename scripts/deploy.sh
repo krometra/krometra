@@ -57,6 +57,7 @@ REFRESH_TOKEN_BYTES=32
 REFRESH_TOKEN_EXPIRE_DAYS=30
 COOKIE_SECURE=true
 CORS_ORIGINS=https://$DOMAIN
+PUBLIC_URL=https://$DOMAIN
 DEBUG=false
 APP_NAME=Крометра
 APP_VERSION=0.1.0
@@ -69,6 +70,10 @@ if grep -q '^APP_NAME=CAD Studio$' .env; then
 fi
 if grep -q '^CORS_ORIGINS=https://cad-studio.ru$' .env; then
   sed -i "s|^CORS_ORIGINS=https://cad-studio.ru$|CORS_ORIGINS=https://$DOMAIN|" .env
+fi
+
+if ! grep -q '^PUBLIC_URL=' .env; then
+  echo "PUBLIC_URL=https://$DOMAIN" >> .env
 fi
 
 for key in POSTGRES_PASSWORD MINIO_ACCESS_KEY MINIO_SECRET_KEY JWT_SECRET; do

@@ -34,47 +34,42 @@ export function useStepImport(deps: { projectId: string; viewportRef: ViewportRe
   const sketch = useSketch();
   const loading = ref(false);
 
-  async function saveImport(file: File): Promise<number> {
+  async function saveImport(file: File): Promise<string[]> {
     const { BrowserImportCommand } = await import("@/core/commands/BrowserImportCommand");
     const command = new BrowserImportCommand(
       projectId,
       file.name,
       await file.arrayBuffer(),
       () => documentStore.document.value,
-      () => documentStore.load(projectId),
-      (bodyId) => meshes.untrackMesh(bodyId),
     );
     await undoRedo.execute(command);
     const bodies = command.getResult();
     if (bodies.length === 0) throw new Error("Импорт не выполнен: редактор был занят другой операцией. Повторите импорт.");
     bodies.forEach((body) => meshes.trackMesh(body.bodyId, body.mesh));
-    return bodies.length;
+    return bodies.map((body) => body.bodyId);
+  }
+
+  async function importStep(file: File): Promise<string[]> {
+    const rejection = importFileError(file.name, file.size);
+    if (rejection) throw new Error(rejection);
+    if (sketch.sketchMode.value) throw new Error("Завершите эскиз, прежде чем импортировать STEP.");
+    if (undoRedo.isExecuting.value) throw new Error("Дождитесь завершения текущей операции и повторите импорт.");
+    loading.value = true;
+    try {
+      const bodyIds = await saveImport(file);
+      await documentStore.load(projectId);
+      viewportRef.value?.fitAllBodies();
+      return bodyIds;
+    } finally {
+      loading.value = false;
+    }
   }
 
   async function importFile(file: File) {
-    const rejection = importFileError(file.name, file.size);
-    if (rejection) {
-      toast(rejection, "error");
-      return;
-    }
-    if (sketch.sketchMode.value) {
-      toast("Завершите эскиз, прежде чем импортировать STEP.", "warning");
-      return;
-    }
-    if (undoRedo.isExecuting.value) {
-      toast("Дождитесь завершения текущей операции и повторите импорт.", "warning");
-      return;
-    }
-    loading.value = true;
     try {
-      const imported = await saveImport(file);
-      await documentStore.load(projectId);
-      viewportRef.value?.fitAllBodies();
-      toast(importSummary(file.name, imported), "success");
+      toast(importSummary(file.name, (await importStep(file)).length), "success");
     } catch (error) {
       toast(error instanceof Error && error.message ? error.message : "Не удалось импортировать STEP-файл.", "error");
-    } finally {
-      loading.value = false;
     }
   }
 
@@ -84,7 +79,7 @@ export function useStepImport(deps: { projectId: string; viewportRef: ViewportRe
     if (file) await importFile(file);
   }
 
-  return { loading, pickFile, importFile };
+  return { loading, pickFile, importFile, importStep };
 }
 
 export type StepImportApi = ReturnType<typeof useStepImport>;

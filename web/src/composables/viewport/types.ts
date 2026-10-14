@@ -12,6 +12,7 @@ export interface MeshEntry {
   faceTriangleMap: (string | number)[];
   brepTopo: BrepTopo;
   visible: boolean;
+  color: THREE.Color;
   edgeLines?: THREE.Group;
 }
 

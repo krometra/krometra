@@ -16,9 +16,11 @@ import {
 } from "./geometry/shapes";
 import { initOcct, wasmHeapBytes } from "./geometry/occt";
 import { runThreadRequest } from "./geometry/thread";
+import { sectionBodies, type SectionRequest } from "./geometry/section";
+import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
-type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest;
+type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -30,6 +32,7 @@ function buildShape(data: Request) {
   if (data.kind === "revolve") return publishNamed(() => revolveNamed(data));
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
+  if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));
   return null;
 }
 
@@ -73,6 +76,10 @@ worker.onmessage = async ({ data }: MessageEvent<Request>) => {
     if (data.kind === "import-step") {
       const result = await importStepBodies(data);
       reply({ id: data.id, ok: true, ...result }, result.imported.map((body) => body.step));
+      return;
+    }
+    if (data.kind === "section") {
+      reply({ id: data.id, ok: true, sections: await sectionBodies(data) });
       return;
     }
     if (data.kind === "export") {

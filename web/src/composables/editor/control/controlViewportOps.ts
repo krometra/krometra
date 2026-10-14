@@ -71,6 +71,22 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
     }),
 
     defineOp({
+      op: "viewport.isolate",
+      description:
+        "Временно показывает во вьюпорте только перечисленные тела (в том числе скрытые и поглощённые) — для снимка отдельного компонента. Документ и видимость тел в нём не меняются; без bodyIds возвращает обычную видимость. Изоляция сбрасывается и при перезагрузке тел после любой операции. Возвращает { isolated: [id] | null }.",
+      params: {
+        bodyIds: param.optional(param.list(param.id("Тело."), "Тела из op state (allBodies = true для поглощённых): [id, …].")),
+      },
+      run: ({ bodyIds }) => {
+        const known = new Set(context.model.bodies.value.map((body) => body.id));
+        const missing = (bodyIds ?? []).filter((bodyId) => !known.has(bodyId));
+        if (missing.length > 0) throw fail("not_found", `В документе нет тел: ${missing.join(", ")}. Список тел — op "state".`);
+        context.viewport().isolateBodies(bodyIds ?? null);
+        return { isolated: bodyIds ?? null };
+      },
+    }),
+
+    defineOp({
       op: "viewport.project",
       description:
         "Проецирует точки модели (мм) в клиентские координаты страницы — туда, куда кликать мышью. Возвращает { points: [{ x, y, behind, inside }], canvas: { left, top, width, height } }: behind — точка за камерой, inside — точка попадает в канвас. С параметром camera считает проекцию для гипотетического ракурса, не двигая настоящую камеру: так подбирают ракурс, где нужное ребро не сливается с соседними. В режиме эскиза 3D-вьюпорт скрыт — ответ wrong_mode.",

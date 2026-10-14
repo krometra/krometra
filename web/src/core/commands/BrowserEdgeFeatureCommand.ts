@@ -1,10 +1,9 @@
-import type { Command } from "./Command";
 import type { Document, ExtrudeResponse, MeshData } from "@/types/api";
 import type { BrowserBuildResult, BrowserEdgeFeature } from "@/composables/editor/useBrowserGeometry";
 import { filletMergePlan } from "@/lib/browserFilletRun";
 import { useApi } from "@/composables/useApi";
-import { captureSnapshot, restoreSnapshot, type DocumentSnapshot } from "./documentSnapshot";
 import { browserBodyForm, newFeatureKey } from "./browserUpload";
+import { RecordedCommand } from "./RecordedCommand";
 
 function featureFields(feature: BrowserEdgeFeature): Record<string, string> {
   const common = { body_id: feature.bodyId, edge_ids: JSON.stringify(feature.edgeNames) };
@@ -28,32 +27,30 @@ interface BuiltFeature {
   fields: Record<string, string>;
 }
 
-export class BrowserEdgeFeatureCommand implements Command {
+export class BrowserEdgeFeatureCommand extends RecordedCommand {
   label: string;
 
-  private snapshot: DocumentSnapshot | null;
   private resultBodyId: string | null = null;
   private resultMesh: MeshData | null = null;
   private featureKey = newFeatureKey();
 
   constructor(
-    private projectId: string,
+    projectId: string,
     private feature: BrowserEdgeFeature,
     private getDoc: () => Document | null,
-    private reloadDoc: () => Promise<void>,
     private onMeshRemoved: (bodyId: string) => void,
   ) {
+    super(projectId);
     this.label = edgeFeatureLabel(feature);
-    this.snapshot = captureSnapshot(getDoc());
   }
 
-  async execute(): Promise<void> {
+  protected async perform(): Promise<void> {
     const geometry = await import("@/composables/editor/useBrowserGeometry");
     const { built, endpoint, featureKey, fields } = await this.build(geometry);
     try {
       const form = browserBodyForm(built, `browser-${this.feature.kind}.step`, featureKey, {
         ...fields,
-        document_version: String(this.getDoc()?.version ?? this.snapshot?.version ?? 0),
+        document_version: String(this.getDoc()?.version ?? 0),
       });
       const result = await useApi().multipartPost<ExtrudeResponse>(`/projects/${this.projectId}/geometry/${endpoint}`, form);
       this.resultBodyId = result.body_id;
@@ -96,17 +93,6 @@ export class BrowserEdgeFeatureCommand implements Command {
     };
   }
 
-  async undo(): Promise<void> {
-    if (!this.snapshot || !(await restoreSnapshot(this.projectId, this.snapshot))) return;
-    if (this.resultBodyId) {
-      this.onMeshRemoved(this.resultBodyId);
-      const { releaseBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
-      await releaseBrowserShape(this.resultBodyId).catch(() => undefined);
-    }
-    this.resultBodyId = null;
-    this.resultMesh = null;
-    await this.reloadDoc();
-  }
 
   getResult(): { bodyId: string; mesh: MeshData } | null {
     if (!this.resultBodyId || !this.resultMesh) return null;

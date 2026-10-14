@@ -8,6 +8,8 @@ RUN npm ci
 COPY . .
 ARG VITE_DEFAULT_LOCALE=ru
 ENV VITE_DEFAULT_LOCALE=$VITE_DEFAULT_LOCALE
+ARG VITE_MCP_RELAY=1
+ENV VITE_MCP_RELAY=$VITE_MCP_RELAY
 RUN npm run build
 RUN find dist/assets -type f \( -name '*.wasm' -o -name '*.js' -o -name '*.css' \) -exec gzip -9 -k {} \;
 

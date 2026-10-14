@@ -98,8 +98,18 @@ describe("CommandHistory", () => {
     expect(log).toEqual(["do:A", "undo:A", "do:A"]);
   });
 
-  it("упавшая отмена не проглатывается молча", async () => {
+  it("упавшая отмена не проглатывается молча и оставляет команду в истории", async () => {
     await history.execute(makeCommand("A", log, { failUndo: true }));
     await expect(history.undo()).rejects.toThrow("undo A failed");
+    expect(history.canUndo).toBe(true);
+    expect(history.canRedo).toBe(false);
+  });
+
+  it("возвращает отменённую и повторённую команду", async () => {
+    const command = makeCommand("A", log);
+    await history.execute(command);
+    expect(await history.undo()).toBe(command);
+    expect(await history.redo()).toBe(command);
+    expect(await history.redo()).toBeNull();
   });
 });

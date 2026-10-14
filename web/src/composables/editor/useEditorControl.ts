@@ -1,9 +1,15 @@
 import { onBeforeUnmount, onMounted, watch } from "vue";
 import { createControlDispatcher } from "@/lib/control/dispatcher";
 import { CONTROL_READY_EVENT, CONTROL_VERSION, type ControlChannel } from "@/lib/control/protocol";
+import { useControlRelay } from "./useControlRelay";
 import { createControlContext, type EditorControlDeps } from "./control/controlContext";
+import { bodyOps } from "./control/controlBodyOps";
 import { exportOps } from "./control/controlExportOps";
+import { imageOps } from "./control/controlImageOps";
+import { inspectOps } from "./control/controlInspectOps";
+import { importOps } from "./control/controlImportOps";
 import { featureOps } from "./control/controlFeatureOps";
+import { historyOps } from "./control/controlHistoryOps";
 import { readOps } from "./control/controlReadOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { viewportOps } from "./control/controlViewportOps";
@@ -26,6 +32,11 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...viewportOps(context),
     ...sketchOps(context),
     ...featureOps(context),
+    ...historyOps(context),
+    ...bodyOps(context),
+    ...importOps(context),
+    ...inspectOps(context),
+    ...imageOps(),
   ]);
 
   const channel: ControlChannel = {
@@ -48,4 +59,6 @@ export function useEditorControl(deps: EditorControlDeps) {
   onBeforeUnmount(() => {
     if (window.cadControl === channel) delete window.cadControl;
   });
+
+  return { relay: useControlRelay({ projectId: deps.projectId, channel }) };
 }

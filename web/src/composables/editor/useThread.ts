@@ -85,12 +85,11 @@ export function useThread(deps: {
 
   async function createCommand(body: string, face: string | number, params: ThreadParams) {
     const getDoc = () => documentStore.document.value;
-    const reload = () => documentStore.load(projectId);
     if (!browserFace || browserFace.bodyId !== body || browserFace.faceId !== face) {
       throw new Error("Грань ещё не разобрана браузерным ядром — выберите её заново.");
     }
     const { BrowserThreadCommand } = await import("@/core/commands/BrowserThreadCommand");
-    return new BrowserThreadCommand(projectId, browserFace, params, getDoc, reload, (id) => meshes.untrackMesh(id));
+    return new BrowserThreadCommand(projectId, browserFace, params, getDoc);
   }
 
   async function loadCylinder(body: string, face: string | number) {

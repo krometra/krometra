@@ -170,8 +170,8 @@ function clearAllBodies() {
   registry.clearAll();
 }
 
-function addMesh(meshData: MeshData, bodyId = "body-1", visible = true) {
-  registry.addMesh(meshData, bodyId, visible);
+function addMesh(meshData: MeshData, bodyId = "body-1", visible = true, color: string | null = null) {
+  registry.addMesh(meshData, bodyId, visible, color);
 }
 
 function addSketchOutline(sketchId: string, entities_: SketchEntity[], frame: SketchFrame = {}) {
@@ -208,6 +208,8 @@ defineExpose({
   addMesh,
   removeMesh: registry.removeMesh,
   setMeshVisibility: registry.setMeshVisibility,
+  setMeshColor: registry.setMeshColor,
+  isolateBodies: registry.isolate,
   addSketchOutline,
   removeSketchOutline: outlines.remove,
   clearAllSketchOutlines: outlines.clearAll,

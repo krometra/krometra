@@ -1,0 +1,85 @@
+import { HistoryConflictError } from "@/core/commands/RecordedCommand";
+import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
+import { param } from "@/lib/control/params";
+import { fail } from "@/lib/control/protocol";
+import { HistoryEditError, deleteEntry } from "@/lib/bodyHistory";
+import { isEmptyChange, type TimelineChange } from "@/lib/timelineChange";
+import type { EditorControlContext } from "./controlContext";
+import type { HistoryDirection } from "../useModelHistory";
+
+const CHANGE_FORMAT =
+  "{ label, removed: [запись], added: [запись], changed: [запись] } — запись в формате timeline из op state";
+
+export function describeChange(context: EditorControlContext, label: string, change: TimelineChange) {
+  return {
+    label,
+    removed: change.removed.map(context.timelineEntry),
+    added: change.added.map(context.timelineEntry),
+    changed: change.changed.map(context.timelineEntry),
+  };
+}
+
+export function asOperationFailure(error: unknown): never {
+  if (error instanceof HistoryConflictError || error instanceof HistoryEditError) throw fail("operation_failed", error.message);
+  throw error;
+}
+
+export function historyOps(context: EditorControlContext): ControlOp[] {
+  function availability() {
+    const source = context.sketch.sketchMode.value ? context.sketch : context.history;
+    return { canUndo: source.canUndo.value, canRedo: source.canRedo.value, mode: context.mode() };
+  }
+
+  async function stepSketch(direction: HistoryDirection) {
+    const stepped = direction === "undo" ? await context.sketch.undo() : await context.sketch.redo();
+    if (!stepped) throw fail("operation_failed", direction === "undo" ? "Отменять в эскизе нечего." : "Повторять в эскизе нечего.");
+    return { scope: "sketch", ...availability() };
+  }
+
+  async function stepModel(direction: HistoryDirection) {
+    const step = await context.history.step(direction).catch(asOperationFailure);
+    if (!step) throw fail("operation_failed", direction === "undo" ? "Отменять нечего." : "Повторять нечего.");
+    if (isEmptyChange(step.change)) {
+      throw fail("operation_failed", `«${step.label}»: история модели не изменилась. Проверьте op state.`);
+    }
+    const key = direction === "undo" ? "undone" : "redone";
+    return { scope: "model", [key]: describeChange(context, step.label, step.change), ...availability() };
+  }
+
+  function stepHistory(direction: HistoryDirection) {
+    return context.sketch.sketchMode.value ? stepSketch(direction) : stepModel(direction);
+  }
+
+  return [
+    defineOp({
+      op: "history.undo",
+      description: `Отмена — то же, что Ctrl+Z: в режиме эскиза откатывает последнюю правку эскиза, иначе последнюю операцию модели (включая создание, правку и удаление эскиза, удаление тела или записи). Тела, скрытые операцией, снова становятся видимыми; повтор вернёт те же id. Возвращает { scope: sketch | model, undone?, canUndo, canRedo, mode }, undone — ${CHANGE_FORMAT}. Если отменять нечего или после операции изменено то, что она создала, — operation_failed, модель не меняется.`,
+      mutates: true,
+      run: () => stepHistory("undo"),
+    }),
+
+    defineOp({
+      op: "history.redo",
+      description: `Повтор — то же, что Ctrl+Y: возвращает отменённую правку эскиза или операцию модели с прежними id тел и записей. Возвращает { scope: sketch | model, redone?, canUndo, canRedo, mode }, redone — ${CHANGE_FORMAT}. Если повторять нечего — operation_failed.`,
+      mutates: true,
+      run: () => stepHistory("redo"),
+    }),
+
+    defineOp({
+      op: "timeline.delete",
+      description: `Удаляет запись истории (операцию или эскиз) вместе с её результатом: тело-результат и эскиз удаляются, тела, которые операция скрыла (цель join/cut, исходное тело скругления и т. п.), снова видны. Нельзя удалить запись, на которую опираются более поздние операции — operation_failed с их списком. Отменяется history.undo. Возвращает { deleted: ${CHANGE_FORMAT}, mode }.`,
+      mutates: true,
+      params: { featureId: param.id("id записи из timeline в op state.") },
+      run: async ({ featureId }) => {
+        context.leaveTools();
+        const entry = context.model.timelineEntries.value.find((candidate) => candidate.id === featureId);
+        if (!entry) throw fail("not_found", `Записи «${featureId}» нет в истории. Список — timeline в op state.`);
+        const label = `Удалить ${context.names.entryLabel(entry)}`;
+        const change = await context.history
+          .edit(label, (document) => deleteEntry(document, featureId, context.names.entryLabel))
+          .catch(asOperationFailure);
+        return { deleted: describeChange(context, label, change), mode: context.mode() };
+      },
+    }),
+  ];
+}

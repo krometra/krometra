@@ -1,13 +1,19 @@
 import { nextTick } from "vue";
+import { SAVE_FAILED_MESSAGE } from "@/lib/apiError";
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
+import { extrudeCaps } from "@/lib/control/extrudeCaps";
 import { param } from "@/lib/control/params";
+import { describeBodyTopology } from "@/lib/control/topology";
+import { browserPlaneFrame } from "@/lib/browserExtrudeFrame";
+import { browserExtrudeSpan, type BrowserExtrudeDirection } from "@/lib/browserExtrudeExtent";
+import type { PlaneBasis, SketchPlane } from "@/types/api";
 import { fail } from "@/lib/control/protocol";
 import type { EditorControlContext } from "./controlContext";
 
 const THREAD_FACE_TIMEOUT_MS = 30_000;
 
 const FEATURE_RESULT =
-  "Возвращает { feature: { id, kind, label, name, status, params, sketchId, bodyId }, mode }: feature — новая запись истории, feature.bodyId — тело-результат. После операции редактор в режиме model. Отказ ядра приходит ошибкой operation_failed с его объяснением, модель при этом не меняется.";
+  "Возвращает { feature: { id, kind, label, name, status, params, sketchId, bodyId }, mode }: feature — новая запись истории, feature.bodyId — тело-результат. После операции редактор в режиме model. Отказ ядра приходит ошибкой operation_failed с его объяснением, модель при этом не меняется. save_failed — геометрия построена, но сервер не сохранил её даже после повторов (нет связи, 502–504): модель не изменилась, повторите операцию через 10–20 с, сначала сверив op state.";
 
 const EXACT_EDGES =
   "В операцию уходят ровно перечисленные рёбра: касательная цепочка интерфейса их не расширяет.";
@@ -20,7 +26,7 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
     await run();
     const error = readError();
     leave();
-    if (error) throw fail("operation_failed", error);
+    if (error) throw fail(error === SAVE_FAILED_MESSAGE ? "save_failed" : "operation_failed", error);
     const created = [...context.model.timelineEntries.value].reverse().find((entry) => !known.has(entry.id));
     if (!created) throw fail("operation_failed", "Операция не добавила запись в историю модели.");
     return { feature: context.timelineEntry(created), mode: context.mode() };
@@ -45,6 +51,30 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
     return filletChamfer.edgeIds.value;
   }
 
+  function capsOf(feature: { bodyId: string | null; sketchId: string | null; params: Record<string, unknown> }) {
+    const { params } = feature;
+    const sketch = context.model.sketches.value.find((candidate) => candidate.id === feature.sketchId);
+    if (!feature.bodyId || !sketch || (params.extent_type ?? "distance") !== "distance" || typeof params.distance !== "number") return null;
+    const frame = browserPlaneFrame({
+      plane: (sketch.plane as SketchPlane) ?? "XY",
+      planeOffset: typeof sketch.plane_offset === "number" ? sketch.plane_offset : 0,
+      planeBasis: (sketch.plane_basis as PlaneBasis | null) ?? null,
+      center: { x: 0, y: 0 },
+    });
+    const span = browserExtrudeSpan(
+      {
+        extentType: "distance",
+        direction: (params.direction as BrowserExtrudeDirection) ?? "one_side",
+        distance: params.distance,
+        backDistance: typeof params.back_distance === "number" ? params.back_distance : 0,
+        offset: 0,
+        operation: "new_body",
+      },
+      null,
+    );
+    return extrudeCaps(describeBodyTopology(feature.bodyId, context.bodyMesh(feature.bodyId)).faces, frame, span);
+  }
+
   async function waitThreadFace() {
     try {
       await context.waitFor(
@@ -62,25 +92,10 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
     throw fail("operation_failed", reason);
   }
 
-  function historyState(scope: "sketch" | "model") {
-    const source = scope === "sketch" ? context.sketch : context.undoRedo;
-    return { scope, canUndo: source.canUndo.value, canRedo: source.canRedo.value, mode: context.mode() };
-  }
-
-  async function stepHistory(direction: "undo" | "redo") {
-    const scope = context.sketch.sketchMode.value ? "sketch" : "model";
-    const available = historyState(scope);
-    if (!(direction === "undo" ? available.canUndo : available.canRedo)) {
-      throw fail("operation_failed", direction === "undo" ? "Отменять нечего." : "Повторять нечего.");
-    }
-    await context[direction]();
-    return historyState(scope);
-  }
-
   return [
     defineOp({
       op: "extrude",
-      description: `Выдавливает замкнутый профиль сохранённого эскиза — панель «Выдавить». ${FEATURE_RESULT}`,
+      description: `Выдавливает замкнутый профиль сохранённого эскиза — панель «Выдавить». ${FEATURE_RESULT} Для extent = distance в ответе ещё { capFaceIds, baseFaceIds }: плоские грани тела-результата на дальнем торце (торцах) выдавливания и в плоскости эскиза — на них сразу ставят следующий эскиз (sketch.create { bodyId, faceId }) без op topology; для остальных extent — null. В params записи distance хранится со знаком вдоль нормали эскиза (см. op state).`,
       mutates: true,
       params: {
         sketchId: param.id("Эскиз из op state или результат sketch.create / sketch.finish."),
@@ -145,7 +160,8 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           offset: params.offset,
         });
         await nextTick();
-        return applyFeature(extrude.handleExtrude, () => extrude.extrudeError.value, extrude.clearSketchContext);
+        const applied = await applyFeature(extrude.handleExtrude, () => extrude.extrudeError.value, extrude.clearSketchContext);
+        return { ...applied, ...(capsOf(applied.feature) ?? { capFaceIds: null, baseFaceIds: null }) };
       },
     }),
 
@@ -273,22 +289,6 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           thread.exit,
         );
       },
-    }),
-
-    defineOp({
-      op: "history.undo",
-      description:
-        "Отмена — то же, что Ctrl+Z: в режиме эскиза откатывает последнюю правку эскиза, иначе последнюю операцию модели. Возвращает { scope: sketch | model, canUndo, canRedo, mode }. Если отменять нечего — operation_failed.",
-      mutates: true,
-      run: () => stepHistory("undo"),
-    }),
-
-    defineOp({
-      op: "history.redo",
-      description:
-        "Повтор — то же, что Ctrl+Y: возвращает отменённую правку эскиза или операцию модели. Возвращает { scope: sketch | model, canUndo, canRedo, mode }. Если повторять нечего — operation_failed.",
-      mutates: true,
-      run: () => stepHistory("redo"),
     }),
   ];
 }

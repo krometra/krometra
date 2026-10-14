@@ -8,7 +8,8 @@ export type ControlErrorCode =
   | "busy"
   | "wrong_mode"
   | "not_found"
-  | "operation_failed";
+  | "operation_failed"
+  | "save_failed";
 
 export interface ControlRequest {
   op: string;

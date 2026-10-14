@@ -50,6 +50,7 @@ class SketchArc(SketchEntityBase):
     radius: float = 0.0
     startAngle: float = 0.0
     endAngle: float = 0.0
+    construction: bool = False
 
 
 class SketchRectangle(SketchEntityBase):

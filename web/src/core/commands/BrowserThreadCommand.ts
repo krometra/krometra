@@ -1,10 +1,9 @@
-import type { Command } from "./Command";
 import type { Document, MeshData, ThreadResponse } from "@/types/api";
 import type { BrowserThreadFace, BrowserThreadResult } from "@/composables/editor/browserThread";
 import { threadLabel } from "@/lib/threadGeometry";
 import { useApi } from "@/composables/useApi";
-import { captureSnapshot, restoreSnapshot, type DocumentSnapshot } from "./documentSnapshot";
 import { browserBodyForm, newFeatureKey } from "./browserUpload";
+import { RecordedCommand } from "./RecordedCommand";
 
 export interface ThreadParams {
   pitch: number;
@@ -16,23 +15,20 @@ export interface ThreadParams {
   rightHanded: boolean;
 }
 
-export class BrowserThreadCommand implements Command {
+export class BrowserThreadCommand extends RecordedCommand {
   label = "Резьба в браузере";
 
-  private snapshot: DocumentSnapshot | null;
   private resultBodyId: string | null = null;
   private resultMesh: MeshData | null = null;
   private featureKey = newFeatureKey();
 
   constructor(
-    private projectId: string,
+    projectId: string,
     private face: BrowserThreadFace,
     private params: ThreadParams,
     private getDoc: () => Document | null,
-    private reloadDoc: () => Promise<void>,
-    private onMeshRemoved: (bodyId: string) => void,
   ) {
-    this.snapshot = captureSnapshot(getDoc());
+    super(projectId);
   }
 
   private threadForm(built: BrowserThreadResult) {
@@ -48,11 +44,11 @@ export class BrowserThreadCommand implements Command {
       right_handed: String(this.params.rightHanded),
       external: String(built.cylinder.external),
       diameter: String(built.cylinder.radius * 2),
-      document_version: String(this.getDoc()?.version ?? this.snapshot?.version ?? 0),
+      document_version: String(this.getDoc()?.version ?? 0),
     });
   }
 
-  async execute(): Promise<void> {
+  protected async perform(): Promise<void> {
     const { buildBrowserThread } = await import("@/composables/editor/browserThread");
     const { discardBrowserShape, retainBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
     const built = await buildBrowserThread(this.face, this.params, this.featureKey);
@@ -69,17 +65,6 @@ export class BrowserThreadCommand implements Command {
     }
   }
 
-  async undo(): Promise<void> {
-    if (!this.snapshot || !(await restoreSnapshot(this.projectId, this.snapshot))) return;
-    if (this.resultBodyId) {
-      this.onMeshRemoved(this.resultBodyId);
-      const { releaseBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
-      await releaseBrowserShape(this.resultBodyId).catch(() => undefined);
-    }
-    this.resultBodyId = null;
-    this.resultMesh = null;
-    await this.reloadDoc();
-  }
 
   getResult(): { bodyId: string; mesh: MeshData } | null {
     if (!this.resultBodyId || !this.resultMesh) return null;

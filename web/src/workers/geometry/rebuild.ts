@@ -9,6 +9,7 @@ import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { seatSketchOnFace } from "./sketchSeat";
 import { threadNamed, type ThreadBuildRequest } from "./thread";
+import { transformNamed, type TransformRequest } from "./transform";
 import type { BodyLookup, BooleanRequest, EdgeFeatureRequest, ExtrudeRequest, RevolveRequest } from "./types";
 
 export interface RebuildRequest {
@@ -32,6 +33,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   fillet: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   chamfer: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   thread: (request: ThreadBuildRequest, lookup) => threadNamed(request, (bodyId) => lookup(bodyId)),
+  transform: (request: TransformRequest, lookup) => transformNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

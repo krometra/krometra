@@ -1,7 +1,7 @@
 import type { TimelineEntry } from "@/types/api";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 
-export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import";
+export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform";
 
 export interface RebuildStep {
   entryId: string;
@@ -23,7 +23,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -124,6 +124,9 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     return { kind: "boolean", featureKey, operation: entry.operation, targetBodyId: entry.target_body_id, toolBodyId: entry.tool_body_id };
   }
   if (entry.kind === "thread") return { kind: "thread", featureKey, ...threadRequest(entry, params) };
+  if (entry.kind === "transform") {
+    return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
+  }
   const edgeNames = Array.isArray(params.edge_ids) ? params.edge_ids.map(String) : [];
   const bodyId = text(params.target_body_id);
   if (entry.kind === "fillet") return { kind: "fillet", featureKey, bodyId, edgeNames, radius: number(params.radius, 1) };

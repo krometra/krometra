@@ -272,6 +272,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/document/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Project Document Version */
+        get: operations["get_project_document_version_api_projects__project_id__document_version_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/geometry/browser-extrude": {
         parameters: {
             query?: never;
@@ -380,6 +397,23 @@ export interface paths {
         put?: never;
         /** Browser Thread Endpoint */
         post: operations["browser_thread_endpoint_api_projects__project_id__geometry_browser_thread_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/geometry/browser-transform": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Transform Endpoint */
+        post: operations["browser_transform_endpoint_api_projects__project_id__geometry_browser_transform_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -793,6 +827,30 @@ export interface components {
             /** Feature Key */
             feature_key?: string | null;
         };
+        /** Body_browser_transform_endpoint_api_projects__project_id__geometry_browser_transform_post */
+        Body_browser_transform_endpoint_api_projects__project_id__geometry_browser_transform_post: {
+            /** Step */
+            step: string;
+            /** Mesh */
+            mesh: string;
+            /** Body Id */
+            body_id: string;
+            /** Translate */
+            translate: string;
+            /** Rotate */
+            rotate?: string | null;
+            /**
+             * Keep Source
+             * @default false
+             */
+            keep_source: boolean;
+            /** Document Version */
+            document_version: number;
+            /** Naming */
+            naming?: string | null;
+            /** Feature Key */
+            feature_key?: string | null;
+        };
         /** Body_put_thumbnail_api_projects__project_id__thumbnail_put */
         Body_put_thumbnail_api_projects__project_id__thumbnail_put: {
             /** Image */
@@ -897,6 +955,11 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             } | null;
+            /** Version */
+            version: number;
+        };
+        /** DocumentVersionResponse */
+        DocumentVersionResponse: {
             /** Version */
             version: number;
         };
@@ -1042,6 +1105,11 @@ export interface components {
              * @default 0
              */
             endAngle: number;
+            /**
+             * Construction
+             * @default false
+             */
+            construction: boolean;
         };
         /**
          * SketchCircle
@@ -1809,6 +1877,37 @@ export interface operations {
             };
         };
     };
+    get_project_document_version_api_projects__project_id__document_version_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     browser_extrude_endpoint_api_projects__project_id__geometry_browser_extrude_post: {
         parameters: {
             query?: never;
@@ -1998,6 +2097,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_transform_endpoint_api_projects__project_id__geometry_browser_transform_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_transform_endpoint_api_projects__project_id__geometry_browser_transform_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtrudeResponse"];
                 };
             };
             /** @description Validation Error */

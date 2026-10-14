@@ -1,0 +1,12 @@
+{
+  "name": "krometra-mcp-remote",
+  "private": true,
+  "type": "module",
+  "description": "Удалённый MCP-сервер Крометры: HTTP-транспорт MCP и WebSocket-ретранслятор во вкладку редактора.",
+  "scripts": {
+    "start": "node remote-server.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

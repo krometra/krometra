@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MCP_SERVER_NAME, REMOVE_COMMAND, connectCommand, shellQuote } from "./mcpConnect";
+import { MCP_SERVER_NAME, REMOVE_COMMAND, connectCommand, localConnectCommand, shellQuote } from "./mcpConnect";
 
 describe("кавычки для shell", () => {
   it("безопасные слова не трогает", () => {
@@ -14,8 +14,8 @@ describe("кавычки для shell", () => {
   });
 });
 
-describe("команда подключения к Claude Code", () => {
-  const command = connectCommand("https://krometra.ru", "krm_Ab-9_zXy");
+describe("команда подключения локального сервера к Claude Code", () => {
+  const command = localConnectCommand("https://krometra.ru", "krm_Ab-9_zXy");
 
   it("подставляет адрес сайта и ключ и регистрирует сервер для всех проектов пользователя", () => {
     expect(command).toContain(`claude mcp add ${MCP_SERVER_NAME} -s user`);
@@ -34,5 +34,19 @@ describe("команда подключения к Claude Code", () => {
 
   it("удаление сервера ссылается на то же имя и область", () => {
     expect(REMOVE_COMMAND).toBe(`claude mcp remove ${MCP_SERVER_NAME} -s user`);
+  });
+});
+
+describe("команда подключения удалённого сервера", () => {
+  const command = connectCommand("https://krometra.ru", "krm_Ab-9_zXy");
+
+  it("подключает сервер по HTTP с ключом в заголовке, без локальной установки", () => {
+    expect(command).toBe(
+      `claude mcp add ${MCP_SERVER_NAME} -s user --transport http https://krometra.ru/mcp \\\n  --header 'Authorization: Bearer krm_Ab-9_zXy'`,
+    );
+  });
+
+  it("заголовок идёт последним: --header принимает несколько значений и съел бы имя сервера", () => {
+    expect(command.trimEnd().split("\n").at(-1)).toMatch(/^ {2}--header /);
   });
 });

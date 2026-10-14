@@ -1,6 +1,3 @@
-// CommandHistory — undo/redo stack
-// GDD §4.2
-
 import type { Command } from "./Command";
 
 export class CommandHistory {
@@ -13,18 +10,22 @@ export class CommandHistory {
     this.redoStack = [];
   }
 
-  async undo(): Promise<void> {
-    const cmd = this.undoStack.pop();
-    if (!cmd) return;
+  async undo(): Promise<Command | null> {
+    const cmd = this.undoStack.at(-1);
+    if (!cmd) return null;
     await cmd.undo();
+    this.undoStack.pop();
     this.redoStack.push(cmd);
+    return cmd;
   }
 
-  async redo(): Promise<void> {
-    const cmd = this.redoStack.pop();
-    if (!cmd) return;
+  async redo(): Promise<Command | null> {
+    const cmd = this.redoStack.at(-1);
+    if (!cmd) return null;
     await cmd.execute();
+    this.redoStack.pop();
     this.undoStack.push(cmd);
+    return cmd;
   }
 
   get canUndo(): boolean {

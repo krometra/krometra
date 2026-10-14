@@ -19,7 +19,7 @@ function makeEntry(bodyId: string, offsetX = 0): MeshEntry {
       polyline: (edge.polyline ?? []).map((value, index) => (index % 3 === 0 ? value + offsetX : value)),
     })),
   };
-  return { bodyId, mesh, faceTriangleMap: BOX_FACES.flatMap((face) => [face, face]), brepTopo, visible: true };
+  return { bodyId, mesh, faceTriangleMap: BOX_FACES.flatMap((face) => [face, face]), brepTopo, visible: true, color: new THREE.Color(0x8fb8df) };
 }
 
 function setup() {

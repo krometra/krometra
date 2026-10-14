@@ -11,11 +11,14 @@ import { fail } from "@/lib/control/protocol";
 import type { MeshData, TimelineEntry } from "@/types/api";
 import { useBrowserKernelStatus } from "../browserKernelStatus";
 import type { BodyMeshesApi } from "../useBodyMeshes";
+import type { BodyPresentationApi } from "../useBodyPresentation";
+import type { BodyTransformApi } from "../useBodyTransform";
 import type { BooleanModeApi } from "../useBooleanMode";
 import type { useDocumentModel } from "../useDocumentModel";
 import type { ExportApi } from "../useExport";
 import type { ExtrudeRevolveApi } from "../useExtrudeRevolve";
 import type { FilletChamferApi } from "../useFilletChamfer";
+import type { ModelHistoryApi } from "../useModelHistory";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { ThreadApi } from "../useThread";
@@ -34,9 +37,10 @@ export interface EditorControlDeps {
   thread: ThreadApi;
   exportApi: ExportApi;
   stepImport: StepImportApi;
+  history: ModelHistoryApi;
+  bodyPresentation: BodyPresentationApi;
+  bodyTransform: BodyTransformApi;
   leaveActiveTools: () => void;
-  undo: () => Promise<void>;
-  redo: () => Promise<void>;
 }
 
 const KERNEL_WAITING: Record<string, string> = {
@@ -80,6 +84,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.thread.loading.value) return "Идёт нарезка резьбы.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
+    if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";
     if (deps.sketchFlow.finishing.value || sketch.isLoading.value) return "Эскиз сохраняется или загружается.";
     if (deps.meshes.hydrating.value) return "Тела перезагружаются в сцену.";

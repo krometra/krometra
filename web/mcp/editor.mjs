@@ -108,7 +108,7 @@ export class Editor {
     const channelVersion = await this.#awaitReady(page, url, deadline);
     this.#opened = { projectId, url };
     this.#log(`opened project ${projectId}`);
-    return { ...this.#opened, channelVersion };
+    return { url, watchUrl: `${url}?watch=1`, channelVersion };
   }
 
   async #awaitChannel(page, url, deadline) {

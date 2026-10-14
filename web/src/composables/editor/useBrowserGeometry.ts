@@ -1,3 +1,4 @@
+import type { BodyTransform } from "@/lib/bodyTransform";
 import type { BrowserBooleanOperation, BrowserExtrudeOperation } from "@/lib/browserBoolean";
 import type { BrowserExtentType, BrowserExtrudeDirection } from "@/lib/browserExtrudeExtent";
 import type { Vector3 } from "@/lib/browserExtrudeFrame";
@@ -80,6 +81,12 @@ interface WorkerResponse {
   sketchPlanes?: BrowserSeatedSketch[];
   cacheHits?: number;
   edgeNames?: string[];
+  sections?: BrowserBodySection[];
+}
+
+export interface BrowserBodySection {
+  bodyId: string;
+  polylines: number[][];
 }
 
 interface PendingRequest {
@@ -217,6 +224,11 @@ export async function buildBrowserBoolean(operation: BrowserBooleanOperation, ta
   return buildResult(result, "Браузерное ядро вернуло неполный результат булевой операции.");
 }
 
+export async function buildBrowserTransform(bodyId: string, transform: BodyTransform, featureKey: string): Promise<BrowserBuildResult> {
+  const result = await request({ kind: "transform", bodyId, ...cloneBrowserWorkerInput(transform), featureKey });
+  return buildResult(result, "Браузерное ядро вернуло неполный результат перемещения.");
+}
+
 export async function buildBrowserEdgeFeature(feature: BrowserEdgeFeature, featureKey: string): Promise<BrowserBuildResult> {
   const result = await request({ ...cloneBrowserWorkerInput(feature), featureKey });
   return buildResult(result, feature.kind === "fillet" ? "Браузерное ядро вернуло неполный результат скругления." : "Браузерное ядро вернуло неполный результат фаски.");
@@ -242,6 +254,12 @@ export async function importBrowserStep(file: ArrayBuffer): Promise<BrowserBuild
   if (!sizeError) return bodies;
   await Promise.all(bodies.map((body) => discardBrowserShape(body.shapeHandle).catch(() => undefined)));
   throw new Error(sizeError);
+}
+
+export async function sectionBrowserBodies(bodyIds: string[], origin: Vector3, normal: Vector3): Promise<BrowserBodySection[]> {
+  const result = await request({ kind: "section", bodyIds: [...bodyIds], origin: [...origin], normal: [...normal] });
+  if (!result.sections) throw new Error("Браузерное ядро не вернуло сечение.");
+  return result.sections;
 }
 
 export async function exportBrowserBodies(format: "step" | "stl", bodyIds: string[]): Promise<ArrayBuffer> {

@@ -125,7 +125,6 @@ export function useFilletChamfer(deps: {
         projectId,
         feature,
         () => documentStore.document.value,
-        () => documentStore.load(projectId),
         (bodyId) => meshes.untrackMesh(bodyId),
       );
       await undoRedo.execute(command);

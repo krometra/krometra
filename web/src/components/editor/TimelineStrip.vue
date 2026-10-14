@@ -29,6 +29,7 @@ function timelineIcon(kind: string): string {
     fillet: "M4 20V10a6 6 0 0 1 6-6h10",
     chamfer: "M4 20L20 4 M4 14v6h6",
     import: "M12 3v12 M7 10l5 5 5-5 M4 19h16",
+    transform: "M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M21 12l-3-3 M21 12l-3 3",
   };
   return icons[kind] ?? icons.sketch;
 }
@@ -66,6 +67,8 @@ function timelineDetail(entry: TimelineEntry): string {
     }
     case "import":
       return typeof entry.params?.file_name === 'string' ? entry.params.file_name : 'STEP';
+    case "transform":
+      return entry.params?.copy === true ? 'копия' : 'сдвиг';
     default:
       return '';
   }

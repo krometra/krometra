@@ -37,7 +37,7 @@ export function useBodyRegistry(options: {
     return mode === "shaded_edges" || mode === "hidden_line";
   }
 
-  function addMesh(meshData: MeshData, bodyId = "body-1", visible = true) {
+  function addMesh(meshData: MeshData, bodyId = "body-1", visible = true, color: string | null = null) {
     if (findByBody(entries, bodyId)) removeMesh(bodyId);
 
     const geometry = new THREE.BufferGeometry();
@@ -48,8 +48,9 @@ export function useBodyRegistry(options: {
 
     // flatShading: нормали с сервера не приходят, computeVertexNormals на общих
     // вершинах усредняет их по рёбрам — без этого куб выглядит полым
+    const baseColor = color ? new THREE.Color(color) : DEFAULT_BODY_COLOR.clone();
     const material = new THREE.MeshStandardMaterial({
-      color: DEFAULT_BODY_COLOR.clone(),
+      color: baseColor.clone(),
       roughness: 0.52,
       metalness: 0.05,
       side: THREE.DoubleSide,
@@ -66,6 +67,7 @@ export function useBodyRegistry(options: {
       faceTriangleMap: meshData.face_triangle_map ?? [],
       brepTopo: meshData.brep_topo ?? { faces: [], edges: [] },
       visible,
+      color: baseColor,
     };
 
     if (visible) meshGroup.add(mesh);
@@ -107,15 +109,33 @@ export function useBodyRegistry(options: {
     }
   }
 
+  function showInScene(entry: MeshEntry, shown: boolean) {
+    if (shown && !meshGroup.children.includes(entry.mesh)) meshGroup.add(entry.mesh);
+    if (!shown) meshGroup.remove(entry.mesh);
+    const shadedEdges = shadedEdgesMap.get(entry.bodyId);
+    if (shadedEdges) shadedEdges.visible = shown;
+  }
+
   function setMeshVisibility(bodyId: string, visible: boolean) {
     const entry = findByBody(entries, bodyId);
     if (!entry) return;
     entry.visible = visible;
-    if (visible) {
-      if (!meshGroup.children.includes(entry.mesh)) meshGroup.add(entry.mesh);
-    } else {
-      meshGroup.remove(entry.mesh);
-    }
+    showInScene(entry, visible);
+  }
+
+  function isolate(bodyIds: string[] | null) {
+    for (const entry of entries) showInScene(entry, bodyIds ? bodyIds.includes(entry.bodyId) : entry.visible);
+  }
+
+  function setMeshColor(bodyId: string, color: string | null) {
+    const entry = findByBody(entries, bodyId);
+    if (!entry) return;
+    entry.color = color ? new THREE.Color(color) : DEFAULT_BODY_COLOR.clone();
+    const material = entry.mesh.material as THREE.MeshStandardMaterial;
+    entry.mesh.geometry.deleteAttribute("color");
+    material.vertexColors = false;
+    material.color.copy(entry.color);
+    material.needsUpdate = true;
   }
 
   function clearAll() {
@@ -154,5 +174,5 @@ export function useBodyRegistry(options: {
     return entries.filter((e) => e.visible).map((e) => e.bodyId);
   }
 
-  return { addMesh, removeMesh, setMeshVisibility, clearAll, applyRenderingMode, getBodyIds };
+  return { addMesh, removeMesh, setMeshVisibility, setMeshColor, isolate, clearAll, applyRenderingMode, getBodyIds };
 }

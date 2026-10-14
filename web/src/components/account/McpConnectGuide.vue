@@ -9,28 +9,33 @@ import {
   REMOVE_COMMAND,
   VERIFY_COMMAND,
   connectCommand,
+  localConnectCommand,
 } from "@/lib/mcpConnect";
+import AgentPromptCopy from "./AgentPromptCopy.vue";
 import CopyField from "./CopyField.vue";
 
 const props = defineProps<{ origin: string }>();
 
 const { t } = useI18n();
 const genericConnect = computed(() => connectCommand(props.origin, API_KEY_PLACEHOLDER));
+const localConnect = computed(() => localConnectCommand(props.origin, API_KEY_PLACEHOLDER));
 </script>
 
 <template>
   <section :class="$style.guide" data-testid="mcp-guide">
-    <h2 :class="$style.title">{{ t("account.guide.title") }}</h2>
+    <div :class="$style.header">
+      <h2 :class="$style.title">{{ t("account.guide.title") }}</h2>
+      <AgentPromptCopy :origin="origin" />
+    </div>
     <ol :class="$style.steps">
-      <li :class="$style.step">
-        <div :class="$style.stepTitle">{{ t("account.guide.install.title") }}</div>
-        <p :class="$style.text">{{ t("account.guide.install.text") }}</p>
-        <CopyField :value="INSTALL_COMMAND" />
-      </li>
       <li :class="$style.step">
         <div :class="$style.stepTitle">{{ t("account.guide.connect.title") }}</div>
         <p :class="$style.text">{{ t("account.guide.connect.text") }}</p>
         <CopyField :value="genericConnect" />
+      </li>
+      <li :class="$style.step">
+        <div :class="$style.stepTitle">{{ t("account.guide.open.title") }}</div>
+        <p :class="$style.text">{{ t("account.guide.open.text") }}</p>
       </li>
       <li :class="$style.step">
         <div :class="$style.stepTitle">{{ t("account.guide.verify.title") }}</div>
@@ -43,6 +48,13 @@ const genericConnect = computed(() => connectCommand(props.origin, API_KEY_PLACE
         <CopyField :value="REMOVE_COMMAND" />
       </li>
     </ol>
+    <details :class="$style.local">
+      <summary :class="$style.stepTitle">{{ t("account.guide.local.title") }}</summary>
+      <p :class="$style.text">{{ t("account.guide.local.text") }}</p>
+      <CopyField :value="INSTALL_COMMAND" />
+      <p :class="$style.text">{{ t("account.guide.local.connect") }}</p>
+      <CopyField :value="localConnect" />
+    </details>
     <a :class="$style.more" :href="MCP_README_URL" target="_blank" rel="noopener noreferrer">
       {{ t("account.guide.more") }}
     </a>
@@ -54,6 +66,14 @@ const genericConnect = computed(() => connectCommand(props.origin, API_KEY_PLACE
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .title {
@@ -89,6 +109,20 @@ const genericConnect = computed(() => connectCommand(props.origin, API_KEY_PLACE
   color: var(--cs-text-secondary);
   font-size: var(--cs-font-size-sm);
   line-height: 1.55;
+}
+
+.local {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.local > * + * {
+  margin-top: 8px;
+}
+
+.local summary {
+  cursor: pointer;
 }
 
 .more {

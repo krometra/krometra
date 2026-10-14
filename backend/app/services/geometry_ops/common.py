@@ -15,6 +15,7 @@ _LABELS = {
     "chamfer": "Фаска",
     "thread": "Резьба",
     "import": "Импорт",
+    "transform": "Перемещение",
 }
 
 

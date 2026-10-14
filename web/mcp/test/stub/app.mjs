@@ -149,6 +149,10 @@ export async function startStubApp() {
     if (pathname === "/api/health") json(response, 200, { status: "ok", app: "Крометра", version: "stub" });
     else if (pathname === "/api/auth/token") await tokenGrant(request, response);
     else if (pathname === "/api/auth/refresh") refresh(request, response);
+    else if (pathname === "/api/auth/me") {
+      if (isAuthorized(request)) json(response, 200, { id: "stub-user", email: STUB_USER.email });
+      else json(response, 401, { detail: { error: "invalid_token", error_description: "Token rejected." } });
+    }
     else if (pathname.startsWith("/api/projects")) await projectsApi(request, response, pathname);
     else if (pathname.startsWith("/editor/"))
       html(response, editorPage(decodeURIComponent(pathname.slice("/editor/".length))));

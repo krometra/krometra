@@ -198,7 +198,7 @@ test.describe("MCP: регрессии из ревью живого рисова
     expect((await cad.stats(body.bodyId)).openEdges).toBe(0);
   });
 
-  test.fail("undo сразу после sketch.create откатывает эскиз или честно отказывает", issue("Баги, п. 1, случай А"), async () => {
+  test("undo сразу после sketch.create откатывает эскиз или честно отказывает", issue("Баги, п. 1, случай А"), async () => {
     test.setTimeout(4 * 60_000);
     await plate("e2e-mcp-undo-sketch");
     const stray = await cad.sketch({ plane: "XY", entities: [rect([40, 50], [0, 10])] });
@@ -208,7 +208,7 @@ test.describe("MCP: регрессии из ревью живого рисова
     if (reply.ok) expect(after.sketches.map((sketch) => sketch.id)).not.toContain(stray.sketchId);
   });
 
-  test.fail("undo после цепочки extrude join реально откатывает timeline на каждом ok", issue("Баги, п. 1, случай Б"), async () => {
+  test("undo после цепочки extrude join реально откатывает timeline на каждом ok", issue("Баги, п. 1, случай Б"), async () => {
     test.setTimeout(4 * 60_000);
     await cad.openNewProject("e2e-mcp-undo-join");
     const sketches = [];
@@ -230,7 +230,7 @@ test.describe("MCP: регрессии из ревью живого рисова
     }
   });
 
-  test.fail("эскиз на торце цилиндра получает кромку окружностью, а не десятками отрезков", issue("Баги, п. 3"), async () => {
+  test("эскиз на торце цилиндра получает кромку окружностью, а не десятками отрезков", issue("Баги, п. 3"), async () => {
     test.setTimeout(4 * 60_000);
     await cad.openNewProject("e2e-mcp-face-circle");
     const { sketchId } = await cad.sketch({ plane: "XY", entities: [circle(0, 0, 6)] });

@@ -102,8 +102,6 @@ export function useBooleanMode(deps: {
         targetBodyId,
         toolBodyId,
         () => documentStore.document.value,
-        () => documentStore.load(projectId),
-        (bodyId) => meshes.untrackMesh(bodyId),
       );
       await undoRedo.execute(command);
       const result = command.getResult();

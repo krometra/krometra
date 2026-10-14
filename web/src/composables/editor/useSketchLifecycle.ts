@@ -1,14 +1,18 @@
 import { nextTick, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSketch } from "@/composables/shared/useSketch";
+import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { apiErrorMessage, toast } from "@/composables/useToast";
+import { deleteSketch as deleteSketchEntry } from "@/lib/bodyHistory";
 import { browserFaceBoundary, browserFacePlane } from "@/lib/browserFacePlane";
+import { faceBoundaryEntities } from "@/lib/faceBoundary";
 import type SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
 import type { SketchConstraint, SketchEntity, SketchLine, SketchPlane } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
+import type { ModelHistoryApi } from "./useModelHistory";
 import type { SelectionMode, ViewportRef } from "./types";
 import { rebuildSketchDependents } from "./sketchRebuild";
 
@@ -20,11 +24,13 @@ export function useSketchLifecycle(deps: {
   meshes: BodyMeshesApi;
   model: ReturnType<typeof useDocumentModel>;
   extrude: ExtrudeRevolveApi;
+  history: ModelHistoryApi;
 }) {
-  const { projectId, viewportRef, sketcherRef, viewportSelectionMode, meshes, model, extrude } = deps;
+  const { projectId, viewportRef, sketcherRef, viewportSelectionMode, meshes, model, extrude, history } = deps;
   const documentStore = useDocument();
   const sketch = useSketch();
   const names = useDisplayNames();
+  const undoRedo = useUndoRedo();
 
   // --- Sketch start: pick a base plane or a body face in the viewport ---
   const facePickMode = ref(false);
@@ -47,12 +53,12 @@ export function useSketchLifecycle(deps: {
     viewportRef.value?.clearHighlight();
   }
 
-  function onPlanePicked(payload: { plane: SketchPlane }) {
+  function onPlanePicked(payload: { plane: SketchPlane; offset?: number }) {
     if (!facePickMode.value) return;
     facePickMode.value = false;
     facePickError.value = null;
     viewportRef.value?.hidePlaneHelpers();
-    sketch.setPlane(payload.plane, 0);
+    sketch.setPlane(payload.plane, payload.offset ?? 0);
     sketch.startSketch(`sketch-${Date.now()}`);
   }
 
@@ -88,10 +94,9 @@ export function useSketchLifecycle(deps: {
     viewportRef.value?.hidePlaneHelpers();
     viewportRef.value?.clearHighlight();
     sketch.setFacePlane(face.plane, face.planeOffset, face.basis, payload.bodyId, payload.faceId);
-    pendingConstructionEntities = boundaryToConstructionLines(
-      browserFaceBoundary(mesh, payload.faceId, face.basis),
-      payload.faceId,
-    );
+    pendingConstructionEntities =
+      faceBoundaryEntities(mesh, payload.faceId, face.basis) ??
+      boundaryToConstructionLines(browserFaceBoundary(mesh, payload.faceId, face.basis), payload.faceId);
     sketch.startSketch(`sketch-${Date.now()}`);
   }
 
@@ -109,9 +114,11 @@ export function useSketchLifecycle(deps: {
   }
 
   async function saveAndLeaveSketch(sketchId: string) {
-    const saved = await sketch.saveSketchData(projectId, sketchId);
-    if (!saved) {
-      toast("Не удалось сохранить эскиз", "error");
+    const { SketchSaveCommand } = await import("@/core/commands/SketchSaveCommand");
+    try {
+      await undoRedo.execute(new SketchSaveCommand(projectId, sketchId, () => sketch.saveSketchData(projectId, sketchId)));
+    } catch (error) {
+      toast(apiErrorMessage(error, "Не удалось сохранить эскиз"), "error");
       return;
     }
     sketch.exitSketch();
@@ -153,24 +160,19 @@ export function useSketchLifecycle(deps: {
     sketch.startSketch(sketchId);
   }
 
-  async function deleteSketch(sketchId: string) {
-    if (model.sketchHasFeature(sketchId)) {
-      toast("Эскиз используется операцией — удалить нельзя", "warning");
-      return;
-    }
-    const doc = documentStore.document.value;
-    if (!doc) return;
-    const components = { ...doc.components };
-    delete components[sketchId];
-    const timeline = model.timelineEntries.value.filter(
-      (e) => !(e.kind === "sketch" && e.sketch_id === sketchId),
-    );
-    documentStore.document.value = { ...doc, components, timeline };
+  async function removeSketch(sketchId: string) {
+    const label = `Удалить ${names.sketchLabel(sketchId)}`;
     if (extrude.lastSavedSketchId.value === sketchId) extrude.clearSketchContext();
-    documentStore.markDirty();
-    await documentStore.save(projectId);
-    await meshes.hydrateBodyMeshes();
-    toast("Эскиз удалён", "success");
+    return history.edit(label, (document) => deleteSketchEntry(document, sketchId, names.entryLabel));
+  }
+
+  async function deleteSketch(sketchId: string) {
+    try {
+      await removeSketch(sketchId);
+      toast("Эскиз удалён", "success");
+    } catch (error) {
+      toast(apiErrorMessage(error, "Не удалось удалить эскиз"), "warning");
+    }
   }
 
   // Load existing sketch when (re-)entering; hydrate the sketcher canvas.
@@ -211,6 +213,7 @@ export function useSketchLifecycle(deps: {
     handleSketchCancel,
     handleSketchChanged,
     editSketch,
+    removeSketch,
     deleteSketch,
   };
 }

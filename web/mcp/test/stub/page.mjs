@@ -36,6 +36,12 @@ const CAPABILITIES = [
     points: param("number[][]", true, "мм"),
   }),
   describeOp("viewport.capture", "Снимок вьюпорта", false),
+  describeOp("viewport.isolate", "Показать только эти тела", false, { bodyIds: param("array", false, "id тел") }),
+  describeOp("image.drawLabels", "Нанести подписи на PNG", false, {
+    dataBase64: param("string", true, "PNG"),
+    marks: param("array", true, "подписи"),
+    style: param("object", true, "оформление"),
+  }),
   describeOp("sketch.get", "Открытый эскиз", false),
   describeOp("export", "Экспорт тел в файл", false, {
     format: param("string", true, "step | stl"),
@@ -108,6 +114,41 @@ function exportFile({ format, bodyIds }) {
   };
 }
 
+async function drawLabels({ dataBase64, marks, style }) {
+  const bytes = Uint8Array.from(atob(dataBase64), (char) => char.charCodeAt(0));
+  const bitmap = await createImageBitmap(new Blob([bytes], { type: "image/png" }));
+  const board = document.createElement("canvas");
+  board.width = bitmap.width;
+  board.height = bitmap.height;
+  const ctx = board.getContext("2d");
+  ctx.drawImage(bitmap, 0, 0);
+  ctx.lineWidth = style.lineWidth;
+  ctx.strokeStyle = style.accent;
+  for (const { anchor, box } of marks) {
+    ctx.beginPath();
+    ctx.moveTo(anchor.x, anchor.y);
+    ctx.lineTo(box.x + box.width / 2, box.y + box.height / 2);
+    ctx.stroke();
+  }
+  ctx.font = style.font;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const { text, box } of marks) {
+    ctx.fillStyle = style.background;
+    ctx.fillRect(box.x, box.y, box.width, box.height);
+    ctx.strokeRect(box.x + 0.5, box.y + 0.5, box.width - 1, box.height - 1);
+    ctx.fillStyle = style.text;
+    ctx.fillText(text, box.x + box.width / 2, box.y + box.height / 2, box.width - style.padding);
+  }
+  ctx.fillStyle = style.accent;
+  for (const { anchor } of marks) {
+    ctx.beginPath();
+    ctx.arc(anchor.x, anchor.y, style.dotRadius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return { mime: "image/png", dataBase64: board.toDataURL("image/png").split(",")[1] };
+}
+
 const OPS = {
   capabilities: () => ({ version: 1, ops: CAPABILITIES }),
   state: () => ({
@@ -142,6 +183,11 @@ const OPS = {
     return { points: points.map(project), canvas: canvasRect() };
   },
   "viewport.capture": capture,
+  "viewport.isolate": ({ bodyIds }) => {
+    editor.isolated = bodyIds ?? null;
+    return { isolated: editor.isolated };
+  },
+  "image.drawLabels": drawLabels,
   "sketch.get": () => {
     throw new ControlFailure("wrong_mode", "Эскиз не открыт");
   },
