@@ -57,12 +57,12 @@ function numberValue(key: string): number {
 
 .pending {
   font-size: var(--cs-font-size-sm);
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .error {
   font-size: var(--cs-font-size-sm);
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
   line-height: 1.4;
 }
 

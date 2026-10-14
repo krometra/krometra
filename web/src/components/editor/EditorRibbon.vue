@@ -168,13 +168,10 @@ function onToolClick(t: Tool) {
   padding: 0 12px;
 }
 
-.toolDisabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
+.toolDisabled,
 .toolDisabled:hover {
   background: transparent;
-  color: var(--cs-text-secondary);
+  color: var(--cs-text-disabled);
+  cursor: default;
 }
 </style>

@@ -291,7 +291,7 @@ function handleApply() {
 .fieldUnit {
   font-family: var(--cs-font-mono);
   font-size: 12px;
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .numberInput {
@@ -329,7 +329,7 @@ function handleApply() {
   font-size: 12px;
   line-height: 1.5;
   align-items: flex-start;
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .statusPrompt .statusDot {
@@ -351,7 +351,7 @@ function handleApply() {
 .error {
   padding: 8px 10px;
   font-size: 12px;
-  color: oklch(0.70 0.16 25);
+  color: var(--cs-red-strong);
   background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
   border-radius: 6px;
@@ -386,7 +386,8 @@ function handleApply() {
 }
 
 .applyBtn:disabled {
-  opacity: 0.45;
+  background: var(--cs-surface-sunken);
+  color: var(--cs-text-disabled);
   cursor: not-allowed;
 }
 

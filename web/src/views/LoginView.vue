@@ -151,7 +151,7 @@ async function handleLogin() {
 
 .error {
   font-size: 13px;
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .terms {

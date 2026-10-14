@@ -229,7 +229,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
   cursor: pointer;
   font-size: 13px;
   font-weight: var(--cs-font-weight-medium);
-  color: oklch(0.88 0.005 250);
+  color: var(--cs-text);
 }
 
 .treeGroup:hover {
@@ -251,7 +251,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
   margin-left: auto;
   font-family: var(--cs-font-mono);
   font-size: 10px;
-  color: var(--cs-text-disabled);
+  color: var(--cs-text-muted);
 }
 
 .treeRow {
@@ -261,7 +261,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
   padding: 5px 14px 5px 30px;
   cursor: pointer;
   font-size: 13px;
-  color: oklch(0.74 0.01 250);
+  color: var(--cs-text-secondary);
   border-left: 2px solid transparent;
 }
 
@@ -276,7 +276,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
 }
 
 .treeRowDirty {
-  color: oklch(0.78 0.13 75);
+  color: var(--cs-amber-strong);
 }
 
 .dirtyIcon {

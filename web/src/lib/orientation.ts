@@ -34,6 +34,19 @@ export function toCubeSpace(v: THREE.Vector3): THREE.Vector3 {
   return new THREE.Vector3(v.x, v.z, -v.y);
 }
 
+export interface CubeRotation {
+  rotateX: number;
+  rotateY: number;
+}
+
+export function cubeRotation(cameraDirection: THREE.Vector3): CubeRotation {
+  const dir = toCubeSpace(cameraDirection).normalize();
+  return {
+    rotateX: -THREE.MathUtils.radToDeg(Math.asin(dir.y)),
+    rotateY: THREE.MathUtils.radToDeg(Math.atan2(-dir.x, dir.z)),
+  };
+}
+
 export interface ProjectedAxis {
   name: "X" | "Y" | "Z";
   color: string;

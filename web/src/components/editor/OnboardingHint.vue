@@ -61,13 +61,14 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
 }
 
 .pill {
-  bottom: 18px;
+  bottom: 78px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: min(560px, 80%);
+  width: max-content;
+  max-width: min(560px, calc(100% - 36px));
   padding: 10px 12px 10px 14px;
   background: oklch(1 0 0 / 0.94);
   border: 1px solid var(--cs-border-strong);
@@ -85,7 +86,7 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
 }
 
 .bulb {
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
   flex-shrink: 0;
 }
 
@@ -115,6 +116,7 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
 }
 
 .pill .text {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -144,7 +146,7 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
   line-height: 1;
   padding: 3px 5px;
   border-radius: 4px;
-  background: oklch(1 0 0 / 0.18);
+  background: oklch(0.2 0.05 244 / 0.3);
 }
 
 .dismiss.dismiss {

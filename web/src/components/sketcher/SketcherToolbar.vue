@@ -155,8 +155,10 @@ function select(tool: SketchToolName) {
   color: var(--cs-text, #eee);
 }
 
-.toolBtn:disabled {
-  opacity: 0.35;
+.toolBtn:disabled,
+.toolBtn:disabled:hover {
+  background: transparent;
+  color: var(--cs-text-disabled);
   cursor: default;
 }
 
@@ -184,13 +186,13 @@ function select(tool: SketchToolName) {
 }
 
 .auxBtn {
-  color: oklch(0.78 0.1 165);
+  color: var(--cs-teal-strong);
 }
 
 .auxHint {
   margin-left: 12px;
   font-size: 11px;
   font-family: var(--cs-font-mono, monospace);
-  color: oklch(0.78 0.1 165);
+  color: var(--cs-teal-strong);
 }
 </style>

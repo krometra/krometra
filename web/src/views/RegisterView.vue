@@ -101,7 +101,7 @@ async function handleRegister() {
 
 .error {
   font-size: 13px;
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .footer {

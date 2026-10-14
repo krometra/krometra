@@ -72,18 +72,18 @@ if (typeof window !== "undefined") {
 }
 
 .success {
-  background: var(--cs-success);
+  background: var(--cs-green-strong);
   color: white;
 }
 
 .error {
-  background: var(--cs-error);
+  background: var(--cs-red-strong);
   color: white;
 }
 
 .warning {
   background: var(--cs-warning);
-  color: var(--cs-surface);
+  color: var(--cs-text);
 }
 
 .info {

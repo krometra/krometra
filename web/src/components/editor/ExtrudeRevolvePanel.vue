@@ -365,7 +365,7 @@ function cancel() {
   margin-left: auto;
   font-family: var(--cs-font-mono);
   font-size: 12px;
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .numberInput {
@@ -401,7 +401,7 @@ function cancel() {
   margin-top: 6px;
   font-size: 11px;
   line-height: 1.4;
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .toggleRow {
@@ -422,7 +422,7 @@ function cancel() {
 
 .inputInvalid {
   border-color: var(--cs-error) !important;
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .conflictWarning {
@@ -431,7 +431,7 @@ function cancel() {
   border-radius: 7px;
   background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
-  color: oklch(0.65 0.16 25);
+  color: var(--cs-red-strong);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -439,8 +439,8 @@ function cancel() {
 .extrudeBtn {
   width: 100%;
   cursor: pointer;
-  background: oklch(0.70 0.13 233);
-  color: #fff;
+  background: var(--cs-primary);
+  color: var(--cs-primary-fg);
   font-weight: var(--cs-font-weight-bold);
   font-size: 14px;
   padding: 10px;
@@ -450,11 +450,12 @@ function cancel() {
 }
 
 .extrudeBtn:hover:not(:disabled) {
-  background: oklch(0.65 0.15 233);
+  background: var(--cs-primary-hover);
 }
 
 .extrudeBtn:disabled {
-  opacity: 0.5;
+  background: var(--cs-surface-sunken);
+  color: var(--cs-text-disabled);
   cursor: not-allowed;
 }
 

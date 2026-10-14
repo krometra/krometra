@@ -29,7 +29,7 @@ const HINTS: Record<OnboardingStep, Omit<OnboardingHint, "step">> = {
   },
   refine: {
     title: "Тело построено",
-    body: "Скруглите рёбра или выгрузите модель в STEP/STL через меню «Файл».",
+    body: "Скруглите рёбра или выгрузите модель в STEP или STL кнопкой «Экспорт».",
     cta: "Скруглить рёбра",
     hotkey: "F",
     variant: "pill",

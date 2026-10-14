@@ -578,7 +578,7 @@ const selectionLabel = computed(() => {
   font-size: 13px;
   padding: 6px 12px;
   border-radius: 7px;
-  color: oklch(0.80 0.005 250);
+  color: var(--cs-text-secondary);
   transition: border-color var(--cs-transition-fast);
 }
 
@@ -629,7 +629,7 @@ const selectionLabel = computed(() => {
 }
 
 .readoutSel {
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .props {

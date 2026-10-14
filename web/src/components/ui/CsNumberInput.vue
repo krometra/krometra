@@ -168,7 +168,7 @@ watch(
   padding: 0 var(--cs-spacing-sm);
   font-family: var(--cs-font-mono);
   font-size: var(--cs-font-size-xs);
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
   flex-shrink: 0;
 }
 </style>

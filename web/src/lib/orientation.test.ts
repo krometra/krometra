@@ -4,7 +4,7 @@ import {
   CANONICAL_VIEWS,
   ISO_VIEW,
 } from "@/composables/useViewCube";
-import { createGrid, projectAxes, toCubeSpace, WORLD_UP } from "./orientation";
+import { createGrid, cubeRotation, ISO_DIRECTION, projectAxes, toCubeSpace, WORLD_UP } from "./orientation";
 
 /**
  * Сцена обязана совпадать с геометрическим ядром (Z-up). Расхождение уже давало
@@ -103,5 +103,51 @@ describe("projectAxes", () => {
     const axes = projectAxes(eye, target, WORLD_UP, 26);
     const z = axes.find((a) => a.name === "Z")!;
     expect(Math.hypot(z.dx, z.dy)).toBeCloseTo(26, 6);
+  });
+});
+
+describe("cubeRotation: куб видов показывает грани с той стороны, откуда смотрит камера", () => {
+  const FACE_NORMALS: Record<string, [number, number, number]> = {
+    FRONT: [0, 0, 1],
+    BACK: [0, 0, -1],
+    RIGHT: [1, 0, 0],
+    LEFT: [-1, 0, 0],
+    TOP: [0, -1, 0],
+    BOTTOM: [0, 1, 0],
+  };
+
+  function towardViewer(cameraDirection: THREE.Vector3): Record<string, number> {
+    const { rotateX, rotateY } = cubeRotation(cameraDirection);
+    const a = THREE.MathUtils.degToRad(rotateX);
+    const b = THREE.MathUtils.degToRad(rotateY);
+    return Object.fromEntries(
+      Object.entries(FACE_NORMALS).map(([name, [x, y, z]]) => {
+        const zAfterY = -Math.sin(b) * x + Math.cos(b) * z;
+        return [name, Math.sin(a) * y + Math.cos(a) * zAfterY];
+      }),
+    );
+  }
+
+  function facing(cameraDirection: THREE.Vector3): string {
+    const z = towardViewer(cameraDirection);
+    return Object.keys(z).reduce((best, name) => (z[name] > z[best] ? name : best));
+  }
+
+  it("вид спереди показывает FRONT, а не BACK", () => {
+    expect(facing(new THREE.Vector3(0, -1, 0))).toBe("FRONT");
+  });
+
+  it("вид сзади, справа, слева, сверху и снизу показывают свои грани", () => {
+    expect(facing(new THREE.Vector3(0, 1, 0))).toBe("BACK");
+    expect(facing(new THREE.Vector3(1, 0, 0))).toBe("RIGHT");
+    expect(facing(new THREE.Vector3(-1, 0, 0))).toBe("LEFT");
+    expect(facing(new THREE.Vector3(0, 0, 1))).toBe("TOP");
+    expect(facing(new THREE.Vector3(0, 0, -1))).toBe("BOTTOM");
+  });
+
+  it("в изометрии видны FRONT, RIGHT и TOP, а задние грани скрыты", () => {
+    const z = towardViewer(ISO_DIRECTION.clone());
+    for (const name of ["FRONT", "RIGHT", "TOP"]) expect(z[name]).toBeGreaterThan(0.3);
+    for (const name of ["BACK", "LEFT", "BOTTOM"]) expect(z[name]).toBeLessThan(0);
   });
 });

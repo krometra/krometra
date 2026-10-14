@@ -170,7 +170,7 @@ function handleSaveEdit() {
 }
 
 .modalIcon {
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
   margin-right: 9px;
 }
 
@@ -244,7 +244,7 @@ function handleSaveEdit() {
 
 .paramUnit {
   font-family: var(--cs-font-mono);
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .paramInput {
@@ -290,13 +290,13 @@ function handleSaveEdit() {
 }
 
 .paramDelBtn.paramDelBtn:hover {
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
   border-color: var(--cs-error);
   background: var(--cs-surface-hover);
 }
 
 .paramSaveBtn.paramSaveBtn:hover {
-  color: var(--cs-green);
+  color: var(--cs-green-strong);
   border-color: var(--cs-green);
   background: var(--cs-surface-hover);
 }

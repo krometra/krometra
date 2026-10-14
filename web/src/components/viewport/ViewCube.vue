@@ -15,7 +15,7 @@ import {
   CANONICAL_VIEWS,
   type CanonicalView,
 } from "@/composables/useViewCube";
-import { toCubeSpace } from "@/lib/orientation";
+import { cubeRotation } from "@/lib/orientation";
 
 const props = defineProps<{
   /** Current camera world position */
@@ -30,29 +30,15 @@ const emit = defineEmits<{
 }>();
 
 
-/** Compute rotation of the cube to match camera orientation.
- *  The cube's FRONT face should point toward the camera's direction.
- *  We rotate the cube so that it represents the model's world axes. */
-const cubeRotation = computed(() => {
-  // Мир Z-up, CSS-куб Y-up — переводим направление камеры в оси куба
-  const camDir = toCubeSpace(
+const rotation = computed(() =>
+  cubeRotation(
     new THREE.Vector3(
       props.cameraPosition.x - props.cameraTarget.x,
       props.cameraPosition.y - props.cameraTarget.y,
       props.cameraPosition.z - props.cameraTarget.z,
     ),
-  ).normalize();
-
-  // Convert camera direction to Euler angles for CSS 3D rotation
-  // We want the cube to rotate inversely so FRONT faces the camera
-  const rotY = Math.atan2(-camDir.x, -camDir.z); // rotation around Y
-  const rotX = Math.asin(camDir.y); // rotation around X
-
-  return {
-    rotateX: (-rotX * 180) / Math.PI,
-    rotateY: (rotY * 180) / Math.PI,
-  };
-});
+  ),
+);
 
 function handleFaceClick(viewName: string) {
   const view = CANONICAL_VIEWS[viewName];
@@ -130,7 +116,7 @@ const faceDefs = [
       <div
         :class="$style.cube"
         :style="{
-          transform: `rotateX(${cubeRotation.rotateX}deg) rotateY(${cubeRotation.rotateY}deg)`,
+          transform: `scale3d(0.8, 0.8, 0.8) rotateX(${rotation.rotateX}deg) rotateY(${rotation.rotateY}deg)`,
         }"
       >
         <!-- Faces -->
@@ -215,8 +201,11 @@ const faceDefs = [
 
 /* 3D scene with perspective */
 .scene {
-  width: 100px;
-  height: 100px;
+  width: 136px;
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   perspective: 400px;
   cursor: pointer;
 }
@@ -238,26 +227,27 @@ const faceDefs = [
   align-items: center;
   justify-content: center;
   border: 1px solid var(--cs-border-strong);
-  background: oklch(0.98 0.008 244 / 0.88);
-  backdrop-filter: blur(3px);
+  background: oklch(0.985 0.006 244);
+  backface-visibility: hidden;
   transition: background var(--cs-transition-fast);
 }
 
 .face:hover {
-  background: oklch(0.90 0.045 244 / 0.92);
+  background: var(--cs-primary-soft);
 }
 
 .faceLabel {
-  font-family: var(--cs-font-mono);
-  font-size: 11px;
+  font-family: var(--cs-font-family);
+  font-size: 13px;
   font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text-secondary);
+  letter-spacing: 0.04em;
+  color: var(--cs-text);
   user-select: none;
   pointer-events: none;
 }
 
 .face:hover .faceLabel {
-  color: var(--cs-text);
+  color: var(--cs-primary-active);
 }
 
 /* Each face positioned with CSS 3D transform */

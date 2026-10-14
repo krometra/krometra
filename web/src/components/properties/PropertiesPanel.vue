@@ -353,7 +353,7 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
 .readonlyValue {
   font-family: var(--cs-font-mono);
   font-size: var(--cs-font-size-sm);
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;

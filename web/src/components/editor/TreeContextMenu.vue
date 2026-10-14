@@ -70,10 +70,10 @@ function onItemClick(item: CtxItem) {
 }
 
 .ctxItemDanger {
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .ctxItemDanger:hover {
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 </style>

@@ -51,7 +51,7 @@
 
 .cancelBtn.cancelBtn:hover {
   background: var(--cs-surface-hover);
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .fieldLabel {

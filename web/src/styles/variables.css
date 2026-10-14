@@ -13,19 +13,25 @@
   --cs-primary-fg: oklch(0.99 0.004 244);
   --cs-primary-border: oklch(0.72 0.09 244);
   --cs-primary-soft: oklch(0.93 0.035 244);
+  --cs-logo-face-light: oklch(0.68 0.12 244);
+  --cs-logo-face-dark: oklch(0.40 0.14 244);
 
   --cs-amber: oklch(0.62 0.14 75);
   --cs-amber-border: oklch(0.75 0.09 75);
   --cs-green: oklch(0.56 0.13 150);
   --cs-green-border: oklch(0.72 0.08 150);
   --cs-red: oklch(0.55 0.20 25);
+  --cs-amber-strong: oklch(0.52 0.12 75);
+  --cs-red-strong: oklch(0.50 0.17 25);
+  --cs-teal-strong: oklch(0.50 0.10 165);
+  --cs-green-strong: oklch(0.50 0.12 150);
   --cs-accent: oklch(0.56 0.18 25);
 
   /* --- Text --- */
   --cs-text: oklch(0.27 0.022 250);
   --cs-text-secondary: oklch(0.44 0.018 250);
-  --cs-text-muted: oklch(0.59 0.014 250);
-  --cs-text-disabled: oklch(0.70 0.01 250);
+  --cs-text-muted: oklch(0.52 0.014 250);
+  --cs-text-disabled: oklch(0.62 0.01 250);
 
   /* --- Lines --- */
   --cs-border: oklch(0.86 0.012 250);

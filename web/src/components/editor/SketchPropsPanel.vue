@@ -198,16 +198,16 @@ function setConstraintValue(c: SketchConstraint, value: number) {
   margin-left: auto;
   font-family: var(--cs-font-mono);
   font-size: 12px;
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
 }
 
 .conflictWarning {
   margin-top: 16px;
   padding: 10px 12px;
   border-radius: 7px;
-  background: oklch(0.20 0.03 25);
+  background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
-  color: oklch(0.65 0.16 25);
+  color: var(--cs-red-strong);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -231,7 +231,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 .constraintIcon {
   font-family: var(--cs-font-mono, monospace);
   font-size: 13px;
-  color: oklch(0.78 0.13 75);
+  color: var(--cs-amber-strong);
   width: 24px;
   text-align: center;
   flex-shrink: 0;
@@ -277,14 +277,14 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 
 .constraintDel:hover {
   background: oklch(0.65 0.16 25 / 0.15);
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
 }
 
 .solvingHint {
   margin-top: 10px;
   font-family: var(--cs-font-mono, monospace);
   font-size: 10px;
-  color: oklch(0.78 0.13 75 / 0.6);
+  color: var(--cs-amber-strong);
   text-align: center;
 }
 
@@ -313,7 +313,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: oklch(0.80 0.005 250);
+  color: var(--cs-text-secondary);
   transition: border-color var(--cs-transition-fast);
 }
 

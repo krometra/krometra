@@ -294,7 +294,7 @@ const operations: { value: BooleanOperation; label: string }[] = [
 .error {
   padding: 8px 10px;
   font-size: 12px;
-  color: oklch(0.70 0.16 25);
+  color: var(--cs-red-strong);
   background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
   border-radius: 6px;
@@ -329,7 +329,8 @@ const operations: { value: BooleanOperation; label: string }[] = [
 }
 
 .applyBtn:disabled {
-  opacity: 0.45;
+  background: var(--cs-surface-sunken);
+  color: var(--cs-text-disabled);
   cursor: not-allowed;
 }
 

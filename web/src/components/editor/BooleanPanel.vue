@@ -39,12 +39,12 @@ defineProps<{ boolean: BooleanModeApi }>();
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: oklch(0.8 0.005 250);
+  color: var(--cs-text-secondary);
 }
 
 .cancelBtn.cancelBtn:hover {
   background: transparent;
   border-color: var(--cs-text-muted);
-  color: oklch(0.8 0.005 250);
+  color: var(--cs-text);
 }
 </style>

@@ -90,7 +90,7 @@ const avatarInitial = computed(() => {
 }
 
 .crumbSep {
-  color: var(--cs-text-disabled);
+  color: var(--cs-text-muted);
 }
 
 .crumbActive {
@@ -109,25 +109,25 @@ const avatarInitial = computed(() => {
 }
 
 .versionTag.saved {
-  color: var(--cs-green);
+  color: var(--cs-green-strong);
   border-color: var(--cs-green-border);
 }
 
 .versionTag.saving,
 .versionTag.unsaved {
-  color: var(--cs-amber);
+  color: var(--cs-amber-strong);
   border-color: var(--cs-amber-border);
 }
 
 .versionTag.conflict {
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
   border-color: var(--cs-error);
 }
 
 .reloadBtn.reloadBtn {
   font-family: var(--cs-font-mono);
   font-size: 11px;
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
   background: transparent;
   border: 1px solid var(--cs-error);
   border-radius: 4px;
@@ -135,7 +135,7 @@ const avatarInitial = computed(() => {
 }
 
 .reloadBtn.reloadBtn:hover {
-  color: var(--cs-error);
+  color: var(--cs-red-strong);
   background: transparent;
 }
 

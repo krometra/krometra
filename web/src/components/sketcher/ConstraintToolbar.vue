@@ -49,7 +49,7 @@ const emit = defineEmits<{
 
 .constraintCtx {
   font-size: 11px;
-  color: oklch(0.78 0.13 75);
+  color: var(--cs-amber-strong);
   margin-right: 6px;
   font-family: var(--cs-font-mono, monospace);
 }
@@ -76,7 +76,7 @@ const emit = defineEmits<{
 }
 
 .constraintBtnActive {
-  color: oklch(0.78 0.13 75);
+  color: var(--cs-amber-strong);
   border-color: oklch(0.78 0.13 75 / 0.4);
 }
 
@@ -85,7 +85,8 @@ const emit = defineEmits<{
 }
 
 .constraintBtn:disabled {
-  opacity: 0.3;
+  color: var(--cs-text-disabled);
+  border-color: var(--cs-border-subtle);
   cursor: not-allowed;
 }
 
