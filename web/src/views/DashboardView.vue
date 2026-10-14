@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "@/composables/shared/useAuth";
 import { useProjects } from "@/composables/shared/useProjects";
+import { useI18n } from "@/composables/shared/useI18n";
 import CsLogo from "@/components/ui/CsLogo.vue";
 import CsButton from "@/components/ui/CsButton.vue";
 import CsInput from "@/components/ui/CsInput.vue";
@@ -16,6 +17,7 @@ import type { Project } from "@/types/api";
 const router = useRouter();
 const auth = useAuth();
 const projectsStore = useProjects();
+const { t } = useI18n();
 
 const search = ref("");
 
@@ -147,7 +149,16 @@ function formatDate(dateStr: string) {
           <div :class="$style.userName">{{ userName }}</div>
           <div v-if="userEmail" :class="$style.userEmail">{{ userEmail }}</div>
         </div>
-        <button :class="$style.logout" title="Выйти" aria-label="Выйти" @click="handleLogout">
+        <router-link
+          to="/account"
+          :class="[$style.userAction, $style.account]"
+          :title="t('account.title')"
+          :aria-label="t('account.title')"
+          data-testid="account-link"
+        >
+          <CsIcon name="user" :size="16" />
+        </router-link>
+        <button :class="$style.userAction" title="Выйти" aria-label="Выйти" @click="handleLogout">
           <CsIcon name="logout" :size="16" />
         </button>
       </div>
@@ -369,8 +380,7 @@ function formatDate(dateStr: string) {
   text-overflow: ellipsis;
 }
 
-.logout {
-  margin-left: auto;
+.userAction {
   display: flex;
   align-items: center;
   background: transparent;
@@ -380,8 +390,12 @@ function formatDate(dateStr: string) {
   transition: color var(--cs-transition-fast);
 }
 
-.logout:hover {
+.userAction:hover {
   color: var(--cs-text);
+}
+
+.account {
+  margin-left: auto;
 }
 
 .main {

@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     # Quotas
     MAX_PROJECTS_PER_USER: int = 200
     MAX_STORAGE_BYTES_PER_USER: int = 1024 * 1024 * 1024
+    MAX_API_KEYS_PER_USER: int = 10
 
     # CORS
     CORS_ORIGINS: str = "http://localhost:5173"

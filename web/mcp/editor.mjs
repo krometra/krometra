@@ -123,7 +123,7 @@ export class Editor {
       await this.#dropContext();
       throw new ToolError(
         "Редактор перенаправил на страницу входа: сессия не принята. Повтори cad_open_project; " +
-          "если не поможет, проверь CAD_STUDIO_EMAIL и CAD_STUDIO_PASSWORD.",
+          "если не поможет, проверь, что ключ CAD_STUDIO_API_KEY не отозван (или CAD_STUDIO_EMAIL и CAD_STUDIO_PASSWORD).",
       );
     }
     throw new ToolError(

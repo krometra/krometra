@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { errorHint, isReply, unwrap } from "../channel.mjs";
-import { loadConfig, missingCredentials } from "../config.mjs";
+import { credentialsProblem, loadConfig, missingCredentials } from "../config.mjs";
 import { ToolError, createRedactor } from "../errors.mjs";
 
 describe("конфигурация из окружения", () => {
   test("значения по умолчанию: локальный dev-сервер, headless Chromium", () => {
     assert.deepEqual(loadConfig({}), {
       baseUrl: "http://localhost:5173",
+      apiKey: "",
       email: "",
       password: "",
       headless: true,
@@ -39,8 +40,22 @@ describe("конфигурация из окружения", () => {
       assert.equal(loadConfig({ CAD_STUDIO_HEADLESS: value }).headless, true, value);
   });
 
-  test("недостающие учётные данные называются по именам переменных", () => {
-    assert.deepEqual(missingCredentials(loadConfig({ CAD_STUDIO_EMAIL: "a@b.c" })), ["CAD_STUDIO_PASSWORD"]);
+  test("ключ доступа - основной способ входа: с ключом почта и пароль не нужны", () => {
+    assert.equal(loadConfig({ CAD_STUDIO_API_KEY: " krm_abc \n" }).apiKey, "krm_abc");
+    assert.deepEqual(missingCredentials(loadConfig({ CAD_STUDIO_API_KEY: "krm_abc" })), []);
+    assert.equal(credentialsProblem(loadConfig({ CAD_STUDIO_API_KEY: "krm_abc" })), null);
+  });
+
+  test("без ключа, почты и пароля не хватает именно ключа, с подсказкой на страницу аккаунта", () => {
+    const config = loadConfig({ CAD_STUDIO_URL: "https://krometra.ru/" });
+    assert.deepEqual(missingCredentials(config), ["CAD_STUDIO_API_KEY"]);
+    assert.match(credentialsProblem(config), /не задан CAD_STUDIO_API_KEY.*https:\/\/krometra\.ru\/account/);
+  });
+
+  test("запасной вход по паролю: недостающие поля называются по именам переменных, ключ предлагается взамен", () => {
+    const config = loadConfig({ CAD_STUDIO_EMAIL: "a@b.c" });
+    assert.deepEqual(missingCredentials(config), ["CAD_STUDIO_PASSWORD"]);
+    assert.match(credentialsProblem(config), /не задано: CAD_STUDIO_PASSWORD.*CAD_STUDIO_API_KEY/);
     assert.deepEqual(
       missingCredentials(loadConfig({ CAD_STUDIO_EMAIL: "a@b.c", CAD_STUDIO_PASSWORD: "secret-pass" })),
       [],

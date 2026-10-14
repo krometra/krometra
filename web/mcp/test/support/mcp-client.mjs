@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
-import { STUB_USER } from "../stub/app.mjs";
+import { STUB_API_KEY } from "../stub/app.mjs";
 
 const SERVER = fileURLToPath(new URL("../../server.mjs", import.meta.url));
 
@@ -11,8 +11,9 @@ export function startMcp(env) {
     stdio: ["pipe", "pipe", "pipe"],
     env: {
       ...process.env,
-      CAD_STUDIO_EMAIL: STUB_USER.email,
-      CAD_STUDIO_PASSWORD: STUB_USER.password,
+      CAD_STUDIO_API_KEY: STUB_API_KEY,
+      CAD_STUDIO_EMAIL: "",
+      CAD_STUDIO_PASSWORD: "",
       CAD_STUDIO_HEADLESS: "1",
       CAD_STUDIO_READY_TIMEOUT_MS: "2500",
       CAD_STUDIO_REQUEST_TIMEOUT_MS: "10000",

@@ -6,7 +6,7 @@ import { createProtocol } from "./protocol.mjs";
 import { Session } from "./session.mjs";
 import { INSTRUCTIONS, createTools } from "./tools.mjs";
 
-const SERVER_INFO = { name: "cad-studio", version: "0.1.0" };
+const SERVER_INFO = { name: "krometra", version: "0.1.0" };
 const PARSE_ERROR = { jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } };
 
 const config = loadConfig(process.env);
@@ -78,5 +78,5 @@ input.on("close", () => {
 const missing = missingCredentials(config);
 log(
   `started: ${config.baseUrl}, ${config.headless ? "headless" : "visible"} browser,`,
-  missing.length ? `missing env ${missing.join(", ")}` : `user ${config.email}`,
+  missing.length ? `missing env ${missing.join(", ")}` : config.apiKey ? "login by api key" : `user ${config.email}`,
 );

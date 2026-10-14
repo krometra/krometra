@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
-import { STUB_USER, startStubApp } from "./stub/app.mjs";
+import { STUB_API_KEY, startStubApp } from "./stub/app.mjs";
 import { BODY_ID, CANVAS, HOME_TARGET, boxTopology, projectPoint } from "./stub/model.mjs";
 import { imageOf, jsonOf, startMcp, textOf } from "./support/mcp-client.mjs";
 import { decodePng } from "./support/png.mjs";
@@ -285,7 +285,7 @@ describe("редактор через канал управления", () => {
     stub.rejectNextRefresh();
     const rejected = await open();
     assert.equal(rejected.isError, true);
-    assert.match(textOf(rejected), /страницу входа/);
+    assert.match(textOf(rejected), /страницу входа.*CAD_STUDIO_API_KEY не отозван/);
     const reopened = await open();
     assert.notEqual(reopened.isError, true, textOf(reopened));
     assert.equal(stub.stats.logins, loginsBefore + 1);
@@ -296,10 +296,10 @@ describe("редактор через канал управления", () => {
     assert.equal(stub.stats.replays, 0);
   });
 
-  test("пароль и токены не попадают ни в ответы, ни в stderr", () => {
+  test("ключ и токены не попадают ни в ответы, ни в stderr", () => {
     const output = mcp.output();
     assert.match(output, /browser started/);
-    for (const secret of [STUB_USER.password, ...stub.issued]) assert.ok(!output.includes(secret));
+    for (const secret of [STUB_API_KEY, ...stub.issued]) assert.ok(!output.includes(secret));
   });
 
   test("закрытие stdin закрывает браузер и завершает сервер с кодом 0", async () => {

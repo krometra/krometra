@@ -1,4 +1,4 @@
-import { missingCredentials } from "./config.mjs";
+import { apiKeyHint, credentialsProblem } from "./config.mjs";
 import { ToolError, firstLine } from "./errors.mjs";
 import { loadPlaywright } from "./playwright.mjs";
 
@@ -39,6 +39,7 @@ export class Session {
     this.#config = config;
     this.#redactor = redactor;
     redactor.add(config.password);
+    redactor.add(config.apiKey);
   }
 
   async listProjects() {
@@ -58,7 +59,7 @@ export class Session {
     const response = await this.#authorized("GET", `/api/projects/${encodeURIComponent(projectId)}`);
     if (response.status() === 404) {
       throw new ToolError(
-        `Проект ${projectId} не найден у пользователя ${this.#config.email}: возьми id из cad_list_projects.`,
+        `Проект ${projectId} не найден у ${this.#owner()}: возьми id из cad_list_projects.`,
       );
     }
     await this.#expectOk(response, "Чтение проекта");
@@ -72,7 +73,7 @@ export class Session {
   }
 
   login() {
-    this.#loginInFlight ??= this.#passwordGrant().finally(() => {
+    this.#loginInFlight ??= this.#grant().finally(() => {
       this.#loginInFlight = null;
     });
     return this.#loginInFlight;
@@ -115,22 +116,35 @@ export class Session {
     this.#appVerified = true;
   }
 
-  async #passwordGrant() {
-    const missing = missingCredentials(this.#config);
-    if (missing.length) throw new ToolError(`В env MCP-сервера не задано: ${missing.join(", ")}.`);
+  async #grant() {
+    const problem = credentialsProblem(this.#config);
+    if (problem) throw new ToolError(problem);
     await this.#verifyApp();
-    const response = await this.#send("POST", "/api/auth/token", {
-      form: { grant_type: "password", username: this.#config.email, password: this.#config.password },
-    });
+    const response = await this.#send("POST", "/api/auth/token", { form: this.#grantForm() });
     if (!response.ok()) {
-      throw new ToolError(
-        `Вход не удался (${response.status()}): ${await describeFailure(response)}. ` +
-          "Проверь CAD_STUDIO_EMAIL и CAD_STUDIO_PASSWORD.",
-      );
+      const reason = firstLine(await describeFailure(response));
+      throw new ToolError(`Вход не удался (${response.status()}): ${reason}. ${this.#grantHint()}`);
     }
     const { access_token: accessToken } = await response.json();
     this.#redactor.add(accessToken);
     this.#accessToken = accessToken;
+  }
+
+  #grantForm() {
+    const { apiKey, email, password } = this.#config;
+    if (apiKey) return { grant_type: "api_key", api_key: apiKey };
+    return { grant_type: "password", username: email, password };
+  }
+
+  #grantHint() {
+    if (this.#config.apiKey) {
+      return `Ключ из CAD_STUDIO_API_KEY отозван или скопирован с ошибкой. ${apiKeyHint(this.#config)}`;
+    }
+    return `Проверь CAD_STUDIO_EMAIL и CAD_STUDIO_PASSWORD или войди по ключу: ${apiKeyHint(this.#config)}`;
+  }
+
+  #owner() {
+    return this.#config.apiKey ? "владельца ключа CAD_STUDIO_API_KEY" : `пользователя ${this.#config.email}`;
   }
 
   #sendAuthorized(method, path, options) {

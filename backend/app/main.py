@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, projects, documents, geometry, sketches, browser_geometry, browser_import, browser_thread
+from app.api.routes import api_keys, auth, projects, documents, geometry, sketches, browser_geometry, browser_import, browser_thread
 from app.config import get_settings
 
 settings = get_settings()
@@ -37,6 +37,7 @@ app.add_middleware(
 
 # Routes
 app.include_router(auth.router, prefix="/api")
+app.include_router(api_keys.router, prefix="/api")
 app.include_router(projects.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(geometry.router, prefix="/api")

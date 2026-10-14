@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { CANVAS } from "./model.mjs";
 
 export const STUB_USER = { email: "mcp-stub@example.com", password: "stub-pass-123" };
+export const STUB_API_KEY = "krm_stub-key-0123456789abcdefghijklmnopqrstuvw";
 export const PAGE_MODES = ["never-ready", "no-channel", "reload-once"];
 
 const STATIC_FILES = ["/page.mjs", "/model.mjs"];
@@ -45,11 +46,12 @@ function cookieValue(request, name) {
 
 export async function startStubApp() {
   const projects = new Map(SEEDED.map((id) => [id, makeProject(id, `Проект ${id}`)]));
-  const accessTokens = new Set();
+  const accessTokens = new Map();
   const refreshTokens = new Map();
   const issued = [];
-  const stats = { logins: 0, refreshes: 0, replays: 0, redirects: 0 };
+  const stats = { logins: 0, grants: { password: 0, api_key: 0 }, refreshes: 0, replays: 0, redirects: 0 };
   let rejectNextRefresh = false;
+  let apiKeyRevoked = false;
 
   const json = (response, status, body, headers = {}) => {
     response.writeHead(status, { "content-type": "application/json", ...headers });
@@ -60,11 +62,11 @@ export async function startStubApp() {
     response.end(body);
   };
 
-  function issueTokens(response) {
+  function issueTokens(response, grant) {
     const accessToken = fakeJwt();
     const refreshToken = randomBytes(24).toString("hex");
-    accessTokens.add(accessToken);
-    refreshTokens.set(refreshToken, "active");
+    accessTokens.set(accessToken, grant);
+    refreshTokens.set(refreshToken, { status: "active", grant });
     issued.push(accessToken, refreshToken);
     json(
       response,
@@ -76,32 +78,41 @@ export async function startStubApp() {
     );
   }
 
-  async function passwordGrant(request, response) {
+  const GRANT_CHECKS = {
+    password: (form) => form.get("username") === STUB_USER.email && form.get("password") === STUB_USER.password,
+    api_key: (form) => !apiKeyRevoked && form.get("api_key") === STUB_API_KEY,
+  };
+
+  async function tokenGrant(request, response) {
     const form = new URLSearchParams(await readBody(request));
-    const valid =
-      form.get("grant_type") === "password" &&
-      form.get("username") === STUB_USER.email &&
-      form.get("password") === STUB_USER.password;
-    if (!valid) {
-      json(response, 400, { detail: { error: "invalid_grant", error_description: "Incorrect email or password." } });
+    const grant = form.get("grant_type");
+    if (!GRANT_CHECKS[grant]?.(form)) {
+      json(response, 400, { detail: { error: "invalid_grant", error_description: "Invalid credentials." } });
       return;
     }
     stats.logins += 1;
-    issueTokens(response);
+    stats.grants[grant] += 1;
+    issueTokens(response, grant);
   }
 
   function refresh(request, response) {
     const token = cookieValue(request, REFRESH_COOKIE);
-    const status = refreshTokens.get(token);
-    if (status === "replaced") stats.replays += 1;
-    if (status !== "active" || rejectNextRefresh) {
+    const entry = refreshTokens.get(token);
+    if (entry?.status === "replaced") stats.replays += 1;
+    if (entry?.status !== "active" || rejectNextRefresh) {
       rejectNextRefresh = false;
       json(response, 401, { detail: { error: "invalid_grant", error_description: "Refresh token rejected." } });
       return;
     }
-    refreshTokens.set(token, "replaced");
+    entry.status = "replaced";
     stats.refreshes += 1;
-    issueTokens(response);
+    issueTokens(response, entry.grant);
+  }
+
+  function revokeApiKey() {
+    apiKeyRevoked = true;
+    for (const [token, grant] of accessTokens) if (grant === "api_key") accessTokens.delete(token);
+    for (const [token, entry] of refreshTokens) if (entry.grant === "api_key") refreshTokens.delete(token);
   }
 
   const isAuthorized = (request) => accessTokens.has((request.headers.authorization ?? "").replace(/^Bearer /, ""));
@@ -136,7 +147,7 @@ export async function startStubApp() {
   async function route(request, response) {
     const { pathname } = new URL(request.url, "http://stub");
     if (pathname === "/api/health") json(response, 200, { status: "ok", app: "Крометра", version: "stub" });
-    else if (pathname === "/api/auth/token") await passwordGrant(request, response);
+    else if (pathname === "/api/auth/token") await tokenGrant(request, response);
     else if (pathname === "/api/auth/refresh") refresh(request, response);
     else if (pathname.startsWith("/api/projects")) await projectsApi(request, response, pathname);
     else if (pathname.startsWith("/editor/"))
@@ -158,6 +169,7 @@ export async function startStubApp() {
     stats,
     issued,
     revokeAccessTokens: () => accessTokens.clear(),
+    revokeApiKey,
     rejectNextRefresh: () => {
       rejectNextRefresh = true;
     },

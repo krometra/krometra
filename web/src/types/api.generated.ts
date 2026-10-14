@@ -43,6 +43,7 @@ export interface paths {
          *
          *     Supports:
          *     - grant_type=password: email + password
+         *     - grant_type=api_key: personal API key
          *     - grant_type=refresh_token: rotation of the refresh token from the httpOnly cookie
          */
         post: operations["token_api_auth_token_post"];
@@ -127,6 +128,41 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/api-keys/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Api Keys */
+        get: operations["get_api_keys_api_auth_api_keys__get"];
+        put?: never;
+        /** Create New Api Key */
+        post: operations["create_new_api_key_api_auth_api_keys__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/api-keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Existing Api Key */
+        delete: operations["delete_existing_api_key_api_auth_api_keys__key_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -500,6 +536,50 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ApiKeyCreate */
+        ApiKeyCreate: {
+            /** Name */
+            name: string;
+        };
+        /** ApiKeyCreated */
+        ApiKeyCreated: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Prefix */
+            prefix: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at?: string | null;
+            /** Key */
+            key: string;
+        };
+        /** ApiKeyListResponse */
+        ApiKeyListResponse: {
+            /** Api Keys */
+            api_keys: components["schemas"]["ApiKeyResponse"][];
+        };
+        /** ApiKeyResponse */
+        ApiKeyResponse: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Prefix */
+            prefix: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at?: string | null;
+        };
         /** BBox */
         BBox: {
             /** Min */
@@ -726,6 +806,8 @@ export interface components {
             username?: string | null;
             /** Password */
             password?: string | null;
+            /** Api Key */
+            api_key?: string | null;
         };
         /** BooleanResponse */
         BooleanResponse: {
@@ -1336,6 +1418,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    get_api_keys_api_auth_api_keys__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyListResponse"];
+                };
+            };
+        };
+    };
+    create_new_api_key_api_auth_api_keys__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_existing_api_key_api_auth_api_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

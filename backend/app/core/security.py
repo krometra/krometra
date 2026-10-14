@@ -43,7 +43,12 @@ async def burn_password_check(plain_password: str) -> None:
     await asyncio.to_thread(bcrypt.checkpw, plain_password.encode("utf-8"), _DUMMY_PASSWORD_HASH)
 
 
-def create_access_token(user_id: str, email: str) -> str:
+API_KEY_PREFIX = "krm_"
+API_KEY_VISIBLE_CHARS = 8
+API_KEY_CLAIM = "api_key_id"
+
+
+def create_access_token(user_id: str, email: str, *, api_key_id: str | None) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
@@ -53,6 +58,8 @@ def create_access_token(user_id: str, email: str) -> str:
         "jti": secrets.token_hex(16),
         "type": "access",
     }
+    if api_key_id is not None:
+        payload[API_KEY_CLAIM] = api_key_id
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
@@ -64,8 +71,24 @@ def generate_refresh_token() -> str:
     return secrets.token_hex(settings.REFRESH_TOKEN_BYTES)
 
 
+def _sha256_hex(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
 def hash_refresh_token(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+    return _sha256_hex(token)
+
+
+def generate_api_key() -> str:
+    return API_KEY_PREFIX + secrets.token_urlsafe(32)
+
+
+def hash_api_key(key: str) -> str:
+    return _sha256_hex(key)
+
+
+def api_key_display_prefix(key: str) -> str:
+    return key[: len(API_KEY_PREFIX) + API_KEY_VISIBLE_CHARS]
 
 
 def _family_key(family_id: str) -> str:

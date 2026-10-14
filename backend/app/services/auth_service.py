@@ -3,6 +3,7 @@ Authentication service: registration, OAuth2 password flow, refresh token rotati
 """
 
 import secrets
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -13,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.core import rate_limit
 from app.core.security import (
+    API_KEY_CLAIM,
     burn_password_check,
     create_access_token,
     decode_access_token,
@@ -24,10 +26,11 @@ from app.core.security import (
     store_refresh_family,
     verify_password,
 )
-from app.models.base import new_uuid
+from app.models.base import new_uuid, utcnow
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, normalize_email
+from app.services.api_key_service import api_key_belongs_to, find_api_key
 
 settings = get_settings()
 
@@ -36,6 +39,12 @@ class AuthError(Exception):
     def __init__(self, error: str, error_description: str = ""):
         self.error = error
         self.error_description = error_description
+
+
+@dataclass(frozen=True)
+class AuthSession:
+    user: User
+    api_key_id: str | None
 
 
 async def _find_user_by_email(db: AsyncSession, email: str) -> User | None:
@@ -94,8 +103,34 @@ async def authenticate_password_grant(
         raise AuthError("invalid_grant", "Invalid credentials.")
     await rate_limit.reset(redis, rate_limit.LOGIN_FAILURES_BY_EMAIL, email_key)
 
-    access_token = create_access_token(user.id, user.email)
+    access_token = create_access_token(user.id, user.email, api_key_id=None)
+    refresh_token_raw = await _start_refresh_family(db, redis, user.id, api_key_id=None)
+    await db.commit()
+    return access_token, refresh_token_raw
 
+
+async def authenticate_api_key_grant(
+    db: AsyncSession,
+    redis: Redis,
+    raw_key: str,
+    client_ip: str,
+) -> tuple[str, str]:
+    await rate_limit.ensure_available(redis, rate_limit.LOGIN_FAILURES_BY_IP, client_ip)
+
+    api_key = await find_api_key(db, raw_key)
+    user = await _find_user_by_id(db, api_key.user_id) if api_key else None
+    if not api_key or not user:
+        await rate_limit.consume(redis, rate_limit.LOGIN_FAILURES_BY_IP, client_ip)
+        raise AuthError("invalid_grant", "Invalid API key.")
+
+    api_key.last_used_at = utcnow()
+    access_token = create_access_token(user.id, user.email, api_key_id=api_key.id)
+    refresh_token_raw = await _start_refresh_family(db, redis, user.id, api_key_id=api_key.id)
+    await db.commit()
+    return access_token, refresh_token_raw
+
+
+async def _start_refresh_family(db: AsyncSession, redis: Redis, user_id: str, *, api_key_id: str | None) -> str:
     refresh_token_raw = generate_refresh_token()
     family_id = secrets.token_hex(16)
 
@@ -104,15 +139,19 @@ async def authenticate_password_grant(
     token_id = new_uuid()
     db.add(RefreshToken(
         id=token_id,
-        user_id=user.id,
+        user_id=user_id,
         token_hash=hash_refresh_token(refresh_token_raw),
         family_id=family_id,
+        api_key_id=api_key_id,
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     ))
-    await store_refresh_family(redis, family_id, token_id, user.id)
+    await store_refresh_family(redis, family_id, token_id, user_id)
+    return refresh_token_raw
 
-    await db.commit()
-    return access_token, refresh_token_raw
+
+async def _find_user_by_id(db: AsyncSession, user_id: str) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
 
 
 async def refresh_access_token(
@@ -172,14 +211,11 @@ async def refresh_access_token(
     # Revoke old token
     db_token.revoked = True
 
-    # Get user
-    result = await db.execute(select(User).where(User.id == db_token.user_id))
-    user = result.scalar_one_or_none()
+    user = await _find_user_by_id(db, db_token.user_id)
     if not user:
         raise AuthError("invalid_grant", "User not found.")
 
-    # Create new access token
-    access_token = create_access_token(user.id, user.email)
+    access_token = create_access_token(user.id, user.email, api_key_id=db_token.api_key_id)
 
     # Create new refresh token (rotation)
     new_refresh_raw = generate_refresh_token()
@@ -189,6 +225,7 @@ async def refresh_access_token(
         user_id=user.id,
         token_hash=new_refresh_hash,
         family_id=db_token.family_id,
+        api_key_id=db_token.api_key_id,
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
     db.add(new_db_token)
@@ -233,8 +270,7 @@ async def revoke_all_user_tokens(db: AsyncSession, redis: Redis, user_id: str) -
     await db.commit()
 
 
-async def get_current_user(db: AsyncSession, token: str) -> User:
-    """Get the current user from an access token."""
+async def get_current_session(db: AsyncSession, token: str) -> AuthSession:
     try:
         payload = decode_access_token(token)
     except jwt.ExpiredSignatureError:
@@ -246,8 +282,10 @@ async def get_current_user(db: AsyncSession, token: str) -> User:
     user_id = payload.get("sub")
     if not user_id:
         raise AuthError("invalid_token", "Invalid token payload.")
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
+    user = await _find_user_by_id(db, user_id)
     if not user:
         raise AuthError("invalid_token", "User not found.")
-    return user
+    api_key_id = payload.get(API_KEY_CLAIM)
+    if api_key_id is not None and not await api_key_belongs_to(db, api_key_id, user.id):
+        raise AuthError("invalid_token", "API key has been revoked.")
+    return AuthSession(user=user, api_key_id=api_key_id)

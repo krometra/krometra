@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
-import { PAGE_MODES, STUB_USER, startStubApp } from "./stub/app.mjs";
+import { PAGE_MODES, STUB_API_KEY, STUB_USER, startStubApp } from "./stub/app.mjs";
 import { jsonOf, startMcp, textOf } from "./support/mcp-client.mjs";
 
 const TOOL_NAMES = [
@@ -27,7 +27,7 @@ describe("протокол MCP", () => {
   test("initialize возвращает версию клиента, сведения о сервере и порядок работы", async () => {
     const { result } = await mcp.rpc("initialize", { protocolVersion: "2025-06-18", ...CLIENT });
     assert.equal(result.protocolVersion, "2025-06-18");
-    assert.equal(result.serverInfo.name, "cad-studio");
+    assert.equal(result.serverInfo.name, "krometra");
     assert.deepEqual(result.capabilities, { tools: { listChanged: false } });
     assert.match(result.instructions, /cad_open_project/);
     assert.match(result.instructions, /миллиметрах/);
@@ -110,14 +110,14 @@ describe("вход и проекты", () => {
     await stub.close();
   });
 
-  test("список проектов читается по API одним входом и без редиректа мимо прокси", async () => {
+  test("список проектов читается по API одним входом по ключу и без редиректа мимо прокси", async () => {
     const { projects } = jsonOf(await mcp.callTool("cad_list_projects"));
     assert.deepEqual(
       projects.map((project) => project.id),
       ["ready-project", ...PAGE_MODES],
     );
     assert.deepEqual(Object.keys(projects[0]), ["id", "name", "updated_at"]);
-    assert.equal(stub.stats.logins, 1);
+    assert.deepEqual(stub.stats.grants, { password: 0, api_key: 1 });
     assert.equal(stub.stats.redirects, 0);
   });
 
@@ -143,10 +143,20 @@ describe("вход и проекты", () => {
     assert.equal(stub.stats.logins, loginsBefore + 1);
   });
 
-  test("пароль и токены не попадают ни в ответы, ни в stderr", () => {
+  test("ключ и токены не попадают ни в ответы, ни в stderr", () => {
     const output = mcp.output();
     assert.ok(stub.issued.length >= 2);
-    for (const secret of [STUB_USER.password, ...stub.issued]) assert.ok(!output.includes(secret));
+    assert.match(output, /login by api key/);
+    for (const secret of [STUB_API_KEY, ...stub.issued]) assert.ok(!output.includes(secret));
+  });
+
+  test("отозванный ключ: следующий вызов отвечает ошибкой с подсказкой, где взять новый", async () => {
+    stub.revokeApiKey();
+    const result = await mcp.callTool("cad_list_projects");
+    assert.equal(result.isError, true);
+    assert.match(textOf(result), /Вход не удался \(400\): invalid_grant/);
+    assert.match(textOf(result), /CAD_STUDIO_API_KEY отозван.*\/account/);
+    assert.ok(!mcp.output().includes(STUB_API_KEY));
   });
 });
 
@@ -158,20 +168,65 @@ describe("учётные данные", () => {
   });
   after(() => stub.close());
 
-  test("неверный пароль возвращается ошибкой входа без самого пароля", async () => {
-    const mcp = startMcp({ CAD_STUDIO_URL: stub.url, CAD_STUDIO_PASSWORD: "wrong-pass-456" });
+  test("неверный ключ возвращается ошибкой входа без самого ключа", async () => {
+    const mcp = startMcp({ CAD_STUDIO_URL: stub.url, CAD_STUDIO_API_KEY: "krm_wrong-key-456" });
     const result = await mcp.callTool("cad_list_projects");
     assert.equal(result.isError, true);
     assert.match(textOf(result), /Вход не удался \(400\): invalid_grant/);
+    assert.match(textOf(result), new RegExp(`${stub.url}/account`));
+    assert.equal(await mcp.stop(), 0);
+    assert.ok(!mcp.output().includes("krm_wrong-key-456"));
+  });
+
+  test("ключ важнее почты и пароля, если заданы оба способа", async () => {
+    const before = { ...stub.stats.grants };
+    const mcp = startMcp({
+      CAD_STUDIO_URL: stub.url,
+      CAD_STUDIO_EMAIL: STUB_USER.email,
+      CAD_STUDIO_PASSWORD: STUB_USER.password,
+    });
+    assert.notEqual((await mcp.callTool("cad_list_projects")).isError, true);
+    assert.equal(stub.stats.grants.api_key, before.api_key + 1);
+    assert.equal(stub.stats.grants.password, before.password);
+    assert.equal(await mcp.stop(), 0);
+  });
+
+  test("без ключа сервер входит по почте и паролю: запасной способ для локальной разработки", async () => {
+    const before = stub.stats.grants.password;
+    const mcp = startMcp({
+      CAD_STUDIO_URL: stub.url,
+      CAD_STUDIO_API_KEY: "",
+      CAD_STUDIO_EMAIL: STUB_USER.email,
+      CAD_STUDIO_PASSWORD: STUB_USER.password,
+    });
+    assert.notEqual((await mcp.callTool("cad_list_projects")).isError, true);
+    assert.equal(stub.stats.grants.password, before + 1);
+    assert.equal(await mcp.stop(), 0);
+    assert.ok(!mcp.output().includes(STUB_USER.password));
+  });
+
+  test("неверный пароль возвращается ошибкой входа без самого пароля и с подсказкой про ключ", async () => {
+    const mcp = startMcp({
+      CAD_STUDIO_URL: stub.url,
+      CAD_STUDIO_API_KEY: "",
+      CAD_STUDIO_EMAIL: STUB_USER.email,
+      CAD_STUDIO_PASSWORD: "wrong-pass-456",
+    });
+    const result = await mcp.callTool("cad_list_projects");
+    assert.equal(result.isError, true);
+    assert.match(textOf(result), /Вход не удался \(400\): invalid_grant/);
+    assert.match(textOf(result), /CAD_STUDIO_EMAIL и CAD_STUDIO_PASSWORD или войди по ключу/);
     assert.equal(await mcp.stop(), 0);
     assert.ok(!mcp.output().includes("wrong-pass-456"));
   });
 
-  test("без email и пароля сервер стартует, а инструмент называет недостающие переменные", async () => {
-    const mcp = startMcp({ CAD_STUDIO_URL: stub.url, CAD_STUDIO_EMAIL: "", CAD_STUDIO_PASSWORD: "" });
+  test("без ключа, почты и пароля сервер стартует, а инструмент просит ключ и называет страницу аккаунта", async () => {
+    const mcp = startMcp({ CAD_STUDIO_URL: stub.url, CAD_STUDIO_API_KEY: "" });
     const result = await mcp.callTool("cad_list_projects");
     assert.equal(result.isError, true);
-    assert.match(textOf(result), /CAD_STUDIO_EMAIL, CAD_STUDIO_PASSWORD/);
+    assert.match(textOf(result), /не задан CAD_STUDIO_API_KEY/);
+    assert.match(textOf(result), new RegExp(`${stub.url}/account`));
+    assert.match(mcp.output(), /missing env CAD_STUDIO_API_KEY/);
     assert.equal(await mcp.stop(), 0);
   });
 });

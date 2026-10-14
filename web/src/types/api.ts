@@ -15,6 +15,9 @@ export type Project = Schemas["ProjectResponse"];
 export type ProjectListResponse = Schemas["ProjectListResponse"];
 export type ProjectCreate = Schemas["ProjectCreate"];
 export type ProjectUpdate = Schemas["ProjectUpdate"];
+export type ApiKey = Schemas["ApiKeyResponse"];
+export type ApiKeyCreated = Schemas["ApiKeyCreated"];
+export type ApiKeyListResponse = Schemas["ApiKeyListResponse"];
 
 export interface ApiError {
   error: string;

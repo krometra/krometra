@@ -89,11 +89,11 @@ class TestCredentialCheck:
 class TestAccessTokenErrors:
     async def test_garbage_token_hides_pyjwt_message(self):
         with pytest.raises(AuthError) as exc:
-            await auth_service.get_current_user(_Db(None), "not-a-jwt")
+            await auth_service.get_current_session(_Db(None), "not-a-jwt")
         assert exc.value.error_description == "Invalid access token."
 
     async def test_foreign_signature_hides_pyjwt_message(self):
         forged = jwt.encode({"sub": "u", "type": "access"}, "x" * 64, algorithm="HS256")
         with pytest.raises(AuthError) as exc:
-            await auth_service.get_current_user(_Db(None), forged)
+            await auth_service.get_current_session(_Db(None), forged)
         assert exc.value.error_description == "Invalid access token."

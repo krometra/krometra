@@ -1,4 +1,4 @@
-"""Authentication routes: OAuth2 password flow, refresh, logout, me."""
+"""Authentication routes: OAuth2 password and API key flows, refresh, logout, me."""
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from redis.asyncio import Redis
@@ -18,6 +18,7 @@ from app.models.user import User
 from app.schemas.auth import RegisterRequest, RegisterResponse, TokenResponse, UserResponse
 from app.services.auth_service import (
     AuthError,
+    authenticate_api_key_grant,
     authenticate_password_grant,
     refresh_access_token,
     register_user,
@@ -68,6 +69,12 @@ async def _password_grant(db: AsyncSession, redis: Redis, client_ip: str, userna
     return await authenticate_password_grant(db, redis, username, password, client_ip)
 
 
+async def _api_key_grant(db: AsyncSession, redis: Redis, client_ip: str, api_key: str | None):
+    if not api_key:
+        raise _bad_request("invalid_request", "api_key is required for api_key grant.")
+    return await authenticate_api_key_grant(db, redis, api_key, client_ip)
+
+
 async def _refresh_grant(request: Request, db: AsyncSession, redis: Redis, client_ip: str):
     raw_token = request.cookies.get("refresh_token")
     if not raw_token:
@@ -83,6 +90,7 @@ async def token(
     grant_type: str = Form(...),
     username: str | None = Form(None),
     password: str | None = Form(None),
+    api_key: str | None = Form(None),
     client_ip: str = Depends(get_client_ip),
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
@@ -91,11 +99,14 @@ async def token(
 
     Supports:
     - grant_type=password: email + password
+    - grant_type=api_key: personal API key
     - grant_type=refresh_token: rotation of the refresh token from the httpOnly cookie
     """
     try:
         if grant_type == "password":
             access_token, refresh_token_raw = await _password_grant(db, redis, client_ip, username, password)
+        elif grant_type == "api_key":
+            access_token, refresh_token_raw = await _api_key_grant(db, redis, client_ip, api_key)
         elif grant_type == "refresh_token":
             access_token, refresh_token_raw = await _refresh_grant(request, db, redis, client_ip)
         else:

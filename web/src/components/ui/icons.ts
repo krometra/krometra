@@ -15,6 +15,9 @@ export const ICONS = {
   trash: [{ d: "M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6" }],
   logout: [{ d: "M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4 M10 16l-4-4 4-4 M6 12h10" }],
   grid: [{ d: "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z" }],
+  user: [{ d: "M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M4.5 20a7.5 7.5 0 0 1 15 0" }],
+  copy: [{ d: "M9 9h11v11H9z M5 15H4V4h11v1" }],
+  arrowLeft: [{ d: "M19 12H5 M11 6l-6 6 6 6" }],
   keyboard: [
     { d: "M3 6h18v12H3z" },
     { d: "M7 10h.01 M11 10h.01 M15 10h.01 M17 10h.01 M7 14h10" },
