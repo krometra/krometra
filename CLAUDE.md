@@ -91,6 +91,7 @@ Health-check: `GET /api/health`. Vite проксирует `/api` → `http://lo
 - **Безопасность токенов:** access token (JWT, 15 мин) — только в памяти JS, в `Authorization: Bearer`. Refresh token (opaque, 30 дней) — только в httpOnly Secure SameSite cookie, **никогда** в localStorage. Ротация + family tracking в Redis (см. `core/security.py`).
 - **Frontend state:** глобальное состояние — это обычный composable, обёрнутый в `createSharedComposable` (`composables/shared/`). Не вводи Pinia.
 - **UI:** новые интерактивные компоненты строятся на zag.js + CSS Modules с токенами `--cs-*`. Префикс компонентов дизайн-системы — `Cs` (`CsButton`, `CsDialog`, …).
+- **`foxy-ui-kit` — собственный кит владельца проекта** (`github.com/nia-sempai/foxy-ui-kit`). Если компоненту `Fx*` не хватает пропа, слота, варианта или в нём баг — дорабатывай сам кит на своё усмотрение, выпускай версию и обновляй зависимость в `web/`, а не обходи это перекрытием классов `.fx-*`, своей копией компонента или правкой `node_modules`. Порядок выпуска — скилл `foxy-ui-kit`.
 - **Three.js** используется напрямую через template ref, без оберток вроде TresJS, чтобы держать тонкий контроль над render loop.
 - **Геометрия — только в браузерном ядре.** Новая операция — сообщение worker'а + `Browser*Command` + эндпоинт `browser-*`, сохраняющий STEP и меш без разбора. Worker держит тела между командами; `useBrowserGeometry` следит за памятью (лимит модели, перезапуск worker'а с повторной гидрацией тел после OOM/abort). Неподдержанная операция недоступна, молчаливого серверного fallback нет.
 
