@@ -1,6 +1,7 @@
 // Pure 2D geometry helpers for the sketcher — no Vue, no DOM, unit-testable.
 
 import type { SketchEntity, SketchPoint } from "@/types/api";
+import { isAngleOnArc } from "./arcGeometry";
 
 export interface LineRef {
   point: SketchPoint;
@@ -80,10 +81,7 @@ export function isPointNearEntity(
     case "arc": {
       const d = Math.hypot(point.x - entity.center.x, point.y - entity.center.y);
       const angle = Math.atan2(point.y - entity.center.y, point.x - entity.center.x);
-      let sa = entity.startAngle;
-      let ea = entity.endAngle;
-      if (sa > ea) [sa, ea] = [ea, sa];
-      return Math.abs(d - entity.radius) < threshold && angle >= sa - 0.1 && angle <= ea + 0.1;
+      return Math.abs(d - entity.radius) < threshold && isAngleOnArc(angle, entity.startAngle, entity.endAngle, 0.1);
     }
   }
   return false;

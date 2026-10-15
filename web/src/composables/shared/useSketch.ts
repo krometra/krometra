@@ -9,7 +9,7 @@ import { useApi } from "../useApi";
 
 export type SketchTool =
   | "select"
-  | "line" | "rectangle" | "circle" | "arc"
+  | "line" | "rectangle" | "circle" | "arc" | "arc3"
   | "aux-parallel" | "aux-perpendicular" | "aux-vertical" | "aux-horizontal";
 
 export const useSketch = createSharedComposable(() => {

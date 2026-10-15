@@ -5,6 +5,7 @@ import type {
   SketchConstraint,
   SketchEntity,
 } from "@/types/api";
+import { constraintBlocker, planConstraints, type ConstraintPick } from "@/sketcher/constraintPlan";
 
 export const CONSTRAINT_TYPES: ConstraintType[] = [
   "horizontal", "vertical", "coincident", "parallel", "perpendicular",
@@ -24,12 +25,12 @@ const CONSTRAINT_LABELS: Record<ConstraintType, string> = {
 };
 
 const CONSTRAINT_HINTS: Record<ConstraintType, string> = {
-  horizontal: "Горизонтальность — выберите один отрезок",
-  vertical: "Вертикальность — выберите один отрезок",
-  coincident: "Совпадение — выберите два объекта",
-  parallel: "Параллельность — выберите два отрезка",
+  horizontal: "Горизонтальность — выберите один или несколько отрезков",
+  vertical: "Вертикальность — выберите один или несколько отрезков",
+  coincident: "Совпадение — выберите два объекта или больше",
+  parallel: "Параллельность — выберите два отрезка или больше",
   perpendicular: "Перпендикулярность — выберите два отрезка",
-  equal: "Равенство — выберите два объекта одного типа",
+  equal: "Равенство — выберите отрезки или окружности и дуги",
   distance: "Расстояние — выберите два объекта",
   radius: "Радиус — выберите окружность или дугу",
   angle: "Угол — выберите два отрезка",
@@ -73,38 +74,26 @@ export function useSketchConstraints(deps: {
 
   const dimensionalInput = ref<DimensionalInput | null>(null);
 
+  function selectedPicks(): ConstraintPick[] {
+    return selectedEntityIds.value.flatMap((id) => {
+      const entity = entities.value.find((e) => e.id === id);
+      return entity ? [{ entity, ref: { entity_id: id, sub_index: 0 } }] : [];
+    });
+  }
+
+  function blocker(type: ConstraintType): string | null {
+    const picks = selectedPicks();
+    if (picks.length !== selectedEntityIds.value.length) return "выделение устарело";
+    return constraintBlocker(type, picks);
+  }
+
   function canApply(type: ConstraintType): boolean {
-    const sel = selectedEntityIds.value;
-    if (sel.length === 0) return false;
-
-    const selected = sel
-      .map((id) => entities.value.find((e) => e.id === id))
-      .filter(Boolean) as SketchEntity[];
-    if (selected.length !== sel.length) return false;
-
-    switch (type) {
-      case "horizontal":
-      case "vertical":
-        return sel.length === 1 && selected[0].type === "line";
-      case "radius":
-        return sel.length === 1 && (selected[0].type === "circle" || selected[0].type === "arc");
-      case "coincident":
-      case "distance":
-        return sel.length >= 2;
-      case "parallel":
-      case "perpendicular":
-      case "angle":
-        return sel.length === 2 && selected[0].type === "line" && selected[1].type === "line";
-      case "equal":
-        return sel.length === 2 && selected[0].type === selected[1].type;
-      default:
-        return false;
-    }
+    return blocker(type) === null;
   }
 
   function title(type: ConstraintType): string {
-    const hint = CONSTRAINT_HINTS[type];
-    return canApply(type) ? hint : `${hint} (недоступно)`;
+    const reason = blocker(type);
+    return reason ? `${CONSTRAINT_HINTS[type]} (недоступно: ${reason})` : CONSTRAINT_HINTS[type];
   }
 
   function openDimensionalInput(type: ConstraintType, anchors: ConstraintRef[]) {
@@ -121,23 +110,19 @@ export function useSketchConstraints(deps: {
   }
 
   function create(type: ConstraintType) {
-    const sel = selectedEntityIds.value;
-    if (sel.length === 0) return;
-
-    const anchors: ConstraintRef[] = sel.map((entityId) => ({
-      entity_id: entityId,
-      sub_index: 0,
-    }));
+    if (!canApply(type)) return;
+    const picks = selectedPicks();
 
     if (type === "distance" || type === "radius" || type === "angle") {
-      const required = type === "radius" ? 1 : 2;
-      if (anchors.length < required) return;
-      openDimensionalInput(type, anchors);
+      openDimensionalInput(type, picks.map((pick) => pick.ref));
       return;
     }
 
-    addConstraint({ id: nextConstraintId(), type, anchors, value: null });
+    for (const constraint of planConstraints(type, picks, nextConstraintId)) {
+      addConstraint(constraint, { silent: true });
+    }
     clearSelection();
+    solveAndApply();
   }
 
   function confirmDimensional() {
