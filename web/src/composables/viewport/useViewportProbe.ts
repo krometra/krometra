@@ -27,10 +27,12 @@ export function useViewportProbe(context: SceneContext) {
   function inspectScene() {
     if (!context.ready()) return null;
     const scene = context.scene();
+    const [clip] = context.renderer().clippingPlanes;
+    const section = clip ? { normal: clip.normal.toArray(), constant: clip.constant } : null;
     return {
       visibleBodyIds: visibleSceneBodyIds(scene),
       sketchOutlineIds: shownSketchOutlineIds(scene),
-      threadPreview: threadPreviewSnapshot(scene), mirrorPreview: mirrorPreviewSnapshot(scene),
+      threadPreview: threadPreviewSnapshot(scene),, section mirrorPreview: mirrorPreviewSnapshot(scene),
     };
   }
 

@@ -4,6 +4,7 @@ import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { param, type Vec3 } from "@/lib/control/params";
 import { fail } from "@/lib/control/protocol";
 import { WORLD_UP } from "@/lib/orientation";
+import { basePlaneTarget, type CameraPose } from "@/lib/lookAtView";
 import type { EditorControlContext } from "./controlContext";
 
 const FALLBACK_CAPTURE_SIZE = { width: 1280, height: 800 };
@@ -17,6 +18,16 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
 
   function resolveView(input: CameraViewInput) {
     return resolveCameraView(input, { target: cameraState().target, up: WORLD_UP.toArray() });
+  }
+
+  function lookAt(params: { plane?: "XY" | "XZ" | "YZ"; bodyId?: string; faceId?: string }): CameraPose | null {
+    const viewport = context.viewport();
+    if (params.plane) return viewport.lookAt(basePlaneTarget(params.plane, viewport.modelBounds()));
+    if (!params.bodyId || !params.faceId) throw fail("invalid_params", "Задайте plane либо bodyId вместе с faceId.");
+    context.bodyMesh(params.bodyId);
+    const pose = viewport.lookAtFace(params.bodyId, params.faceId);
+    if (!pose) throw fail("operation_failed", `Грань «${params.faceId}» не найдена во вьюпорте или не плоская: вид по нормали строится только к плоской грани.`);
+    return pose;
   }
 
   function canvasSize() {
@@ -55,6 +66,22 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
       run: () => {
         context.viewport().fitAllBodies();
         return cameraState();
+      },
+    }),
+
+    defineOp({
+      op: "camera.lookAt",
+      description:
+        "Вид по нормали — кнопка «Вид по нормали» и пункт меню грани: камера плавно (около 0.4 с) встаёт на нормаль к плоской грани и вписывает её либо к базовой плоскости и вписывает модель (XY — сверху, XZ — спереди, YZ — справа). Верх экрана — мировой +Z, у видов сверху и снизу — как у ViewCube. Документ не меняет. Возвращает { position, target, up }, куда прилетит камера.",
+      params: {
+        plane: param.optional(param.oneOf(["XY", "XZ", "YZ"], "Базовая плоскость. Взаимоисключается с bodyId/faceId.")),
+        bodyId: param.optional(param.id("Тело грани из op state.")),
+        faceId: param.optional(param.id("Плоская грань из op topology или face.find.")),
+      },
+      run: (params) => {
+        const pose = lookAt(params);
+        if (!pose) throw fail("not_ready", "Сцена вьюпорта ещё не создана.");
+        return pose;
       },
     }),
 
@@ -119,7 +146,7 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "viewport.capture",
       description:
-        "Снимок 3D-вьюпорта текущей камерой в PNG. Возвращает { mime: \"image/png\", dataBase64, width, height }. Без размеров снимает в размере канваса; при другом соотношении сторон кадр обрезается по центру.",
+        "Снимок 3D-вьюпорта текущей камерой в PNG, без визуального сечения режима «Сечение». Возвращает { mime: \"image/png\", dataBase64, width, height }. Без размеров снимает в размере канваса; при другом соотношении сторон кадр обрезается по центру.",
       params: {
         width: param.optional(param.integer("Ширина снимка в пикселях.", { min: 16, max: 4096 })),
         height: param.optional(param.integer("Высота снимка в пикселях.", { min: 16, max: 4096 })),

@@ -30,6 +30,7 @@ import { useDocumentWatch } from "@/composables/editor/useDocumentWatch";
 import { useTreeContextMenu } from "@/composables/editor/useTreeContextMenu";
 import { useProjectThumbnail } from "@/composables/editor/useProjectThumbnail";
 import { useEditorControl } from "@/composables/editor/useEditorControl";
+import { useViewInspect } from "@/composables/editor/useViewInspect";
 import { apiErrorMessage, toast } from "@/composables/useToast";
 import ViewportContainer from "@/components/viewport/ViewportContainer.vue";
 import ViewCube from "@/components/viewport/ViewCube.vue";
@@ -57,6 +58,7 @@ import AxisTriad from "@/components/editor/AxisTriad.vue";
 import LegacyProjectNotice from "@/components/editor/LegacyProjectNotice.vue";
 import WatchModeBanner from "@/components/editor/WatchModeBanner.vue";
 import AiControlBadge from "@/components/editor/AiControlBadge.vue";
+import ViewInspectOverlay from "@/components/editor/ViewInspectOverlay.vue";
 import { pluralize } from "@/lib/plural";
 import type { RenderingMode, RibbonAction, SelectionMode } from "@/composables/editor/types";
 import type { BrepTopo, Project } from "@/types/api";
@@ -85,6 +87,7 @@ const meshes = useBodyMeshes({
 });
 const status = useDocumentStatus(props.id);
 const camera = useCameraSync(viewportRef);
+const inspect = useViewInspect(viewportRef);
 const extrude = useExtrudeRevolve({ projectId: props.id, viewportRef, meshes, model });
 const history = useModelHistory({ projectId: props.id, meshes });
 const bodyPresentation = useBodyPresentation({ projectId: props.id, viewportRef });
@@ -220,6 +223,7 @@ function handleEscape() {
     return;
   }
   if (sketch.sketchMode.value) return; // инструменты скетчера обрабатывают Esc сами
+  if (inspect.dismiss()) return;
   if (tools.exitActive()) return;
   if (sweep.sweepMode.value) {
     sweep.exit();
@@ -334,6 +338,7 @@ const selectionLabel = computed(() => {
         @context-menu="contextMenu.open"
         @toggle-visibility="contextMenu.toggleVisibility"
         @toggle-sketch-visibility="contextMenu.toggleSketchVisibility"
+        @plane-context-menu="inspect.openPlaneMenu"
       />
 
       <div :class="$style.viewport">
@@ -348,6 +353,7 @@ const selectionLabel = computed(() => {
           @body-selected="booleanMode.handleBodySelected"
           @body-deselected="booleanMode.handleBodyDeselected"
           @edge-selection-changed="filletChamfer.onEdgeSelectionChanged"
+          @face-context-menu="inspect.openFaceMenu"
         />
 
         <div v-if="sketchFlow.facePickMode.value" :class="$style.facePickBanner">
@@ -398,8 +404,12 @@ const selectionLabel = computed(() => {
         <ViewportControls
           v-if="!sketch.sketchMode.value"
           v-model:rendering-mode="viewportRenderingMode"
+          :section-active="inspect.section.active.value"
           @fit-all="viewportRef?.fitAllBodies()"
+          @look-at="inspect.lookAtSelection"
+          @toggle-section="inspect.section.toggle"
         />
+        <ViewInspectOverlay v-if="!sketch.sketchMode.value" :inspect="inspect" />
 
         <div v-if="!sketch.sketchMode.value" :class="$style.readout">
           <div>

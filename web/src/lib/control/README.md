@@ -39,7 +39,7 @@ type ControlErrorCode =
 
 `export { format: "step" | "stl" | "3mf", bodyIds?, quality?, tolerance?, angleDeg? }` отдаёт файл как `{ mime, filename, dataBase64 }` тем же путём, что кнопка «Экспорт» (`useExport.buildFile` → ядро). Без `bodyIds` — все видимые тела одним файлом, с `bodyIds` — ровно названные тела, и их имена попадают в имя файла: отдельный STL на каждое тело получают вызовом на каждое тело. Качество сетки STL и 3MF — пресет `quality` (`draft` | `normal` | `high`, по умолчанию `normal`, прежние 0.01 мм и 0.5 рад) либо свои `tolerance` (мм) и `angleDeg` поверх него. Пока редактор занят операцией, `export` отвечает `busy`, хотя модель не меняет.
 
-Вид и поведение выбора без изменения документа: `camera.set`, `viewport.setHelpers`, `selection.setEdgeChain`.
+Вид и поведение выбора без изменения документа: `camera.set`, `camera.lookAt`, `viewport.setHelpers`, `selection.setEdgeChain`.
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 

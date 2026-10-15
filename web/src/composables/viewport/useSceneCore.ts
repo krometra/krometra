@@ -6,6 +6,7 @@ import { createGrid, WORLD_UP } from "@/lib/orientation";
 import { ISO_VIEW } from "@/composables/useViewCube";
 import { coverCrop } from "@/lib/projectThumbnail";
 import { isFinitePoint, isUsableCamera, isUsableRadius, viewDirection, type Point3 } from "@/lib/cameraGuard";
+import { interpolatePose, type CameraPose } from "@/lib/lookAtView";
 
 /**
  * Порог в пикселях, ниже которого движение мыши с зажатой кнопкой всё ещё
@@ -77,11 +78,14 @@ export function useSceneCore(entries: MeshEntry[]) {
     ready: () => renderer !== null && camera !== null,
   };
 
-  function init(container: HTMLDivElement, handlers: { onClick: (e: MouseEvent) => void; onMove: (e: MouseEvent) => void }) {
+  function init(
+    container: HTMLDivElement,
+    handlers: { onClick: (e: MouseEvent) => void; onMove: (e: MouseEvent) => void; onContextMenu: (e: MouseEvent) => void },
+  ) {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, stencil: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = false;
@@ -119,13 +123,20 @@ export function useSceneCore(entries: MeshEntry[]) {
     // выбор грани и призрак резьбы вместе с ним. Отличаем клик от протяжки по
     // пройденному расстоянию, а не по факту нажатия.
     const guarded = guardDragClicks(handlers.onClick);
+    const guardedMenu = guardDragClicks((e) => {
+      if (e.button === 2) handlers.onContextMenu(e);
+    });
     renderer.domElement.addEventListener("pointerdown", guarded.onPointerDown);
+    renderer.domElement.addEventListener("pointerdown", guardedMenu.onPointerDown);
     renderer.domElement.addEventListener("click", guarded.onClick);
+    renderer.domElement.addEventListener("pointerup", guardedMenu.onClick);
     renderer.domElement.addEventListener("mousemove", handlers.onMove);
     cleanupHandlers = {
       onClick: guarded.onClick,
       onMove: handlers.onMove,
       onPointerDown: guarded.onPointerDown,
+      onContextMenu: guardedMenu.onClick,
+      onMenuPointerDown: guardedMenu.onPointerDown,
     };
 
     // w/h равны нулю, пока вьюпорт скрыт через v-show: OrbitControls делит
@@ -150,6 +161,8 @@ export function useSceneCore(entries: MeshEntry[]) {
     onClick: (e: MouseEvent) => void;
     onMove: (e: MouseEvent) => void;
     onPointerDown: (e: PointerEvent) => void;
+    onContextMenu: (e: MouseEvent) => void;
+    onMenuPointerDown: (e: PointerEvent) => void;
   } | null = null;
 
   /** Изометрия Z-up: единая стартовая точка для init() и resetView(). */
@@ -291,18 +304,17 @@ export function useSceneCore(entries: MeshEntry[]) {
 
     const cam = camera;
     const ctrl = controls;
-    const startPos = cam.position.clone();
-    const startTarget = ctrl.target.clone();
-    const startUp = cam.up.clone();
+    const start: CameraPose = { position: point(cam.position), target: point(ctrl.target), up: point(cam.up) };
+    const end: CameraPose = { position: point(viewPos), target: point(viewTarget), up: point(viewUp) };
     const startTime = performance.now();
     const duration = 400;
 
     function step() {
       const t = Math.min((performance.now() - startTime) / duration, 1);
-      const eased = easeInOutCubic(t);
-      cam.position.lerpVectors(startPos, viewPos, eased);
-      ctrl.target.lerpVectors(startTarget, viewTarget, eased);
-      cam.up.copy(startUp).lerp(viewUp, eased);
+      const pose = t < 1 ? interpolatePose(start, end, easeInOutCubic(t)) : end;
+      cam.position.set(...pose.position);
+      ctrl.target.set(...pose.target);
+      cam.up.set(...pose.up);
       ctrl.update();
       cameraAnimFrame = t < 1 ? requestAnimationFrame(step) : null;
     }
@@ -348,6 +360,8 @@ export function useSceneCore(entries: MeshEntry[]) {
         renderer.domElement.removeEventListener("click", cleanupHandlers.onClick);
         renderer.domElement.removeEventListener("mousemove", cleanupHandlers.onMove);
         renderer.domElement.removeEventListener("pointerdown", cleanupHandlers.onPointerDown);
+        renderer.domElement.removeEventListener("pointerup", cleanupHandlers.onContextMenu);
+        renderer.domElement.removeEventListener("pointerdown", cleanupHandlers.onMenuPointerDown);
       }
       renderer.dispose();
     }

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { BrepTopo } from "@/types/api";
 import type { MeshEntry, SceneContext } from "./types";
 import { findByBody } from "./types";
+import { unclippedHits } from "./clipRaycast";
 import { bestEdgeHit, edgePickThreshold } from "./edgePicking";
 import { buildEdgeLines, disposeEdgeLines, styleEdgeLine, visibleEdgeLines, type EdgeStyle } from "./edgeLines";
 import {
@@ -162,7 +163,7 @@ export function useEdgeSelection(options: {
     );
     const oldThreshold = raycaster.params.Line?.threshold ?? 0;
     raycaster.params.Line = { threshold };
-    const intersects = raycaster.intersectObjects(allLines, false);
+    const intersects = unclippedHits(context, raycaster.intersectObjects(allLines, false));
     raycaster.params.Line = { threshold: oldThreshold };
 
     const best = bestEdgeHit(

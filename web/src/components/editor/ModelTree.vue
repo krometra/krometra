@@ -5,6 +5,7 @@ import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
 import type { TimelineEntry } from "@/types/api";
 import type { TreeItemKind } from "@/composables/editor/types";
+import type { SectionBase } from "@/lib/sectionPlane";
 
 const props = defineProps<{ projectId: string }>();
 
@@ -12,6 +13,7 @@ const emit = defineEmits<{
   "context-menu": [e: MouseEvent, kind: TreeItemKind, id: string];
   "toggle-visibility": [bodyId: string];
   "toggle-sketch-visibility": [sketchId: string];
+  "plane-context-menu": [e: MouseEvent, plane: SectionBase];
 }>();
 
 const selection = useSelection();
@@ -96,7 +98,12 @@ defineExpose({ startRename, cancelRename, isRenaming });
         <span :class="$style.treeCount">3</span>
       </div>
       <template v-if="open.origin">
-        <div v-for="pl in ['Плоскость XY', 'Плоскость XZ', 'Плоскость YZ']" :key="pl" :class="$style.treeRow">
+        <div
+          v-for="pl in ['Плоскость XY', 'Плоскость XZ', 'Плоскость YZ']"
+          :key="pl"
+          :class="$style.treeRow"
+          @contextmenu.prevent="emit('plane-context-menu', $event, pl.slice(-2) as SectionBase)"
+        >
           <span :class="$style.treeDot" :style="{ background: 'oklch(0.40 0.06 233)' }" />{{ pl }}
         </div>
       </template>
