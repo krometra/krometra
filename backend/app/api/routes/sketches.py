@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.browser_upload_route import DocumentRoute
 from app.api.deps import get_current_active_user, get_db
 from app.models.user import User
-from app.schemas.sketch import SketchData, SketchSaveResponse
+from app.schemas.sketch import SketchData, SketchSaveResponse, sketch_component
 from app.services.document_service import get_document, save_document
 from app.services.geometry_ops import next_label
 from app.schemas.document import DocumentUpdate
@@ -38,7 +38,7 @@ async def save_sketch(
 
     # Serialize sketch data and store in components
     components = dict(doc.components) if doc.components else {}
-    components[sketch_id] = data.model_dump()
+    components[sketch_id] = sketch_component(data, components.get(sketch_id))
 
     # Append/update timeline entry
     doc_timeline = list(doc.timeline or [])

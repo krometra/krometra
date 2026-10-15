@@ -61,6 +61,15 @@ export function visibleSceneBodyIds(scene: THREE.Object3D): string[] {
   return [...ids];
 }
 
+export function shownSketchOutlineIds(scene: THREE.Object3D): string[] {
+  const ids: string[] = [];
+  scene.traverseVisible((object) => {
+    const sketchId: unknown = object.userData.sketchOutline;
+    if (typeof sketchId === "string") ids.push(sketchId);
+  });
+  return ids;
+}
+
 export function threadPreviewSnapshot(scene: THREE.Object3D): ThreadPreviewSnapshot | null {
   let snapshot: ThreadPreviewSnapshot | null = null;
   scene.traverse((object) => {

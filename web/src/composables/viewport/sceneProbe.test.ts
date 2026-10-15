@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
-import { cameraForView, projectToClient, threadPreviewSnapshot, visibleSceneBodyIds, type CanvasRect } from "./sceneProbe";
+import {
+  cameraForView,
+  projectToClient,
+  shownSketchOutlineIds,
+  threadPreviewSnapshot,
+  visibleSceneBodyIds,
+  type CanvasRect,
+} from "./sceneProbe";
 
 const RECT: CanvasRect = { left: 100, top: 50, width: 800, height: 600 };
 
@@ -94,6 +101,39 @@ describe("visibleSceneBodyIds", () => {
     scene.add(mesh);
     scene.remove(mesh);
     expect(visibleSceneBodyIds(scene)).toEqual([]);
+  });
+});
+
+describe("shownSketchOutlineIds", () => {
+  function outline(sketchId: string) {
+    const group = new THREE.Group();
+    group.userData.sketchOutline = sketchId;
+    group.add(new THREE.Line(new THREE.BufferGeometry()));
+    return group;
+  }
+
+  it("берёт контуры эскизов, видимые вместе с родителями", () => {
+    const scene = new THREE.Scene();
+    const sketches = new THREE.Group();
+    const hiddenGroup = new THREE.Group();
+    hiddenGroup.visible = false;
+    hiddenGroup.add(outline("under-hidden"));
+    const hidden = outline("hidden");
+    hidden.visible = false;
+    sketches.add(outline("a"), hidden, hiddenGroup, outline("b"));
+    scene.add(sketches);
+
+    expect(shownSketchOutlineIds(scene)).toEqual(["a", "b"]);
+  });
+
+  it("контуры спрятаны все, когда спрятана их общая группа", () => {
+    const scene = new THREE.Scene();
+    const sketches = new THREE.Group();
+    sketches.add(outline("a"));
+    sketches.visible = false;
+    scene.add(sketches);
+
+    expect(shownSketchOutlineIds(scene)).toEqual([]);
   });
 });
 

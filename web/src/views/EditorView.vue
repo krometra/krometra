@@ -329,6 +329,7 @@ const selectionLabel = computed(() => {
         :project-id="props.id"
         @context-menu="contextMenu.open"
         @toggle-visibility="contextMenu.toggleVisibility"
+        @toggle-sketch-visibility="contextMenu.toggleSketchVisibility"
       />
 
       <div :class="$style.viewport">

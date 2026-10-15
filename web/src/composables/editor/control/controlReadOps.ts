@@ -34,7 +34,7 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
     defineOp({
       op: "state",
       description:
-        "Состояние редактора одним снимком; доступно сразу после монтирования, ещё до готовности. Возвращает { projectId, mode, ready, kernel, kernelError, legacyProject, document: { version, dirty }, bodies: [{ id, name, visible, color, consumedBy, replacedBy }], consumedBodyCount, sketches: [{ id, name, plane, planeOffset, used }], timeline: [{ id, kind, label, name, status, params, sketchId, bodyId }], busy }. bodies по умолчанию — только «живые» тела; join, cut, скругление, фаска, резьба, булева операция и перемещение без копии поглощают исходное тело: оно скрывается, а результат получает новый id. У поглощённого тела consumedBy — id записи истории, replacedBy — тело-результат; такие тела показываются с allBodies = true, их число — consumedBodyCount. Цепочку замен проходят по replacedBy до тела с consumedBy = null. У extrude params.distance хранится со знаком вдоль нормали эскиза: плюс — по нормали, минус — против; new_body и join без reversed дают плюс, cut без reversed — минус. Чтобы повторить операцию по params, передайте distance = |distance| и reversed = (operation = cut ? distance > 0 : distance < 0). mode: model | sketch | plane_pick | extrude | revolve | fillet | chamfer | thread | boolean. kernel — фаза браузерного ядра: idle | loading | ready | restarting | failed. busy = true, пока идёт мутирующая операция, сохранение или перезагрузка тел. bodyId записи истории — тело-результат операции.",
+        "Состояние редактора одним снимком; доступно сразу после монтирования, ещё до готовности. Возвращает { projectId, mode, ready, kernel, kernelError, legacyProject, document: { version, dirty }, bodies: [{ id, name, visible, color, consumedBy, replacedBy }], consumedBodyCount, sketches: [{ id, name, plane, planeOffset, used, visible }], timeline: [{ id, kind, label, name, status, params, sketchId, bodyId }], busy }. bodies по умолчанию — только «живые» тела; join, cut, скругление, фаска, резьба, булева операция и перемещение без копии поглощают исходное тело: оно скрывается, а результат получает новый id. У поглощённого тела consumedBy — id записи истории, replacedBy — тело-результат; такие тела показываются с allBodies = true, их число — consumedBodyCount. Цепочку замен проходят по replacedBy до тела с consumedBy = null. У extrude params.distance хранится со знаком вдоль нормали эскиза: плюс — по нормали, минус — против; new_body и join без reversed дают плюс, cut без reversed — минус. Чтобы повторить операцию по params, передайте distance = |distance| и reversed = (operation = cut ? distance > 0 : distance < 0). mode: model | sketch | plane_pick | extrude | revolve | fillet | chamfer | thread | boolean. kernel — фаза браузерного ядра: idle | loading | ready | restarting | failed. busy = true, пока идёт мутирующая операция, сохранение или перезагрузка тел. bodyId записи истории — тело-результат операции.",
       needsReady: false,
       params: {
         allBodies: param.optional(param.boolean("Включить в bodies поглощённые тела (промежуточные тела цепочек). По умолчанию false.")),
@@ -55,6 +55,7 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
           plane: sketch.plane ?? null,
           planeOffset: typeof sketch.plane_offset === "number" ? sketch.plane_offset : 0,
           used: context.model.sketchHasFeature(sketch.id),
+          visible: sketch.visible !== false,
         })),
         timeline: context.model.timelineEntries.value.map(context.timelineEntry),
         busy: busyReason() !== null,
@@ -108,10 +109,10 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
     defineOp({
       op: "scene.get",
       description:
-        "Что реально находится в 3D-сцене (обход сцены, а не документ). Возвращает { visibleBodyIds, visibleBodyCount, threadPreview }. threadPreview — призрак резьбы до применения: { starts, pitch, depth, external, threads, bbox: { min, max } } либо null.",
+        "Что реально находится в 3D-сцене (обход сцены, а не документ). Возвращает { visibleBodyIds, visibleBodyCount, sketchOutlineIds, threadPreview }. sketchOutlineIds — эскизы, контуры которых сейчас видны (скрытый эскиз и спрятанные контуры сюда не попадают). threadPreview — призрак резьбы до применения: { starts, pitch, depth, external, threads, bbox: { min, max } } либо null.",
       run: () => {
         const scene = context.viewport().inspectScene();
-        if (!scene) return { visibleBodyIds: [], visibleBodyCount: 0, threadPreview: null };
+        if (!scene) return { visibleBodyIds: [], visibleBodyCount: 0, sketchOutlineIds: [], threadPreview: null };
         return { ...scene, visibleBodyCount: scene.visibleBodyIds.length };
       },
     }),

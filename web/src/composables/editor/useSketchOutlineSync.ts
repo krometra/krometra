@@ -10,6 +10,11 @@ interface SketchOutlineFrame {
 
 interface OutlineViewport {
   addSketchOutline(sketchId: string, entities: SketchEntity[], frame: SketchOutlineFrame): void;
+  removeSketchOutline(sketchId: string): void;
+}
+
+export function isSketchShown(sketch: ComponentEntry): boolean {
+  return sketch.visible !== false;
 }
 
 function sketchFrame(sketch: ComponentEntry): SketchOutlineFrame {
@@ -26,18 +31,30 @@ export function useSketchOutlineSync(viewportRef: Ref<OutlineViewport | undefine
   }
 
   function drawAll() {
-    sketches.value.forEach(draw);
+    sketches.value.filter(isSketchShown).forEach(draw);
   }
 
-  watch(
-    () => new Map(sketches.value.map((sketch) => [sketch.id, JSON.stringify(sketchFrame(sketch))])),
-    (frames, previous) => {
-      for (const sketch of sketches.value) {
-        const before = previous.get(sketch.id);
-        if (before !== undefined && before !== frames.get(sketch.id)) draw(sketch);
-      }
-    },
-  );
+  function applyVisibility(sketch: ComponentEntry) {
+    if (isSketchShown(sketch)) draw(sketch);
+    else viewportRef.value?.removeSketchOutline(sketch.id);
+  }
+
+  function onSketchChange<T>(key: (sketch: ComponentEntry) => T, react: (sketch: ComponentEntry) => void) {
+    watch(
+      () => new Map(sketches.value.map((sketch) => [sketch.id, key(sketch)])),
+      (current, previous) => {
+        for (const sketch of sketches.value) {
+          const before = previous.get(sketch.id);
+          if (before !== undefined && before !== current.get(sketch.id)) react(sketch);
+        }
+      },
+    );
+  }
+
+  onSketchChange((sketch) => JSON.stringify(sketchFrame(sketch)), (sketch) => {
+    if (isSketchShown(sketch)) draw(sketch);
+  });
+  onSketchChange(isSketchShown, applyVisibility);
 
   return { drawAll };
 }

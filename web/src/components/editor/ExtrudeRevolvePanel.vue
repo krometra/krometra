@@ -15,26 +15,25 @@ const {
   extrudeTargetBodyId,
   extrudePreviewError,
   extrudeDistance,
-  extrudeDistanceExpr,
-  extrudeDistanceInvalid,
+  distanceField,
   extrudeDirection,
   extrudeReversed,
   extrudeSignedDistance,
   extrudeError,
   extrudeLoading,
-  revolveAngle,
+  revolveAngleField,
   revolveAxis,
   revolveAxisOrigin,
   revolveDirection,
   revolveError,
   revolveLoading,
   onDistanceWheel,
-  applyDistanceExpr,
-  onDistanceInput,
   handleExtrude,
   handleRevolve,
   clearSketchContext,
 } = props.extrude;
+const { text: extrudeDistanceExpr, error: extrudeDistanceError } = distanceField;
+const { text: revolveAngleExpr, error: revolveAngleError } = revolveAngleField;
 const { extentType, backDistance, offset, upToBodyId, upToFace } = props.extrude.extent;
 
 const names = useDisplayNames();
@@ -162,17 +161,18 @@ function cancel() {
           v-model="extrudeDistanceExpr"
           type="text"
           inputmode="decimal"
-          :class="[$style.numberInput, extrudeDistanceInvalid && $style.inputInvalid]"
-          title="Только положительное. Колесо мыши: ±1 мм. Можно выражение: 30/2, width*2 (имена из Параметров)"
+          :class="[$style.numberInput, extrudeDistanceError && $style.inputInvalid]"
+          title="Только положительное. Колесо мыши: ±1 мм. Можно выражение с единицами: 30/2, 1in + 2mm, width/2 + 5 mm (имена из Параметров)"
+          data-testid="extrude-distance"
           @wheel.prevent="onDistanceWheel"
-          @input="onDistanceInput"
-          @change="applyDistanceExpr"
-          @keyup.enter="applyDistanceExpr"
+          @input="distanceField.onInput"
+          @change="distanceField.commit"
+          @keyup.enter="distanceField.commit"
         />
         <span :class="$style.fieldUnit">мм</span>
       </div>
-      <div v-if="extrudeDistanceInvalid" :class="$style.hint">
-        Расстояние должно быть больше нуля — сторону задаёт «Реверс».
+      <div v-if="extrudeDistanceError" :class="$style.hint" data-testid="extrude-distance-error">
+        {{ extrudeDistanceError }}
       </div>
     </div>
     <div :class="$style.field">
@@ -218,7 +218,7 @@ function cancel() {
     <div :class="$style.field" style="margin-top:16px">
       <button
         :class="$style.extrudeBtn"
-        :disabled="extrudeLoading || extrudeDistanceInvalid"
+        :disabled="extrudeLoading || !!extrudeDistanceError"
         data-testid="extrude-apply"
         @click="handleExtrude"
       >
@@ -236,14 +236,20 @@ function cancel() {
       </div>
       <div :class="$style.fieldInput">
         <input
-          v-model.number="revolveAngle"
-          type="number"
-          min="0.1"
-          max="360"
-          step="1"
-          :class="$style.numberInput"
+          v-model="revolveAngleExpr"
+          type="text"
+          inputmode="decimal"
+          :class="[$style.numberInput, revolveAngleError && $style.inputInvalid]"
+          title="От 0 до 360°. Можно выражение с единицами: 90deg, 0.5 rad, 360/4"
+          data-testid="revolve-angle"
+          @input="revolveAngleField.onInput"
+          @change="revolveAngleField.commit"
+          @keyup.enter="revolveAngleField.commit"
         />
         <span :class="$style.fieldUnit">°</span>
+      </div>
+      <div v-if="revolveAngleError" :class="$style.hint" data-testid="revolve-angle-error">
+        {{ revolveAngleError }}
       </div>
     </div>
     <div :class="$style.field">
@@ -300,7 +306,7 @@ function cancel() {
     <div :class="$style.field" style="margin-top:16px">
       <button
         :class="[$style.extrudeBtn, $style.revolveBtn]"
-        :disabled="revolveLoading"
+        :disabled="revolveLoading || !!revolveAngleError"
         data-testid="revolve-apply"
         @click="handleRevolve"
       >

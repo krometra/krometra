@@ -13,6 +13,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useDocumentStatus        статус сохранения документа (loading/saved/…/conflict)
 │   ├── useCameraSync            поллинг камеры для ViewCube + переходы вида
 │   ├── useExtrudeRevolve        состояние и команды выдавливания/вращения + ghost-превью
+│   ├── useQuantityField         числовое поле с выражением и единицами (lib/expr + lib/units)
 │   ├── useSketchLifecycle       выбор плоскости/грани, вход-выход из эскиза, удаление
 │   ├── useBooleanMode           режим CSG: выбор target/tool, apply
 │   ├── useFilletChamfer         режим скругления/фаски: выбор рёбер, apply
