@@ -33,9 +33,13 @@ async function clickModelUndo(page: Page) {
   await page.waitForTimeout(2500);
 }
 
-async function download(page: Page, label: RegExp) {
+async function download(page: Page, label: RegExp, confirm?: string) {
   await page.getByRole("button", { name: /Экспорт/ }).click();
-  const [file] = await Promise.all([page.waitForEvent("download"), page.getByText(label).click()]);
+  const choose = async () => {
+    await page.getByText(label).click();
+    if (confirm) await page.getByRole("button", { name: confirm }).click();
+  };
+  const [file] = await Promise.all([page.waitForEvent("download"), choose()]);
   const path = await file.path();
   const { readFileSync } = await import("node:fs");
   return { name: file.suggestedFilename(), bytes: readFileSync(path!) };
@@ -161,7 +165,7 @@ test("браузерное ядро: отверстие, вырез, прикл�
     expect(step.name).toMatch(/\.step$/);
     expect(step.bytes.subarray(0, 13).toString()).toBe("ISO-10303-21;");
 
-    const stl = await download(page, /STL \(\.stl\)/);
+    const stl = await download(page, /STL \(\.stl\)/, "Скачать STL");
     expect(stl.name).toMatch(/\.stl$/);
     const triangles = stl.bytes.readUInt32LE(80);
     expect(triangles).toBeGreaterThan(20);

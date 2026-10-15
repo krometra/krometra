@@ -2,10 +2,44 @@ import { mkdir, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import { ToolError } from "./errors.mjs";
+import { choice, optionalIdList } from "./toolKit.mjs";
 
-const EXTENSIONS = { stl: [".stl"], step: [".step", ".stp"] };
+const EXTENSIONS = { stl: [".stl"], step: [".step", ".stp"], "3mf": [".3mf"] };
 
 export const EXPORT_FORMATS = Object.keys(EXTENSIONS);
+
+const QUALITY_PRESETS = ["draft", "normal", "high"];
+
+export const EXPORT_QUALITY_PROPERTIES = {
+  quality: {
+    type: "string",
+    enum: QUALITY_PRESETS,
+    description: "Качество сетки STL и 3MF: draft - 0.1 мм и 30°, normal (по умолчанию) - 0.01 мм и ~28.6°, high - 0.002 мм и 6°.",
+  },
+  tolerance: { type: "number", description: "Свой линейный допуск сетки, мм (0.0005-5); заменяет допуск пресета." },
+  angle_deg: { type: "number", description: "Свой угловой допуск сетки, градусы (1-90); заменяет угол пресета." },
+};
+
+function optionalNumber(args, name) {
+  const value = args[name];
+  if (value === undefined) return undefined;
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new ToolError(`Параметр ${name}: положительное число либо не указывай параметр вовсе.`);
+  }
+  return value;
+}
+
+export function exportParams(args) {
+  const params = { format: choice(args, "format", EXPORT_FORMATS) };
+  const bodyIds = optionalIdList(args, "body_ids");
+  if (bodyIds) params.bodyIds = bodyIds;
+  if (args.quality !== undefined) params.quality = choice(args, "quality", QUALITY_PRESETS);
+  const tolerance = optionalNumber(args, "tolerance");
+  if (tolerance !== undefined) params.tolerance = tolerance;
+  const angleDeg = optionalNumber(args, "angle_deg");
+  if (angleDeg !== undefined) params.angleDeg = angleDeg;
+  return params;
+}
 
 function expandHome(rawPath) {
   return rawPath === "~" || rawPath.startsWith("~/") ? path.join(homedir(), rawPath.slice(1)) : rawPath;

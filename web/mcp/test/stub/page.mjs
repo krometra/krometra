@@ -18,6 +18,7 @@ const editor = {
   driftingCaptures: 0,
   exports: 0,
   exportName: null,
+  lastExport: null,
 };
 
 const describeOp = (op, description, mutates, params = {}) => ({ op, description, mutates, params });
@@ -44,8 +45,11 @@ const CAPABILITIES = [
   }),
   describeOp("sketch.get", "Открытый эскиз", false),
   describeOp("export", "Экспорт тел в файл", false, {
-    format: param("string", true, "step | stl"),
+    format: param("string", true, "step | stl | 3mf"),
     bodyIds: param("array", false, "id тел"),
+    quality: param("string", false, "draft | normal | high"),
+    tolerance: param("number", false, "мм"),
+    angleDeg: param("number", false, "градусы"),
   }),
   describeOp("stub.extrude", "Выдавить новое тело", true, { distance: param("number", true, "мм") }),
   describeOp("stub.fail", "Операция, которую ядро не выполняет", true),
@@ -100,13 +104,15 @@ function extrude({ distance, visible = false }) {
   });
 }
 
-function exportFile({ format, bodyIds }) {
+function exportFile(params) {
+  const { format, bodyIds } = params;
   const file = stubExportFile(format, bodyIds);
-  if (!file) throw new ControlFailure("invalid_params", "format: ожидалось step | stl");
+  if (!file) throw new ControlFailure("invalid_params", "format: ожидалось step | stl | 3mf");
   if (editor.busy) throw new ControlFailure("busy", "Выполняется другая операция");
   const missing = (bodyIds ?? []).filter((id) => !editor.bodies.some((body) => body.id === id));
   if (missing.length) throw new ControlFailure("not_found", `В документе нет тел: ${missing.join(", ")}`);
   editor.exports += 1;
+  editor.lastExport = params;
   return {
     mime: file.mime,
     filename: editor.exportName ?? file.filename,
@@ -205,7 +211,7 @@ const OPS = {
     editor.exportName = filename;
     return { filename };
   },
-  "stub.stats": () => ({ captures: editor.captures, exports: editor.exports }),
+  "stub.stats": () => ({ captures: editor.captures, exports: editor.exports, lastExport: editor.lastExport }),
 };
 
 async function request({ op, params = {} }) {

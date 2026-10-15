@@ -1,6 +1,7 @@
 import type { BrowserBooleanOperation, BrowserExtrudeOperation } from "@/lib/browserBoolean";
 import type { BrowserExtentType, BrowserExtrudeDirection } from "@/lib/browserExtrudeExtent";
 import type { Vector3 } from "@/lib/browserExtrudeFrame";
+import type { MeshTolerance } from "@/lib/meshQuality";
 import type { SavedNaming } from "@/lib/browserNaming";
 import type { SketchEntity } from "@/types/api";
 import type { EdgeFeature } from "./edgeOps";
@@ -64,8 +65,10 @@ export type EdgeFeatureRequest = EdgeFeature & {
 export interface ExportRequest {
   id: number;
   kind: "export";
-  format: "step" | "stl";
+  format: "step" | "stl" | "3mf";
   bodyIds: string[];
+  mesh?: MeshTolerance;
+  names?: string[];
 }
 
 export interface ShapeRequest {

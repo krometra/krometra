@@ -97,6 +97,7 @@ describe("recordKernelExchange", () => {
     expect(growsKernelModel("fillet")).toBe(true);
     expect(growsKernelModel("hydrate")).toBe(false);
     expect(growsKernelModel("export")).toBe(false);
+    expect(growsKernelModel("export-estimate")).toBe(false);
   });
 });
 

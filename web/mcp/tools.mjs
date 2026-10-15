@@ -259,5 +259,5 @@ export const INSTRUCTIONS = prose(
   "торец только что выдавленного тела - из capFaceIds ответа extrude.",
   "Тело на высоте: эскиз на смещённой плоскости sketch.create { plane, offset }.",
   "Ошибку отменяет history.undo; лишнее убирают body.delete, timeline.delete, sketch.delete.",
-  "Файлы: cad_export (STL, STEP) и cad_import (STEP); проверка внутренностей - cad_section.",
+  "Файлы: cad_export (STL, STEP, 3MF) и cad_import (STEP); проверка внутренностей - cad_section.",
 );

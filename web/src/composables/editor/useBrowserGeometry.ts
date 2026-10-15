@@ -14,6 +14,7 @@ import {
 } from "@/lib/browserKernel";
 import type { FilletMergePlan } from "@/lib/browserFilletRun";
 import { importSizeError } from "@/lib/browserImport";
+import type { MeshTolerance } from "@/lib/meshQuality";
 import type { SavedNaming } from "@/lib/browserNaming";
 import type { RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import type { SketchSeatPlacement } from "@/lib/browserSketchSeat";
@@ -82,6 +83,7 @@ interface WorkerResponse {
   cacheHits?: number;
   edgeNames?: string[];
   sections?: BrowserBodySection[];
+  triangles?: number;
 }
 
 export interface BrowserBodySection {
@@ -262,10 +264,16 @@ export async function sectionBrowserBodies(bodyIds: string[], origin: Vector3, n
   return result.sections;
 }
 
-export async function exportBrowserBodies(format: "step" | "stl", bodyIds: string[]): Promise<ArrayBuffer> {
-  const result = await request({ kind: "export", format, bodyIds });
+export async function exportBrowserBodies(format: "step" | "stl" | "3mf", bodyIds: string[], mesh?: { mesh: MeshTolerance; names: string[] }): Promise<ArrayBuffer> {
+  const result = await request({ kind: "export", format, bodyIds: [...bodyIds], ...(mesh ? { mesh: { ...mesh.mesh }, names: [...mesh.names] } : {}) });
   if (!result.file) throw new Error("Браузерное ядро не вернуло файл экспорта.");
   return result.file;
+}
+
+export async function estimateBrowserTriangles(bodyIds: string[], mesh: MeshTolerance): Promise<number> {
+  const result = await request({ kind: "export-estimate", bodyIds: [...bodyIds], mesh: { ...mesh } });
+  if (result.triangles === undefined) throw new Error("Браузерное ядро не оценило число треугольников.");
+  return result.triangles;
 }
 
 export async function retainBrowserShape(shapeHandle: string, bodyId: string): Promise<void> {

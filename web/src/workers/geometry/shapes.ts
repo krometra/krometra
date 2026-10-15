@@ -6,7 +6,6 @@ import { forgetNaming, holdPendingNaming, namedBody, retainPendingNaming, setBod
 import { publishedBody } from "./namedMesh";
 import { namedFromSaved, type NamedShape } from "./naming";
 import { initOcct } from "./occt";
-import type { ExportRequest } from "./types";
 
 const MESH_OPTIONS = { tolerance: 0.01, angularTolerance: 0.5 };
 
@@ -65,18 +64,6 @@ export async function publishNamed(build: () => NamedShape) {
   } catch (error) {
     named.shape.delete();
     throw error;
-  }
-}
-
-export async function exportBodies(request: ExportRequest) {
-  const shapes = request.bodyIds.map((bodyId) => bodyShape(bodyId));
-  if (shapes.length === 0) throw new Error("Нечего экспортировать: нет видимых тел.");
-  const exported = shapes.length === 1 ? shapes[0] : makeCompound(shapes.map((shape) => shape.clone()));
-  try {
-    const blob = request.format === "step" ? exported.blobSTEP() : exported.blobSTL({ tolerance: 0.01, angularTolerance: 0.5, binary: true });
-    return await blob.arrayBuffer();
-  } finally {
-    if (exported !== shapes[0]) exported.delete();
   }
 }
 
