@@ -3,7 +3,7 @@ import type { BrepTopo, SketchPlane, PlaneBasis } from "@/types/api";
 
 export type RenderingMode = "shaded" | "shaded_edges" | "wireframe" | "hidden_line";
 
-export type SelectionMode = "face" | "body" | "edge" | "none";
+export type SelectionMode = "face" | "body" | "edge" | "measure" | "none";
 
 /** Тело сцены: меш + его топология и производные объекты (линии рёбер). */
 export interface MeshEntry {

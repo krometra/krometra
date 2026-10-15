@@ -17,6 +17,7 @@ import {
   retainShape,
 } from "./geometry/shapes";
 import { initOcct, wasmHeapBytes } from "./geometry/occt";
+import { runMeasureRequest, type MeasureRequest } from "./geometry/measure";
 import { runThreadRequest } from "./geometry/thread";
 import { sectionBodies, type SectionRequest } from "./geometry/section";
 import { shellNamed, type ShellRequest } from "./geometry/shell";
@@ -24,7 +25,8 @@ import { sweepNamed, type SweepRequest } from "./geometry/sweep";
 import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
-type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest;
+type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest
+  | MeasureRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -88,6 +90,10 @@ worker.onmessage = async ({ data }: MessageEvent<Request>) => {
     }
     if (data.kind === "section") {
       reply({ id: data.id, ok: true, sections: await sectionBodies(data) });
+      return;
+    }
+    if (data.kind === "measure") {
+      reply({ id: data.id, ok: true, measure: await runMeasureRequest(data, namedBodyShape) });
       return;
     }
     if (data.kind === "export") {

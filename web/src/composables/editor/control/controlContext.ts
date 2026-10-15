@@ -26,6 +26,7 @@ import type { StepImportApi } from "../useStepImport";
 import type { SweepApi } from "../useSweep";
 import type { ThreadApi } from "../useThread";
 import type { ShellApi } from "../useShell";
+import type { MeasureApi } from "../useMeasure";
 import type { ViewportRef } from "../types";
 
 export interface EditorControlDeps {
@@ -49,6 +50,7 @@ export interface EditorControlDeps {
   bodyTransform: BodyTransformApi;
   leaveActiveTools: () => void;
   shell: ShellApi;
+  measure: MeasureApi;
 }
 
 const KERNEL_WAITING: Record<string, string> = {
@@ -77,6 +79,7 @@ export function createControlContext(deps: EditorControlDeps) {
       hole: deps.hole.holeMode.value,
       boolean: deps.booleanMode.booleanMode.value,
       sweep: deps.sweep.sweepMode.value,
+      measure: deps.measure.active.value,
     });
   }
 

@@ -92,6 +92,7 @@ interface WorkerResponse {
   edgeNames?: string[];
   sections?: BrowserBodySection[];
   triangles?: number;
+  measure?: import("@/lib/measure").MeasureResult;
 }
 
 export interface BrowserBodySection {

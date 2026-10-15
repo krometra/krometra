@@ -54,6 +54,8 @@ const tools = computed<Tool[]>(() => {
     { divider: true },
     { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", disabled: true, hint: "В разработке" },
     { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", action: "mirror", disabled: bodies < 1, testId: "ribbon-mirror", hint: bodies < 1 ? "Сначала постройте тело" : "Отразить тело относительно плоскости XY, XZ, YZ или плоской грани" },
+    { divider: true },
+    { label: "Измерить", icon: "M3 17L17 3l4 4L7 21z M7 13l2 2 M10 10l2 2 M13 7l2 2", action: "measure", disabled: bodies < 1, testId: "ribbon-measure", hint: bodies < 1 ? "Сначала постройте тело" : "Расстояние, угол, длина, площадь, объём и масса" },
   ];
 });
 

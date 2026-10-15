@@ -11,7 +11,8 @@ export type EditorMode =
   | "shell"
   | "mirror"
   | "boolean"
-  | "sweep";
+  | "sweep"
+  | "measure";
 
 export interface EditorModeFlags {
   sketch: boolean;
@@ -24,6 +25,7 @@ export interface EditorModeFlags {
   hole: boolean;
   boolean: boolean;
   sweep: boolean;
+  measure: boolean;
 }
 
 export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
@@ -37,5 +39,6 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.hole) return "hole";
   if (flags.boolean) return "boolean";
   if (flags.sweep) return "sweep";
+  if (flags.measure) return "measure";
   return "model";
 }

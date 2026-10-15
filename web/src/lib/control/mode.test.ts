@@ -12,6 +12,7 @@ const idle: EditorModeFlags = {
   mirror: false,
   hole: false,
   boolean: false,
+  measure: false,
 };
 
 describe("resolveEditorMode", () => {
@@ -32,6 +33,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, hole: true })).toBe("hole");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
     expect(resolveEditorMode({ ...idle, sweep: true })).toBe("sweep");
+    expect(resolveEditorMode({ ...idle, measure: true })).toBe("measure");
   });
 
   it("эскиз перекрывает панель операции так же, как правая панель редактора", () => {

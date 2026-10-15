@@ -29,13 +29,15 @@ type ControlErrorCode =
 
 - **`ready`** разрешается один раз, когда одновременно: вьюпорт смонтирован, документ этого проекта загружен, первая загрузка тел в сцену и ядро завершена (`useBodyMeshes.hydrated`), фаза браузерного ядра — `ready`. В тот же момент на `window` летит событие `cad-control-ready`. Промис не отклоняется: если ядро не запустилось, причина видна в `state` (`kernel: "failed"`, `kernelError`).
 - До готовности и при перезапуске ядра операции отвечают `not_ready` с причиной в `message`. `capabilities` и `state` доступны всегда.
-- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `boolean` → `sweep` → `model` (`mode.ts`).
+- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `boolean` → `sweep` → `measure` → `model` (`mode.ts`).
 - **Мутирующие операции выполняются по одной.** Вторая во время первой получает `busy`; так же отвечает запрос, пришедший, пока редактор сам занят операцией из интерфейса, сохранением или перезагрузкой тел. Операции чтения проходят всегда и видят `state.busy = true`.
 - Операции модели (`extrude`, `fillet`, …) закрывают открытую панель инструмента, как это делает лента, но в открытом эскизе отвечают `wrong_mode`: эскиз нужно завершить (`sketch.finish`) или отменить (`sketch.cancel`). После операции — успешной или отклонённой ядром — редактор в режиме `model`.
 
 ## Операции
 
-Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `viewport.project`, `viewport.capture`, `export`.
+Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+
+`measure { targets, density? }` меряет один или два объекта (тело, грань, ребро, точка с прилипанием к вершине) по точной B-rep геометрии ядра тем же запросом, что инструмент «Измерить»: свойства каждого объекта и для пары минимальное расстояние с двумя точками, угол, межосевое и межцентровое расстояние. Режим `measure` в `state` — открыта панель инструмента; сама операция работает в любом режиме и модель не меняет.
 
 `export { format: "step" | "stl" | "3mf", bodyIds?, quality?, tolerance?, angleDeg? }` отдаёт файл как `{ mime, filename, dataBase64 }` тем же путём, что кнопка «Экспорт» (`useExport.buildFile` → ядро). Без `bodyIds` — все видимые тела одним файлом, с `bodyIds` — ровно названные тела, и их имена попадают в имя файла: отдельный STL на каждое тело получают вызовом на каждое тело. Качество сетки STL и 3MF — пресет `quality` (`draft` | `normal` | `high`, по умолчанию `normal`, прежние 0.01 мм и 0.5 рад) либо свои `tolerance` (мм) и `angleDeg` поверх него. Пока редактор занят операцией, `export` отвечает `busy`, хотя модель не меняет.
 
@@ -60,7 +62,8 @@ lib/control/                       чистая логика, без DOM и Thre
 ├── topology.ts                    грани и рёбра тела, проверки меша
 ├── cameraView.ts                  ракурс камеры из параметров
 ├── base64.ts                      байты → base64 для снимков и файлов экспорта
-└── sketchEntities.ts              разбор сущностей эскиза, выдача id
+├── sketchEntities.ts              разбор сущностей эскиза, выдача id
+└── measureRefs.ts                 разбор объектов измерения { bodyId, faceId | edgeId | point }
 
 composables/editor/
 ├── useEditorControl.ts            собирает операции, публикует window.cadControl, следит за ready
@@ -70,6 +73,7 @@ composables/editor/
     ├── controlViewportOps.ts      камера, проекция, снимок, касательная цепочка выбора рёбер
     ├── controlSketchOps.ts        эскиз: чтение и создание
     ├── controlExportOps.ts        export: файл STEP/STL/3MF через useExport
+    ├── controlMeasureOps.ts       measure: измерение через браузерное ядро
     ├── controlFeatureOps.ts       операции модели и undo/redo
     ├── controlFeatureResult.ts    общий ответ операций модели: новая запись истории
     └── controlShellOps.ts         shell: оболочка с открытыми гранями

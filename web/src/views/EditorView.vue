@@ -20,6 +20,7 @@ import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorTools } from "@/composables/editor/useEditorTools";
 import { useSweep } from "@/composables/editor/useSweep";
 import { useHole } from "@/composables/editor/useHole";
+import { useMeasure } from "@/composables/editor/useMeasure";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -52,6 +53,7 @@ import ShellPanel from "@/components/editor/ShellPanel.vue";
 import MirrorPanel from "@/components/editor/MirrorPanel.vue";
 import SweepPanel from "@/components/editor/SweepPanel.vue";
 import HolePanel from "@/components/editor/HolePanel.vue";
+import MeasurePanel from "@/components/editor/MeasurePanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -111,7 +113,10 @@ const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode
 const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const sweep = useSweep({ projectId: props.id, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
-const tools = useEditorTools([filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool]);
+const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
+const tools = useEditorTools([
+  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool, measure.tool,
+]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -206,6 +211,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, hole,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
+      measure,
     });
 
 // --- Горячие клавиши ---
@@ -342,6 +348,7 @@ const selectionLabel = computed(() => {
           @body-deselected="booleanMode.handleBodyDeselected"
           @edge-selection-changed="filletChamfer.onEdgeSelectionChanged"
           @face-context-menu="inspect.openFaceMenu"
+          @measure-picked="measure.onPicked"
         />
 
         <div v-if="sketchFlow.facePickMode.value" :class="$style.facePickBanner">
@@ -435,6 +442,7 @@ const selectionLabel = computed(() => {
           :boolean="booleanMode"
         />
         <SweepPanel v-else-if="sweep.sweepMode.value" :sweep="sweep" />
+        <MeasurePanel v-else-if="measure.active.value" :measure="measure" />
         <PropertiesPanel
           v-else
           @edit-sketch="sketchFlow.editSketch"
