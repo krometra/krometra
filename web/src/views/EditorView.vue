@@ -109,9 +109,9 @@ const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewp
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
-const tools = useEditorTools([filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool]);
 const sweep = useSweep({ projectId: props.id, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
+const tools = useEditorTools([filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -142,15 +142,7 @@ onMounted(async () => {
 // --- Режимы: эскиз выходит из остальных, между собой они не пересекаются ---
 
 function leaveActiveTools() {
-<<<<<<< ours
   tools.leaveAll();
-  if (sweep.sweepMode.value) sweep.exit();
-=======
-  if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
-  if (thread.threadMode.value) thread.exit();
-  if (hole.holeMode.value) hole.exit();
-  if (booleanMode.booleanMode.value) booleanMode.exit();
->>>>>>> theirs
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
 }
@@ -166,9 +158,7 @@ function handleRibbonAction(action: RibbonAction) {
     return;
   }
   leaveActiveTools();
-  if (action === "extrude" || action === "revolve") if (action === "sweep") sweep.enter();
-  else if (action === "hole") hole.enter();
-  else extrude.startExtrudeFromRibbon(action);
+  if (action === "extrude" || action === "revolve") extrude.startExtrudeFromRibbon(action);
   else tools.enter(action);
 }
 
@@ -180,7 +170,6 @@ function onFaceSelected(payload: { bodyId: string; faceId: string | number; brep
     return;
   }
   if (tools.onFaceSelected(payload)) return;
-  if (hole.onFaceSelected(payload)) return;
   if (extrude.pickExtentFace(payload)) return;
   selection.selectFace(payload.bodyId, payload.faceId, payload.brepTopo);
 }
@@ -235,26 +224,8 @@ function handleEscape() {
     return;
   }
   if (sketch.sketchMode.value) return; // инструменты скетчера обрабатывают Esc сами
-<<<<<<< ours
   if (inspect.dismiss()) return;
   if (tools.exitActive()) return;
-  if (sweep.sweepMode.value) {
-    sweep.exit();
-=======
-  if (filletChamfer.filletChamferMode.value) {
-    filletChamfer.exit();
-    return;
-  }
-  if (thread.threadMode.value) {
-    thread.exit();
-    return;
-  }
-  if (hole.holeMode.value) return hole.exit();
-  if (booleanMode.booleanMode.value) {
-    booleanMode.exit();
->>>>>>> theirs
-    return;
-  }
   if (extrude.lastSavedSketchId.value) {
     extrude.clearSketchContext();
     return;
@@ -283,16 +254,7 @@ if (!props.watch) useEditorHotkeys({
 const busyLabel = computed(() => {
   if (extrude.extrudeLoading.value) return "Выдавливание…";
   if (extrude.revolveLoading.value) return "Вращение…";
-<<<<<<< ours
   return tools.busyLabel.value;
-=======
-  if (filletChamfer.loading.value) return "Построение…";
-  if (thread.loading.value) return "Нарезка резьбы…";
-  if (hole.loading.value) return "Сверление отверстий…";
-  if (booleanMode.loading.value) return "Булева операция…";
-  if (sweep.loading.value) return "Протяжка…";
-  return null;
->>>>>>> theirs
 });
 
 const visibleBodyCount = meshes.totalBodies;
@@ -305,15 +267,7 @@ const onboarding = useOnboarding({
       sketch.sketchMode.value ||
       sketchFlow.facePickMode.value ||
       extrude.lastSavedSketchId.value !== null ||
-<<<<<<< ours
-      tools.anyActive.value ||
-      sweep.sweepMode.value,
-=======
-      filletChamfer.filletChamferMode.value ||
-      thread.threadMode.value ||
-      hole.holeMode.value ||
-      booleanMode.booleanMode.value,
->>>>>>> theirs
+      tools.anyActive.value,
   ),
 });
 

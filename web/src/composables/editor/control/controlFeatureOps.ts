@@ -15,38 +15,11 @@ const THREAD_FACE_TIMEOUT_MS = 30_000;
 const EXACT_EDGES =
   "В операцию уходят ровно перечисленные рёбра: касательная цепочка интерфейса их не расширяет.";
 
-export async function applyControlFeature(
-  context: EditorControlContext,
-  run: () => Promise<void>,
-  readError: () => string | null,
-  leave: () => void,
-) {
-  const known = new Set(context.model.timelineEntries.value.map((entry) => entry.id));
-  await run();
-  const error = readError();
-  leave();
-  if (error) throw fail(error === SAVE_FAILED_MESSAGE ? "save_failed" : "operation_failed", error);
-  const created = [...context.model.timelineEntries.value].reverse().find((entry) => !known.has(entry.id));
-  if (!created) throw fail("operation_failed", "Операция не добавила запись в историю модели.");
-  return { feature: context.timelineEntry(created), mode: context.mode() };
-}
-
 export function featureOps(context: EditorControlContext): ControlOp[] {
   const { extrude, filletChamfer, booleanMode, thread, sweep } = context;
 
-<<<<<<< ours
   function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
     return applyControlFeature(context, run, readError, leave);
-=======
-  function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
-    return applyControlFeature(context, run, readError, leave);
-  }
-
-  function requireVisibleBody(bodyId: string) {
-    context.bodyMesh(bodyId);
-    const body = context.model.bodies.value.find((candidate) => candidate.id === bodyId);
-    if (body?.visible === false) throw fail("operation_failed", `Тело «${bodyId}» скрыто: операция доступна только для видимого тела.`);
->>>>>>> theirs
   }
 
   function selectEdges(kind: "fillet" | "chamfer", bodyId: string, edgeIds: string[]) {

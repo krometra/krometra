@@ -2,7 +2,7 @@ import { computed, type Ref } from "vue";
 import type { BrepTopo } from "@/types/api";
 import type { RibbonAction } from "./types";
 
-export type FacePick = { bodyId: string; faceId: string | number; brepTopo: BrepTopo };
+export type FacePick = { bodyId: string; faceId: string | number; brepTopo: BrepTopo; point?: [number, number, number] };
 
 export interface EditorTool {
   actions: RibbonAction[];

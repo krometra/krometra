@@ -23,6 +23,7 @@ import type { BrepTopo } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { SelectionMode, ViewportRef } from "./types";
+import type { EditorTool } from "./useEditorTools";
 
 interface HoleFacePick {
   bodyId: string;
@@ -192,7 +193,10 @@ export function useHole(deps: {
     }
   }
 
+  const tool: EditorTool = { actions: ["hole"], active: holeMode, loading, busyLabel: "Сверление отверстий…", enter, exit, onFaceSelected };
+
   return {
+    tool,
     holeMode,
     bodyId,
     faceId,

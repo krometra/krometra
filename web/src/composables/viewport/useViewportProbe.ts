@@ -32,7 +32,9 @@ export function useViewportProbe(context: SceneContext) {
     return {
       visibleBodyIds: visibleSceneBodyIds(scene),
       sketchOutlineIds: shownSketchOutlineIds(scene),
-      threadPreview: threadPreviewSnapshot(scene),, section mirrorPreview: mirrorPreviewSnapshot(scene),
+      threadPreview: threadPreviewSnapshot(scene),
+      mirrorPreview: mirrorPreviewSnapshot(scene),
+      section,
     };
   }
 

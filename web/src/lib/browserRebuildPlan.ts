@@ -127,7 +127,7 @@ function shellRequest(params: Record<string, unknown>) {
 }
 
 function holeRequest(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>) {
-  const placement = entry.sketch_id ? sketchPlacement(document, entry) : { entities: null, plane: "XY", planeOffset: 0, planeBasis: null };
+  const placement = entry.sketch_id ? sketchPlacement(document, entry.sketch_id, entry.label) : { entities: null, plane: "XY", planeOffset: 0, planeBasis: null };
   return {
     ...placement,
     bodyId: text(params.target_body_id),

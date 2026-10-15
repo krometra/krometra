@@ -3,7 +3,7 @@ import { param } from "@/lib/control/params";
 import { fail } from "@/lib/control/protocol";
 import { HOLE_BOTTOMS, HOLE_EXTENTS, HOLE_TYPES, DEFAULT_HOLE_SPEC } from "@/lib/holeGeometry";
 import type { EditorControlContext } from "./controlContext";
-import { applyControlFeature } from "./controlFeatureOps";
+import { applyControlFeature } from "./controlFeatureResult";
 
 const HOLE_DESCRIPTION =
   "Сверлит отверстия на плоской грани тела — панель «Отверстие». Ось — нормаль грани внутрь материала. Центры задаются точками centers (проецируются на плоскость грани и должны лежать на ней) либо окружностями эскиза sketchId — тогда отверстие пересобирается при правке эскиза. Возвращает { feature, mode }: feature — новая запись истории (kind = hole), feature.bodyId — тело-результат, исходное тело скрывается. Стенка каждого отверстия — цилиндрическая грань, на неё можно навесить op thread. Отказ ядра — operation_failed с объяснением, модель не меняется.";

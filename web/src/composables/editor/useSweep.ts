@@ -11,6 +11,7 @@ import type { PlaneBasis, SketchEntity, SketchPlane } from "@/types/api";
 import { isBrowserBody } from "./browserShapeHydration";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { ComponentEntry, useDocumentModel } from "./useDocumentModel";
+import type { EditorTool } from "./useEditorTools";
 
 export interface SweepSettings {
   profileSketchId?: string;
@@ -142,7 +143,10 @@ export function useSweep(deps: { projectId: string; meshes: BodyMeshesApi; model
     }
   }
 
+  const tool: EditorTool = { actions: ["sweep"], active: sweepMode, loading, busyLabel: "Протяжка…", enter, exit };
+
   return {
+    tool,
     sweepMode,
     profileSketchId,
     pathSketchId,
