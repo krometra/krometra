@@ -115,6 +115,7 @@ const CODE_MESSAGES: Record<string, string> = {
   target_not_browser: "Браузерное ядро может изменять только тела, построенные в браузере.",
   invalid_thread_params: "Параметры резьбы недопустимы — проверьте шаг, глубину, длину и число заходов.",
   invalid_transform_params: "Параметры перемещения недопустимы — задайте сдвиг или поворот с ненулевой осью.",
+  invalid_mirror_params: "Параметры зеркала недопустимы — выберите базовую плоскость XY, XZ, YZ или плоскую грань тела.",
   mixed_browser_export_unsupported: "Экспорт пока не смешивает browser-тела и серверные тела.",
   multiple_browser_export_unsupported: "Экспорт нескольких browser-тел пока недоступен — объедините их или скройте лишние.",
   invalid_edge_ids: "Выберите хотя бы одно ребро тела.",

@@ -2,6 +2,7 @@ import type { Vec3 } from "@/lib/threadGeometry";
 import type { SceneContext } from "./types";
 import {
   cameraForView,
+  mirrorPreviewSnapshot,
   projectToClient,
   threadPreviewSnapshot,
   visibleSceneBodyIds,
@@ -25,7 +26,7 @@ export function useViewportProbe(context: SceneContext) {
   function inspectScene() {
     if (!context.ready()) return null;
     const scene = context.scene();
-    return { visibleBodyIds: visibleSceneBodyIds(scene), threadPreview: threadPreviewSnapshot(scene) };
+    return { visibleBodyIds: visibleSceneBodyIds(scene), threadPreview: threadPreviewSnapshot(scene), mirrorPreview: mirrorPreviewSnapshot(scene) };
   }
 
   return { projectPoints, inspectScene };

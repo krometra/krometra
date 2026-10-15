@@ -53,7 +53,7 @@ const tools = computed<Tool[]>(() => {
     { label: "Оболочка", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4", disabled: true, hint: "В разработке" },
     { divider: true },
     { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", disabled: true, hint: "В разработке" },
-    { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", disabled: true, hint: "В разработке" },
+    { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", action: "mirror", disabled: bodies < 1, testId: "ribbon-mirror", hint: bodies < 1 ? "Сначала постройте тело" : "Отразить тело относительно плоскости XY, XZ, YZ или плоской грани" },
   ];
 });
 

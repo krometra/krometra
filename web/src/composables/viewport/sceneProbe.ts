@@ -82,3 +82,19 @@ export function threadPreviewSnapshot(scene: THREE.Object3D): ThreadPreviewSnaps
   });
   return snapshot;
 }
+
+export interface MirrorPreviewSnapshot {
+  sourceBodyId: string;
+  bbox: { min: Vec3; max: Vec3 };
+}
+
+export function mirrorPreviewSnapshot(scene: THREE.Object3D): MirrorPreviewSnapshot | null {
+  let snapshot: MirrorPreviewSnapshot | null = null;
+  scene.traverse((object) => {
+    const marker = object.userData.mirrorPreview as { sourceBodyId: string } | undefined;
+    if (!marker || !(object instanceof THREE.Mesh)) return;
+    const box = new THREE.Box3().setFromBufferAttribute(object.geometry.getAttribute("position") as THREE.BufferAttribute);
+    snapshot = { sourceBodyId: marker.sourceBodyId, bbox: { min: box.min.toArray(), max: box.max.toArray() } };
+  });
+  return snapshot;
+}

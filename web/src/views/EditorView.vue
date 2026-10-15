@@ -15,6 +15,7 @@ import { useSketchLifecycle } from "@/composables/editor/useSketchLifecycle";
 import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
+import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -42,6 +43,7 @@ import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
 import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
+import MirrorPanel from "@/components/editor/MirrorPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -94,6 +96,7 @@ const sketchFlow = useSketchLifecycle({
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -126,6 +129,7 @@ onMounted(async () => {
 function leaveActiveTools() {
   if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
   if (thread.threadMode.value) thread.exit();
+  if (mirror.mirrorMode.value) mirror.exit();
   if (booleanMode.booleanMode.value) booleanMode.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
@@ -145,6 +149,7 @@ function handleRibbonAction(action: RibbonAction) {
   if (action === "boolean") booleanMode.enter();
   else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
   else if (action === "thread") thread.enter();
+  else if (action === "mirror") mirror.enter();
   else extrude.startExtrudeFromRibbon(action);
 }
 
@@ -159,12 +164,14 @@ function onFaceSelected(payload: { bodyId: string; faceId: string | number; brep
     thread.onFaceSelected(payload);
     return;
   }
+  if (mirror.onFaceSelected(payload)) return;
   if (extrude.pickExtentFace(payload)) return;
   selection.selectFace(payload.bodyId, payload.faceId, payload.brepTopo);
 }
 
 function onSelectionCleared() {
   thread.onSelectionCleared();
+  mirror.onSelectionCleared();
   selection.clearSelection();
 }
 
@@ -193,7 +200,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror,
       exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
     });
 
@@ -219,6 +226,10 @@ function handleEscape() {
   }
   if (thread.threadMode.value) {
     thread.exit();
+    return;
+  }
+  if (mirror.mirrorMode.value) {
+    mirror.exit();
     return;
   }
   if (booleanMode.booleanMode.value) {
@@ -255,6 +266,7 @@ const busyLabel = computed(() => {
   if (extrude.revolveLoading.value) return "Вращение…";
   if (filletChamfer.loading.value) return "Построение…";
   if (thread.loading.value) return "Нарезка резьбы…";
+  if (mirror.loading.value) return "Зеркало…";
   if (booleanMode.loading.value) return "Булева операция…";
   return null;
 });
@@ -271,6 +283,7 @@ const onboarding = useOnboarding({
       extrude.lastSavedSketchId.value !== null ||
       filletChamfer.filletChamferMode.value ||
       thread.threadMode.value ||
+      mirror.mirrorMode.value ||
       booleanMode.booleanMode.value,
   ),
 });
@@ -424,6 +437,7 @@ const selectionLabel = computed(() => {
           v-else-if="thread.threadMode.value"
           :thread="thread"
         />
+        <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
         <BooleanPanel
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"

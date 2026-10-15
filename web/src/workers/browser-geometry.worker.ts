@@ -2,6 +2,7 @@ import { booleanNamed } from "./geometry/boolean";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
+import { mirrorNamed, type MirrorRequest } from "./geometry/mirror";
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
 import { revolveNamed } from "./geometry/revolve";
 import { runRebuildRequest, type RebuildRequest } from "./geometry/rebuild";
@@ -20,7 +21,7 @@ import { sectionBodies, type SectionRequest } from "./geometry/section";
 import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
-type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest;
+type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | MirrorRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -33,6 +34,7 @@ function buildShape(data: Request) {
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));
+  if (data.kind === "mirror") return publishNamed(() => mirrorNamed(data, namedBodyShape));
   return null;
 }
 

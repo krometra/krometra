@@ -1,7 +1,8 @@
 import type { TimelineEntry } from "@/types/api";
+import { mirrorPlaneOfParams } from "./mirrorPlane";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 
-export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform";
+export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "mirror";
 
 export interface RebuildStep {
   entryId: string;
@@ -23,7 +24,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform", "mirror"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -31,6 +32,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   fillet: ["radius"],
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
+  mirror: ["plane", "offset"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -126,6 +128,9 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
   if (entry.kind === "thread") return { kind: "thread", featureKey, ...threadRequest(entry, params) };
   if (entry.kind === "transform") {
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
+  }
+  if (entry.kind === "mirror") {
+    return { kind: "mirror", featureKey, bodyId: text(params.target_body_id), plane: mirrorPlaneOfParams(params), merge: params.merge === true };
   }
   const edgeNames = Array.isArray(params.edge_ids) ? params.edge_ids.map(String) : [];
   const bodyId = text(params.target_body_id);

@@ -7,7 +7,7 @@ import { findByBody } from "./types";
 import { frameNormal, resolveFrame } from "./useSketchOutlines";
 import { edgePoints } from "./edgeGeometry";
 
-const PREVIEW_COLOR = 0x4da6ff;
+export const PREVIEW_COLOR = 0x4da6ff;
 // Резьбу строят на ВЫБРАННОЙ грани, а выделение красит её в тот же синий
 // (`useFaceSelection: HIGHLIGHT_COLOR`) — синий призрак на ней не читался бы.
 const THREAD_COLOR = 0xffa640;
@@ -70,7 +70,7 @@ function threadMaterial(): THREE.MeshStandardMaterial {
   return material;
 }
 
-function previewMaterial(color: number): THREE.MeshStandardMaterial {
+export function previewMaterial(color: number): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({
     color,
     transparent: true,
@@ -82,7 +82,7 @@ function previewMaterial(color: number): THREE.MeshStandardMaterial {
   });
 }
 
-function disposeObject(object: THREE.Object3D) {
+export function disposeObject(object: THREE.Object3D) {
   const disposed = new Set<THREE.Material>();
   object.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return;

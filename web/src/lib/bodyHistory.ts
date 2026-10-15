@@ -25,6 +25,7 @@ export function consumedBodiesOf(entry: TimelineEntry): string[] {
   if (entry.kind === "boolean") return [entry.target_body_id, entry.tool_body_id].map(text).filter((id): id is string => id !== null);
   const params = entry.params ?? {};
   if (entry.kind === "transform" && params.copy === true) return [];
+  if (entry.kind === "mirror" && params.merge !== true) return [];
   const target = text(params.target_body_id);
   return target ? [target] : [];
 }

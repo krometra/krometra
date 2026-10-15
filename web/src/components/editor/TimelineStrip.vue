@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CsButton from "@/components/ui/CsButton.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
+import { mirrorDetail } from "@/lib/mirrorPlane";
 import type { TimelineEntry } from "@/types/api";
 
 defineProps<{
@@ -30,6 +31,7 @@ function timelineIcon(kind: string): string {
     chamfer: "M4 20L20 4 M4 14v6h6",
     import: "M12 3v12 M7 10l5 5 5-5 M4 19h16",
     transform: "M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M21 12l-3-3 M21 12l-3 3",
+    mirror: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5",
   };
   return icons[kind] ?? icons.sketch;
 }
@@ -69,6 +71,8 @@ function timelineDetail(entry: TimelineEntry): string {
       return typeof entry.params?.file_name === 'string' ? entry.params.file_name : 'STEP';
     case "transform":
       return entry.params?.copy === true ? 'копия' : 'сдвиг';
+    case "mirror":
+      return mirrorDetail(entry.params ?? {});
     default:
       return '';
   }

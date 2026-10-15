@@ -22,6 +22,15 @@ describe("параметры browser-операций", () => {
     expect(featureParamFields({ ...entry("fillet", {}), params: { radius: 1 } }, {})).toEqual([]);
   });
 
+  it("у зеркала правится базовая плоскость и смещение, а зеркало по грани не правится", () => {
+    const base = entry("mirror", { plane: "XZ", offset: 2, face_id: null, merge: true });
+    expect(editableValues(base)).toEqual({ plane: "XZ", offset: 2 });
+    expect(featureParamFields(base, editableValues(base)).map((field) => [field.key, field.kind])).toEqual([["plane", "select"], ["offset", "number"]]);
+    expect(featureParamFields(base, {})[0].options?.map((option) => option.value)).toEqual(["XY", "XZ", "YZ"]);
+    expect(featureParamFields(entry("mirror", { plane: null, face_id: "f-x" }), {})).toEqual([]);
+    expect(editableValues(entry("mirror", { face_id: "f-x" }))).toEqual({ plane: "XY", offset: 0 });
+  });
+
   it("отдаёт только изменённые параметры для команды и отката", () => {
     expect(changedParams({ radius: 1, x: 2 }, { radius: 1, x: 2 })).toBeNull();
     expect(changedParams({ distance: 10, direction: "one_side" }, { distance: 12, direction: "one_side" }))
