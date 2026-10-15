@@ -60,7 +60,7 @@ function built(algorithm: EdgeAlgorithm): boolean {
   }
 }
 
-function isValidShape(shape: TopoDS_Shape): boolean {
+export function isValidShape(shape: TopoDS_Shape): boolean {
   const analyzer = new (getOC().BRepCheck_Analyzer)(shape, true, false, false);
   try {
     return analyzer.IsValid();

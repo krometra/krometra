@@ -204,7 +204,7 @@ export function cloneBrowserWorkerInput<T>(input: T): T {
   return JSON.parse(JSON.stringify(input)) as T;
 }
 
-function buildResult(result: WorkerResponse, failure: string): BrowserBuildResult {
+export function buildResult(result: WorkerResponse, failure: string): BrowserBuildResult {
   if (!result.step || !result.mesh || !result.naming || !result.shapeHandle || result.elapsedMs === undefined) {
     throw new Error(failure);
   }

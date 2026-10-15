@@ -19,14 +19,19 @@ from .browser_sketch_seat import apply_sketch_planes, feature_sketch_owner, seat
 from .browser_storage import browser_body_objects, persist_replaced_bodies
 from .limits import MAX_PARAMS_BYTES, MAX_REBUILD_BODIES
 
-DIRECTIONS = {"extrude": ("one_side", "symmetric", "two_sided"), "revolve": ("one_side", "symmetric")}
-POSITIVE = {"radius", "distance1", "distance2", "pitch", "length"}
+DIRECTIONS = {
+    "extrude": ("one_side", "symmetric", "two_sided"),
+    "revolve": ("one_side", "symmetric"),
+    "shell": ("inward", "outward"),
+}
+POSITIVE = {"radius", "distance1", "distance2", "pitch", "length", "thickness"}
 EDITABLE_PARAMS = {
     "extrude": {"distance", "direction", "back_distance", "offset"},
     "revolve": {"angle", "direction"},
     "fillet": {"radius"},
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
+    "shell": {"thickness", "direction"},
 }
 
 

@@ -46,7 +46,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "fillet", "chamfer", "boolean", "thread", "import", "transform"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -103,6 +103,12 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       ];
     case "transform":
       return transformParams(p);
+    case "shell":
+      return [
+        { label: "Толщина стенки", value: `${p.thickness ?? "?"} мм` },
+        { label: "Направление", value: p.direction === "outward" ? "Наружу" : "Внутрь" },
+        { label: "Открытых граней", value: String(Array.isArray(p.face_ids) ? p.face_ids.length : 0) },
+      ];
     case "boolean":
       return [
         { label: "Операция", value: OPERATION_LABELS[entry.operation ?? ""] ?? entry.operation ?? "?" },

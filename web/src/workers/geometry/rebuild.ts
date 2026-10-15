@@ -7,6 +7,7 @@ import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
 import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
+import { shellNamed, type ShellRequest } from "./shell";
 import { seatSketchOnFace } from "./sketchSeat";
 import { threadNamed, type ThreadBuildRequest } from "./thread";
 import { transformNamed, type TransformRequest } from "./transform";
@@ -34,6 +35,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   chamfer: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   thread: (request: ThreadBuildRequest, lookup) => threadNamed(request, (bodyId) => lookup(bodyId)),
   transform: (request: TransformRequest, lookup) => transformNamed(request, lookup),
+  shell: (request: ShellRequest, lookup) => shellNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

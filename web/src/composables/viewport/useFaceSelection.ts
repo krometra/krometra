@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import type { BrepTopo } from "@/types/api";
 import type { MeshEntry, SceneContext } from "./types";
-import { findByMesh } from "./types";
+import { findByBody, findByMesh } from "./types";
 import { raycastFace } from "./faceRaycast";
 
 const HIGHLIGHT_COLOR = new THREE.Color(0x4da6ff);
 const HOVER_COLOR = new THREE.Color(0x7fc4ff);
+const MARK_COLOR = new THREE.Color(0xff9f43);
 
 /**
  * Выбор и подсветка граней. Подсветка идёт по вершинным цветам меша, поэтому
@@ -21,14 +22,18 @@ export function useFaceSelection(options: {
   let activeMesh: THREE.Mesh | null = null;
   let highlightedFaceId: string | number | null = null;
   let selected: { mesh: THREE.Mesh; faceId: string | number } | null = null;
+  let marked: { mesh: THREE.Mesh; faceIds: Set<string | number> } | null = null;
+
+  function restingColor(mesh: THREE.Mesh, faceId: string | number, base: THREE.Color): THREE.Color {
+    return marked?.mesh === mesh && marked.faceIds.has(faceId) ? MARK_COLOR : base;
+  }
 
   /** Перекрасить треугольники грани в буфере вершинных цветов. */
-  function paintFace(faceId: string | number, color: THREE.Color | null) {
-    if (!activeMesh) return;
-    const entry = findByMesh(context.entries, activeMesh);
+  function paintMeshFace(mesh: THREE.Mesh, faceId: string | number, color: THREE.Color | null) {
+    const entry = findByMesh(context.entries, mesh);
     if (!entry) return;
 
-    const geo = activeMesh.geometry;
+    const geo = mesh.geometry;
     if (!geo.getAttribute("color")) {
       const count = geo.getAttribute("position").count;
       const colors = new Float32Array(count * 3);
@@ -43,14 +48,14 @@ export function useFaceSelection(options: {
     // Итоговый цвет = material.color × vertex color, поэтому при включении
     // vertex colors материал должен стать белым; переключение vertexColors
     // требует пересборки шейдера (needsUpdate)
-    const mat = activeMesh.material as THREE.MeshStandardMaterial;
+    const mat = mesh.material as THREE.MeshStandardMaterial;
     if (!mat.vertexColors) {
       mat.vertexColors = true;
       mat.color.set(0xffffff);
       mat.needsUpdate = true;
     }
 
-    const paint = color ?? entry.color;
+    const paint = color ?? restingColor(mesh, faceId, entry.color);
     const index = geo.index!;
     const colors = geo.getAttribute("color").array as Float32Array;
     for (let t = 0; t < entry.faceTriangleMap.length; t++) {
@@ -63,6 +68,10 @@ export function useFaceSelection(options: {
       }
     }
     geo.getAttribute("color").needsUpdate = true;
+  }
+
+  function paintFace(faceId: string | number, color: THREE.Color | null) {
+    if (activeMesh) paintMeshFace(activeMesh, faceId, color);
   }
 
   function highlightFace(faceId: string | number, color: THREE.Color = HIGHLIGHT_COLOR) {
@@ -132,6 +141,20 @@ export function useFaceSelection(options: {
     clearHighlight();
   }
 
+  function clearMarkedFaces() {
+    const previous = marked;
+    marked = null;
+    previous?.faceIds.forEach((faceId) => paintMeshFace(previous.mesh, faceId, null));
+  }
+
+  function markFaces(bodyId: string, faceIds: (string | number)[]) {
+    clearMarkedFaces();
+    const entry = findByBody(context.entries, bodyId);
+    if (!entry) return;
+    marked = { mesh: entry.mesh, faceIds: new Set(faceIds) };
+    faceIds.forEach((faceId) => paintMeshFace(entry.mesh, faceId, MARK_COLOR));
+  }
+
   /** Меш удаляется из сцены — снимаем с него ссылки, чтобы не красить мёртвую геометрию. */
   function forget(entry: MeshEntry) {
     if (activeMesh === entry.mesh) {
@@ -139,6 +162,7 @@ export function useFaceSelection(options: {
       highlightedFaceId = null;
     }
     if (selected?.mesh === entry.mesh) selected = null;
+    if (marked?.mesh === entry.mesh) marked = null;
   }
 
   function adopt(entry: MeshEntry) {
@@ -152,6 +176,8 @@ export function useFaceSelection(options: {
     highlightFace,
     clearHighlight,
     clearSelection,
+    markFaces,
+    clearMarkedFaces,
     restoreSelected,
     forget,
     adopt,

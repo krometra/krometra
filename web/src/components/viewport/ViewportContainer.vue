@@ -231,6 +231,8 @@ defineExpose({
   selectBodyAsTarget: bodies.selectAsTarget,
   selectBodyAsTool: bodies.selectAsTool,
   highlightFace: faces.highlightFace,
+  markFaces: faces.markFaces,
+  clearMarkedFaces: faces.clearMarkedFaces,
   selectEdge: edges.selectById,
   clearEdgeSelection: edges.clearSelection,
   toggleEdge: edges.toggleEdge,

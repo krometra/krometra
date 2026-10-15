@@ -1,7 +1,7 @@
 import type { TimelineEntry } from "@/types/api";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 
-export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform";
+export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell";
 
 export interface RebuildStep {
   entryId: string;
@@ -23,7 +23,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -31,6 +31,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   fillet: ["radius"],
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
+  shell: ["thickness", "direction"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -105,6 +106,15 @@ function threadRequest(entry: TimelineEntry, params: Record<string, unknown>) {
   };
 }
 
+function shellRequest(params: Record<string, unknown>) {
+  return {
+    bodyId: text(params.target_body_id),
+    faceNames: Array.isArray(params.face_ids) ? params.face_ids.map(String) : [],
+    thickness: number(params.thickness, 1),
+    direction: text(params.direction) ?? "inward",
+  };
+}
+
 function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>): Record<string, unknown> {
   const featureKey = text(params.feature_key) ?? entry.id;
   if (entry.kind === "import") return { kind: "import", featureKey, bodyId: entry.body_id };
@@ -127,6 +137,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
   if (entry.kind === "transform") {
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
   }
+  if (entry.kind === "shell") return { kind: "shell", featureKey, ...shellRequest(params) };
   const edgeNames = Array.isArray(params.edge_ids) ? params.edge_ids.map(String) : [];
   const bodyId = text(params.target_body_id);
   if (entry.kind === "fillet") return { kind: "fillet", featureKey, bodyId, edgeNames, radius: number(params.radius, 1) };

@@ -7,6 +7,7 @@ const idle: EditorModeFlags = {
   sweepPanel: null,
   edgeFeature: null,
   thread: false,
+  shell: false,
   boolean: false,
 };
 
@@ -23,6 +24,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, edgeFeature: "fillet" })).toBe("fillet");
     expect(resolveEditorMode({ ...idle, edgeFeature: "chamfer" })).toBe("chamfer");
     expect(resolveEditorMode({ ...idle, thread: true })).toBe("thread");
+    expect(resolveEditorMode({ ...idle, shell: true })).toBe("shell");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
   });
 

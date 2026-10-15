@@ -11,6 +11,7 @@ import { importOps } from "./control/controlImportOps";
 import { featureOps } from "./control/controlFeatureOps";
 import { historyOps } from "./control/controlHistoryOps";
 import { readOps } from "./control/controlReadOps";
+import { shellOps } from "./control/controlShellOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { viewportOps } from "./control/controlViewportOps";
 
@@ -32,6 +33,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...viewportOps(context),
     ...sketchOps(context),
     ...featureOps(context),
+    ...shellOps(context),
     ...historyOps(context),
     ...bodyOps(context),
     ...importOps(context),
