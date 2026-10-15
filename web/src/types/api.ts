@@ -46,11 +46,12 @@ export interface DocumentUpdate {
 export interface TimelineEntry {
   id: string;
   timestamp: string;
-  kind: "sketch" | "extrude" | "boolean" | "revolve" | "sweep" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole";
+  kind: "sketch" | "extrude" | "boolean" | "revolve" | "sweep" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern";
   label: string;
   status: "ok" | "warning" | "error" | "dirty";
   sketch_id?: string;
   body_id?: string;
+  body_ids?: string[];
   result_body_id?: string;
   target_body_id?: string;
   tool_body_id?: string;

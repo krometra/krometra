@@ -52,7 +52,7 @@ const tools = computed<Tool[]>(() => {
     { label: "Отверстие", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", action: "hole", disabled: bodies < 1, testId: "ribbon-hole", hint: bodies < 1 ? "Сначала постройте тело" : "Отверстие на плоской грани: простое, цековка или зенковка" },
     { label: "Оболочка", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4", action: "shell", disabled: bodies < 1, testId: "ribbon-shell", hint: bodies < 1 ? "Сначала постройте тело" : "Полое тело с открытыми гранями и стенкой заданной толщины" },
     { divider: true },
-    { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", disabled: true, hint: "В разработке" },
+    { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", action: "pattern", disabled: bodies < 1, testId: "ribbon-pattern", hint: bodies < 1 ? "Сначала постройте тело" : "Линейный или круговой массив тела" },
     { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", action: "mirror", disabled: bodies < 1, testId: "ribbon-mirror", hint: bodies < 1 ? "Сначала постройте тело" : "Отразить тело относительно плоскости XY, XZ, YZ или плоской грани" },
     { divider: true },
     { label: "Измерить", icon: "M3 17L17 3l4 4L7 21z M7 13l2 2 M10 10l2 2 M13 7l2 2", action: "measure", disabled: bodies < 1, testId: "ribbon-measure", hint: bodies < 1 ? "Сначала постройте тело" : "Расстояние, угол, длина, площадь, объём и масса" },

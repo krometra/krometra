@@ -5,6 +5,7 @@ import { holeNamed } from "./geometry/hole";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
 import { mirrorNamed, type MirrorRequest } from "./geometry/mirror";
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
+import { patternNamed, type PatternRequest } from "./geometry/pattern";
 import { revolveNamed } from "./geometry/revolve";
 import { runRebuildRequest, type RebuildRequest } from "./geometry/rebuild";
 import { estimateTriangles, exportBodies, type ExportEstimateRequest } from "./geometry/exportFile";
@@ -26,7 +27,7 @@ import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
 type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest
-  | MeasureRequest;
+  | MeasureRequest | PatternRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -43,6 +44,7 @@ function buildShape(data: Request) {
   if (data.kind === "shell") return publishNamed(() => shellNamed(data, namedBodyShape));
   if (data.kind === "mirror") return publishNamed(() => mirrorNamed(data, namedBodyShape));
   if (data.kind === "hole") return publishNamed(() => holeNamed(data, namedBodyShape));
+  if (data.kind === "pattern") return publishNamed(() => patternNamed(data, namedBodyShape));
   return null;
 }
 

@@ -57,6 +57,11 @@ class ImportResponse(BaseModel):
     bodies: list[ImportedBodyResponse]
 
 
+class PatternResponse(BaseModel):
+    bodies: list[ImportedBodyResponse]
+    hidden_body_ids: list[str]
+
+
 class ThreadResponse(BaseModel):
     body_id: str
     mesh: MeshResponse

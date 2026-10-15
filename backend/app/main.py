@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import api_keys, auth, projects, documents, geometry, sketches, browser_geometry, browser_import, browser_thread
+from app.api.routes import api_keys, auth, projects, documents, geometry, sketches, browser_geometry, browser_import, browser_pattern, browser_thread
 from app.api.routes import browser_shell
 from app.api.routes import browser_mirror
 from app.api.routes import browser_sweep
@@ -53,6 +53,7 @@ app.include_router(browser_import.router, prefix="/api")
 app.include_router(browser_shell.router, prefix="/api")
 app.include_router(browser_mirror.router, prefix="/api")
 app.include_router(browser_sweep.router, prefix="/api")
+app.include_router(browser_pattern.router, prefix="/api")
 
 
 @app.get("/api/health")

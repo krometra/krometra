@@ -5,7 +5,6 @@ import { useSelection } from "@/composables/shared/useSelection";
 import { useSketch } from "@/composables/shared/useSketch";
 import { useApi } from "@/composables/useApi";
 import { useAutoSave } from "@/composables/useAutoSave";
-import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
 import { useBodyMeshes } from "@/composables/editor/useBodyMeshes";
 import { useDocumentStatus } from "@/composables/editor/useDocumentStatus";
@@ -18,9 +17,11 @@ import { useThread } from "@/composables/editor/useThread";
 import { useShell } from "@/composables/editor/useShell";
 import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorTools } from "@/composables/editor/useEditorTools";
+import { useSelectionLabel } from "@/composables/editor/useSelectionLabel";
 import { useSweep } from "@/composables/editor/useSweep";
 import { useHole } from "@/composables/editor/useHole";
 import { useMeasure } from "@/composables/editor/useMeasure";
+import { usePattern } from "@/composables/editor/usePattern";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -54,6 +55,7 @@ import MirrorPanel from "@/components/editor/MirrorPanel.vue";
 import SweepPanel from "@/components/editor/SweepPanel.vue";
 import HolePanel from "@/components/editor/HolePanel.vue";
 import MeasurePanel from "@/components/editor/MeasurePanel.vue";
+import PatternPanel from "@/components/editor/PatternPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -73,7 +75,6 @@ const api = useApi();
 const documentStore = useDocument();
 const selection = useSelection();
 const sketch = useSketch();
-const names = useDisplayNames();
 const model = useDocumentModel();
 
 const viewportRef = ref<InstanceType<typeof ViewportContainer>>();
@@ -114,8 +115,9 @@ const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMo
 const sweep = useSweep({ projectId: props.id, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
+const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([
-  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool, measure.tool,
+  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool, measure.tool, pattern.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -209,7 +211,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, hole,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
       measure,
     });
@@ -283,17 +285,7 @@ function runOnboardingStep(step: "sketch" | "extrude" | "refine") {
   else handleRibbonAction("fillet");
 }
 
-const selectionLabel = computed(() => {
-  const s = selection.selection.value;
-  if (!s) return "ничего не выбрано";
-  if (s.type === "face") {
-    return `выбрано: ${names.bodyLabel(s.bodyId)} / грань #${s.faceId}`;
-  }
-  if (s.type === "edge") {
-    return `выбрано: ${names.bodyLabel(s.bodyId)} / ребро #${s.edgeId}`;
-  }
-  return `выбрано: ${names.bodyLabel(s.bodyId)} / вершина #${s.vertexId}`;
-});
+const selectionLabel = useSelectionLabel();
 </script>
 
 <template>
@@ -346,7 +338,7 @@ const selectionLabel = computed(() => {
           @selection-cleared="onSelectionCleared"
           @body-selected="booleanMode.handleBodySelected"
           @body-deselected="booleanMode.handleBodyDeselected"
-          @edge-selection-changed="filletChamfer.onEdgeSelectionChanged"
+          @edge-selection-changed="filletChamfer.onEdgeSelectionChanged($event); pattern.onEdgeSelectionChanged($event)"
           @face-context-menu="inspect.openFaceMenu"
           @measure-picked="measure.onPicked"
         />
@@ -437,6 +429,7 @@ const selectionLabel = computed(() => {
         <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
         <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
         <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
+        <PatternPanel v-else-if="pattern.patternMode.value" :pattern="pattern" />
         <BooleanPanel
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"

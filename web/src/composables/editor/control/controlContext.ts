@@ -21,6 +21,7 @@ import type { FilletChamferApi } from "../useFilletChamfer";
 import type { MirrorApi } from "../useMirror";
 import type { HoleApi } from "../useHole";
 import type { ModelHistoryApi } from "../useModelHistory";
+import type { PatternApi } from "../usePattern";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { SweepApi } from "../useSweep";
@@ -43,6 +44,7 @@ export interface EditorControlDeps {
   mirror: MirrorApi;
   sweep: SweepApi;
   hole: HoleApi;
+  pattern: PatternApi;
   exportApi: ExportApi;
   stepImport: StepImportApi;
   history: ModelHistoryApi;
@@ -77,6 +79,7 @@ export function createControlContext(deps: EditorControlDeps) {
       shell: deps.shell.shellMode.value,
       mirror: deps.mirror.mirrorMode.value,
       hole: deps.hole.holeMode.value,
+      pattern: deps.pattern.patternMode.value,
       boolean: deps.booleanMode.booleanMode.value,
       sweep: deps.sweep.sweepMode.value,
       measure: deps.measure.active.value,
@@ -104,6 +107,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.sweep.loading.value) return "Идёт протяжка по траектории.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
+    if (deps.pattern.loading.value) return "Идёт построение массива.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";
     if (deps.sketchFlow.finishing.value || sketch.isLoading.value) return "Эскиз сохраняется или загружается.";
     if (deps.meshes.hydrating.value) return "Тела перезагружаются в сцену.";

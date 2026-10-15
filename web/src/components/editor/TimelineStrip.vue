@@ -3,6 +3,7 @@ import CsButton from "@/components/ui/CsButton.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
 import { holeDetail } from "@/lib/holeFeature";
+import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
 import type { TimelineEntry } from "@/types/api";
 
 defineProps<{
@@ -36,6 +37,7 @@ function timelineIcon(kind: string): string {
     transform: "M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M21 12l-3-3 M21 12l-3 3",
     shell: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4",
     mirror: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5",
+    pattern: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z",
   };
   return icons[kind] ?? icons.sketch;
 }
@@ -86,6 +88,8 @@ function timelineDetail(entry: TimelineEntry): string {
       return `${entry.params?.thickness ?? '?'}мм · ${entry.params?.direction === 'outward' ? 'наружу' : 'внутрь'}`;
     case "mirror":
       return mirrorDetail(entry.params ?? {});
+    case "pattern":
+      return patternSummary(patternSpecFromParams(entry.params ?? {}));
     default:
       return '';
   }

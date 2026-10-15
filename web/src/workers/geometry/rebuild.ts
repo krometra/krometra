@@ -7,6 +7,7 @@ import { mirrorNamed, type MirrorRequest } from "./mirror";
 import { holeNamed, type HoleBuildRequest } from "./hole";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
+import { patternNamed, type PatternRequest } from "./pattern";
 import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { shellNamed, type ShellRequest } from "./shell";
@@ -42,6 +43,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   shell: (request: ShellRequest, lookup) => shellNamed(request, lookup),
   mirror: (request: MirrorRequest, lookup) => mirrorNamed(request, lookup),
   hole: (request: HoleBuildRequest, lookup) => holeNamed(request, lookup),
+  pattern: (request: PatternRequest, lookup) => patternNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

@@ -11,6 +11,7 @@ const idle: EditorModeFlags = {
   shell: false,
   mirror: false,
   hole: false,
+  pattern: false,
   boolean: false,
   measure: false,
 };
@@ -31,6 +32,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, shell: true })).toBe("shell");
     expect(resolveEditorMode({ ...idle, mirror: true })).toBe("mirror");
     expect(resolveEditorMode({ ...idle, hole: true })).toBe("hole");
+    expect(resolveEditorMode({ ...idle, pattern: true })).toBe("pattern");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
     expect(resolveEditorMode({ ...idle, sweep: true })).toBe("sweep");
     expect(resolveEditorMode({ ...idle, measure: true })).toBe("measure");

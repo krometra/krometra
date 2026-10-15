@@ -30,7 +30,7 @@ function rotation(transform: BodyTransform): gp_Trsf {
   }
 }
 
-function movement(transform: BodyTransform): gp_Trsf {
+export function movement(transform: BodyTransform): gp_Trsf {
   const oc = getOC();
   const trsf = rotation(transform);
   const [x, y, z] = transform.translate;

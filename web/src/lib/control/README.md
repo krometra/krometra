@@ -29,7 +29,7 @@ type ControlErrorCode =
 
 - **`ready`** разрешается один раз, когда одновременно: вьюпорт смонтирован, документ этого проекта загружен, первая загрузка тел в сцену и ядро завершена (`useBodyMeshes.hydrated`), фаза браузерного ядра — `ready`. В тот же момент на `window` летит событие `cad-control-ready`. Промис не отклоняется: если ядро не запустилось, причина видна в `state` (`kernel: "failed"`, `kernelError`).
 - До готовности и при перезапуске ядра операции отвечают `not_ready` с причиной в `message`. `capabilities` и `state` доступны всегда.
-- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `boolean` → `sweep` → `measure` → `model` (`mode.ts`).
+- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `pattern` → `boolean` → `sweep` → `measure` → `model` (`mode.ts`).
 - **Мутирующие операции выполняются по одной.** Вторая во время первой получает `busy`; так же отвечает запрос, пришедший, пока редактор сам занят операцией из интерфейса, сохранением или перезагрузкой тел. Операции чтения проходят всегда и видят `state.busy = true`.
 - Операции модели (`extrude`, `fillet`, …) закрывают открытую панель инструмента, как это делает лента, но в открытом эскизе отвечают `wrong_mode`: эскиз нужно завершить (`sketch.finish`) или отменить (`sketch.cancel`). После операции — успешной или отклонённой ядром — редактор в режиме `model`.
 
@@ -45,7 +45,7 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `body.transform`, `body.mirror`, `hole`, `history.undo`, `history.redo`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`.
 
 `shell { bodyId, faceIds, thickness, direction? }` открывает перечисленные грани и оставляет стенку `thickness` мм: `inward` (по умолчанию) — внутрь, габарит сохраняется, `outward` — наружу. Слишком толстая стенка отклоняется `operation_failed` с толщиной, которая помещается.
 
@@ -64,6 +64,7 @@ lib/control/                       чистая логика, без DOM и Thre
 ├── base64.ts                      байты → base64 для снимков и файлов экспорта
 ├── sketchEntities.ts              разбор сущностей эскиза, выдача id
 └── measureRefs.ts                 разбор объектов измерения { bodyId, faceId | edgeId | point }
+└── patternParams.ts               ось массива в параметрах body.pattern
 
 composables/editor/
 ├── useEditorControl.ts            собирает операции, публикует window.cadControl, следит за ready
@@ -76,7 +77,8 @@ composables/editor/
     ├── controlMeasureOps.ts       measure: измерение через браузерное ядро
     ├── controlFeatureOps.ts       операции модели и undo/redo
     ├── controlFeatureResult.ts    общий ответ операций модели: новая запись истории
-    └── controlShellOps.ts         shell: оболочка с открытыми гранями
+    ├── controlShellOps.ts         shell: оболочка с открытыми гранями
+    ├── controlPatternOps.ts       body.pattern: массив тела
     └── controlHoleOps.ts          hole: отверстия на плоской грани по точкам или окружностям эскиза
 
 composables/viewport/

@@ -9,6 +9,7 @@ import { editableValues, featureParamFields } from "@/lib/browserFeatureParams";
 import { transformParams } from "@/lib/bodyTransform";
 import { mirrorParams } from "@/lib/mirrorPlane";
 import { holeSummaryRows } from "@/lib/holeFeature";
+import { patternParamRows } from "@/lib/bodyPatternParams";
 import type { MeshData, TimelineEntry } from "@/types/api";
 
 const emit = defineEmits<{
@@ -48,7 +49,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "sweep", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "sweep", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -120,6 +121,8 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       return mirrorParams(p);
     case "hole":
       return holeSummaryRows(p);
+    case "pattern":
+      return patternParamRows(p, names.bodyLabel);
     case "boolean":
       return [
         { label: "Операция", value: OPERATION_LABELS[entry.operation ?? ""] ?? entry.operation ?? "?" },
