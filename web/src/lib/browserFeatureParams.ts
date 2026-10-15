@@ -1,6 +1,8 @@
 import type { TimelineEntry } from "@/types/api";
 import { editableBrowserParams, isBrowserFeature } from "./browserRebuildPlan";
 import { MIRROR_BASE_PLANES } from "./mirrorPlane";
+import { holeParamFields, holeParamsOf } from "./holeFeature";
+import { DEFAULT_HOLE_SPEC } from "./holeGeometry";
 
 export type FeatureParamValue = number | string;
 
@@ -34,6 +36,7 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   thickness: 1,
   plane: "XY",
   orientation: "corrected",
+  ...holeParamsOf(DEFAULT_HOLE_SPEC),
 };
 
 const SHELL_DIRECTION_OPTIONS = [
@@ -103,6 +106,7 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { key: "direction", label: "Направление", kind: "select", options: SHELL_DIRECTION_OPTIONS },
     ];
   }
+  if (entry.kind === "hole") return holeParamFields(values);
   return [];
 }
 

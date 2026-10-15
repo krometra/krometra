@@ -420,6 +420,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/geometry/browser-hole": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Hole Endpoint */
+        post: operations["browser_hole_endpoint_api_projects__project_id__geometry_browser_hole_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/sketches/{sketch_id}": {
         parameters: {
             query?: never;
@@ -795,6 +812,54 @@ export interface components {
             /** Feature Key */
             feature_key?: string | null;
         };
+        /** Body_browser_hole_endpoint_api_projects__project_id__geometry_browser_hole_post */
+        Body_browser_hole_endpoint_api_projects__project_id__geometry_browser_hole_post: {
+            /** Step */
+            step: string;
+            /** Mesh */
+            mesh: string;
+            /** Body Id */
+            body_id: string;
+            /** Face Id */
+            face_id: string;
+            /** Centers */
+            centers: string;
+            /**
+             * Hole Type
+             * @default simple
+             */
+            hole_type: string;
+            /** Diameter */
+            diameter: number;
+            /**
+             * Extent
+             * @default distance
+             */
+            extent: string;
+            /** Depth */
+            depth: number;
+            /**
+             * Bottom
+             * @default flat
+             */
+            bottom: string;
+            /** Cbore Diameter */
+            cbore_diameter: number;
+            /** Cbore Depth */
+            cbore_depth: number;
+            /** Csink Diameter */
+            csink_diameter: number;
+            /** Csink Angle */
+            csink_angle: number;
+            /** Sketch Id */
+            sketch_id?: string | null;
+            /** Document Version */
+            document_version: number;
+            /** Naming */
+            naming?: string | null;
+            /** Feature Key */
+            feature_key?: string | null;
+        };
         /** Body_browser_import_endpoint_api_projects__project_id__geometry_browser_import_post */
         Body_browser_import_endpoint_api_projects__project_id__geometry_browser_import_post: {
             /** Steps */
@@ -1108,6 +1173,14 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HoleResponse */
+        HoleResponse: {
+            /** Body Id */
+            body_id: string;
+            mesh: components["schemas"]["MeshResponse"];
+            /** Hole Count */
+            hole_count: number;
         };
         /** ImportResponse */
         ImportResponse: {
@@ -2265,6 +2338,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExtrudeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_hole_endpoint_api_projects__project_id__geometry_browser_hole_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_hole_endpoint_api_projects__project_id__geometry_browser_hole_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoleResponse"];
                 };
             };
             /** @description Validation Error */

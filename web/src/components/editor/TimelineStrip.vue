@@ -2,6 +2,7 @@
 import CsButton from "@/components/ui/CsButton.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
+import { holeDetail } from "@/lib/holeFeature";
 import type { TimelineEntry } from "@/types/api";
 
 defineProps<{
@@ -30,6 +31,7 @@ function timelineIcon(kind: string): string {
     sweep: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z",
     fillet: "M4 20V10a6 6 0 0 1 6-6h10",
     chamfer: "M4 20L20 4 M4 14v6h6",
+    hole: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
     import: "M12 3v12 M7 10l5 5 5-5 M4 19h16",
     transform: "M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M21 12l-3-3 M21 12l-3 3",
     shell: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4",
@@ -74,6 +76,8 @@ function timelineDetail(entry: TimelineEntry): string {
       const kind = p.kind === 'internal' ? 'внутр.' : 'внеш.';
       return `${kind} · шаг ${p.pitch ?? '?'}мм`;
     }
+    case "hole":
+      return holeDetail(entry.params ?? {});
     case "import":
       return typeof entry.params?.file_name === 'string' ? entry.params.file_name : 'STEP';
     case "transform":

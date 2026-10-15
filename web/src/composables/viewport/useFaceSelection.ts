@@ -15,7 +15,7 @@ const MARK_COLOR = new THREE.Color(0xff9f43);
  */
 export function useFaceSelection(options: {
   context: SceneContext;
-  onSelected: (payload: { bodyId: string; faceId: string | number; brepTopo: BrepTopo }) => void;
+  onSelected: (payload: { bodyId: string; faceId: string | number; brepTopo: BrepTopo; point: [number, number, number] }) => void;
   onCleared: () => void;
 }) {
   const { context } = options;
@@ -133,6 +133,7 @@ export function useFaceSelection(options: {
       bodyId: found.entry.bodyId,
       faceId: found.faceId,
       brepTopo: found.entry.brepTopo,
+      point: found.point,
     });
   }
 

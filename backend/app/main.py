@@ -9,6 +9,7 @@ from app.api.routes import api_keys, auth, projects, documents, geometry, sketch
 from app.api.routes import browser_shell
 from app.api.routes import browser_mirror
 from app.api.routes import browser_sweep
+from app.api.routes import browser_hole
 from app.config import get_settings
 
 settings = get_settings()
@@ -45,6 +46,7 @@ app.include_router(projects.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(geometry.router, prefix="/api")
 app.include_router(browser_thread.router, prefix="/api")
+app.include_router(browser_hole.router, prefix="/api")
 app.include_router(sketches.router, prefix="/api")
 app.include_router(browser_geometry.router, prefix="/api")
 app.include_router(browser_import.router, prefix="/api")

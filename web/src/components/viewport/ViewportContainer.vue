@@ -17,6 +17,7 @@ import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
 import { useMirrorPreview } from "@/composables/viewport/useMirrorPreview";
+import { useHolePreview } from "@/composables/viewport/useHolePreview";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
 import { useSectionView } from "@/composables/viewport/useSectionView";
 import { useCameraLookAt } from "@/composables/viewport/useCameraLookAt";
@@ -31,7 +32,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  faceSelected: [payload: { bodyId: string; faceId: string | number; brepTopo: import("@/types/api").BrepTopo }];
+  faceSelected: [payload: { bodyId: string; faceId: string | number; brepTopo: import("@/types/api").BrepTopo; point?: [number, number, number] }];
   selectionCleared: [];
   bodySelected: [payload: { bodyId: string }];
   bodyDeselected: [payload: { bodyId: string }];
@@ -60,6 +61,7 @@ const planes = usePlaneHelpers(context);
 const outlines = useSketchOutlines(core.sketchGroup);
 const previews = usePreviews(context);
 const mirrorPreview = useMirrorPreview(context);
+const holePreview = useHolePreview(context);
 const probe = useViewportProbe(context);
 const section = useSectionView(context);
 const lookAt = useCameraLookAt(context, core.animateCameraTo);
@@ -115,6 +117,7 @@ onUnmounted(() => {
   previews.hideExtrude();
   previews.hideFillet();
   previews.hideThread();
+  holePreview.hideHoles();
 });
 
 function onCanvasClick(event: MouseEvent) {
@@ -253,6 +256,8 @@ defineExpose({
   hideThreadPreview: previews.hideThread,
   showMirrorPreview: mirrorPreview.show,
   hideMirrorPreview: mirrorPreview.hide,
+  showHolePreview: holePreview.showHoles,
+  hideHolePreview: holePreview.hideHoles,
   fitAllBodies,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,

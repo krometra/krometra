@@ -119,6 +119,8 @@ const CODE_MESSAGES: Record<string, string> = {
   invalid_shell_params: "Параметры оболочки недопустимы — толщина стенки больше нуля, направление внутрь или наружу.",
   invalid_face_ids: "Выберите хотя бы одну грань, которую оболочка откроет.",
   invalid_mirror_params: "Параметры зеркала недопустимы — выберите базовую плоскость XY, XZ, YZ или плоскую грань тела.",
+  invalid_hole_params: "Размеры отверстия недопустимы — проверьте диаметры, глубины и угол зенковки.",
+  invalid_hole_centers: "Центры отверстий заданы неверно — поставьте от 1 до 100 центров на грани.",
   mixed_browser_export_unsupported: "Экспорт пока не смешивает browser-тела и серверные тела.",
   multiple_browser_export_unsupported: "Экспорт нескольких browser-тел пока недоступен — объедините их или скройте лишние.",
   invalid_edge_ids: "Выберите хотя бы одно ребро тела.",
@@ -157,6 +159,7 @@ const DETAILED_CODES = new Set([
   "rate_limited",
   "storage_quota_exceeded",
   "request_too_large",
+  "invalid_hole_params",
 ]);
 
 const FIELD_LABELS: Record<string, string> = {

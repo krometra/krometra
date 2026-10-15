@@ -7,6 +7,7 @@ export type EditorMode =
   | "fillet"
   | "chamfer"
   | "thread"
+  | "hole"
   | "shell"
   | "mirror"
   | "boolean"
@@ -20,6 +21,7 @@ export interface EditorModeFlags {
   thread: boolean;
   shell: boolean;
   mirror: boolean;
+  hole: boolean;
   boolean: boolean;
   sweep: boolean;
 }
@@ -32,6 +34,7 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.thread) return "thread";
   if (flags.shell) return "shell";
   if (flags.mirror) return "mirror";
+  if (flags.hole) return "hole";
   if (flags.boolean) return "boolean";
   if (flags.sweep) return "sweep";
   return "model";

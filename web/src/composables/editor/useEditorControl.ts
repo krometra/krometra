@@ -10,6 +10,7 @@ import { inspectOps } from "./control/controlInspectOps";
 import { importOps } from "./control/controlImportOps";
 import { mirrorOps } from "./control/controlMirrorOps";
 import { featureOps } from "./control/controlFeatureOps";
+import { holeOps } from "./control/controlHoleOps";
 import { historyOps } from "./control/controlHistoryOps";
 import { readOps } from "./control/controlReadOps";
 import { shellOps } from "./control/controlShellOps";
@@ -35,6 +36,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...sketchOps(context),
     ...featureOps(context),
     ...shellOps(context),
+    ...holeOps(context),
     ...historyOps(context),
     ...bodyOps(context),
     ...importOps(context),

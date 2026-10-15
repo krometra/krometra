@@ -4,6 +4,7 @@ import { booleanNamed } from "./boolean";
 import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
 import { mirrorNamed, type MirrorRequest } from "./mirror";
+import { holeNamed, type HoleBuildRequest } from "./hole";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
 import { revolveNamed } from "./revolve";
@@ -40,6 +41,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   transform: (request: TransformRequest, lookup) => transformNamed(request, lookup),
   shell: (request: ShellRequest, lookup) => shellNamed(request, lookup),
   mirror: (request: MirrorRequest, lookup) => mirrorNamed(request, lookup),
+  hole: (request: HoleBuildRequest, lookup) => holeNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

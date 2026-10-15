@@ -5,6 +5,7 @@ import type { MeshTolerance } from "@/lib/meshQuality";
 import type { SavedNaming } from "@/lib/browserNaming";
 import type { SketchEntity } from "@/types/api";
 import type { EdgeFeature } from "./edgeOps";
+import type { HoleBuildRequest } from "./hole";
 import type { NamedShape } from "./naming";
 import type { ThreadWorkerRequest } from "./thread";
 
@@ -87,4 +88,5 @@ export type WorkerRequest =
   | EdgeFeatureRequest
   | ExportRequest
   | ShapeRequest
-  | ThreadWorkerRequest;
+  | ThreadWorkerRequest
+  | HoleBuildRequest;

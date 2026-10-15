@@ -1,8 +1,9 @@
 import type { TimelineEntry } from "@/types/api";
 import { mirrorPlaneOfParams } from "./mirrorPlane";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
+import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
 
-export type RebuildKind = "extrude" | "revolve" | "sweep" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror";
+export type RebuildKind = "extrude" | "revolve" | "sweep" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole";
 
 export interface RebuildStep {
   entryId: string;
@@ -24,7 +25,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -35,6 +36,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   thread: ["pitch", "length", "offset"],
   shell: ["thickness", "direction"],
   mirror: ["plane", "offset"],
+  hole: [...HOLE_EDITABLE_PARAMS],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -124,6 +126,18 @@ function shellRequest(params: Record<string, unknown>) {
   };
 }
 
+function holeRequest(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>) {
+  const placement = entry.sketch_id ? sketchPlacement(document, entry) : { entities: null, plane: "XY", planeOffset: 0, planeBasis: null };
+  return {
+    ...placement,
+    bodyId: text(params.target_body_id),
+    faceId: text(params.face_id),
+    facePoints: [],
+    centers: Array.isArray(params.centers) ? params.centers : [],
+    spec: holeSpecFromParams(params),
+  };
+}
+
 function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>): Record<string, unknown> {
   const featureKey = text(params.feature_key) ?? entry.id;
   if (entry.kind === "import") return { kind: "import", featureKey, bodyId: entry.body_id };
@@ -154,6 +168,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     return { kind: "boolean", featureKey, operation: entry.operation, targetBodyId: entry.target_body_id, toolBodyId: entry.tool_body_id };
   }
   if (entry.kind === "thread") return { kind: "thread", featureKey, ...threadRequest(entry, params) };
+  if (entry.kind === "hole") return { kind: "hole", featureKey, ...holeRequest(document, entry, params) };
   if (entry.kind === "transform") {
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
   }

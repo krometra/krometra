@@ -1,6 +1,7 @@
 import { booleanNamed } from "./geometry/boolean";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
+import { holeNamed } from "./geometry/hole";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
 import { mirrorNamed, type MirrorRequest } from "./geometry/mirror";
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
@@ -39,6 +40,7 @@ function buildShape(data: Request) {
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));
   if (data.kind === "shell") return publishNamed(() => shellNamed(data, namedBodyShape));
   if (data.kind === "mirror") return publishNamed(() => mirrorNamed(data, namedBodyShape));
+  if (data.kind === "hole") return publishNamed(() => holeNamed(data, namedBodyShape));
   return null;
 }
 

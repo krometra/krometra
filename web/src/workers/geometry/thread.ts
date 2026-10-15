@@ -133,7 +133,7 @@ function clippedTool(cylinder: ThreadCylinderInfo, plan: ThreadPlan, startAngle:
   }
 }
 
-function isValidShape(shape: Shape3D) {
+export function isValidShape(shape: Shape3D) {
   const analyzer = new (getOC().BRepCheck_Analyzer)(shape.wrapped, true, false, false);
   try {
     return analyzer.IsValid();

@@ -66,3 +66,9 @@ class ThreadResponse(BaseModel):
     pitch: float
     depth: float
     starts: int
+
+
+class HoleResponse(BaseModel):
+    body_id: str
+    mesh: MeshResponse
+    hole_count: int
