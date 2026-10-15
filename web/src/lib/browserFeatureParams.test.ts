@@ -33,4 +33,17 @@ describe("параметры browser-операций", () => {
     expect(isValidParams({ distance: -5, offset: -1 })).toBe(true);
     expect(isValidParams({ angle: 361 })).toBe(false);
   });
+
+  it("массив правит количество, шаг и угол, а у отдельных тел — без количества", () => {
+    const keys = (params: Record<string, unknown>) => featureParamFields(entry("pattern", params), {}).map((field) => field.key);
+    expect(keys({ pattern_type: "linear", mode: "join" })).toEqual(["count", "spacing"]);
+    expect(keys({ pattern_type: "linear", mode: "join", axis2: { kind: "y" } })).toEqual(["count", "spacing", "count2", "spacing2"]);
+    expect(keys({ pattern_type: "circular", mode: "join" })).toEqual(["count", "angle"]);
+    expect(keys({ pattern_type: "circular", mode: "separate" })).toEqual(["angle"]);
+    expect(editableValues(entry("pattern", { count: 4, spacing: 7 }))).toEqual({ count: 4, spacing: 7, angle: 360, count2: 1, spacing2: 10 });
+    expect(isValidParams({ count: 2.5 })).toBe(false);
+    expect(isValidParams({ count: 1 })).toBe(false);
+    expect(isValidParams({ count2: 1, spacing: -3 })).toBe(true);
+    expect(isValidParams({ spacing2: 0 })).toBe(false);
+  });
 });

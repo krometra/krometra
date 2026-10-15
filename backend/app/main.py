@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import api_keys, auth, projects, documents, geometry, sketches, browser_geometry, browser_import, browser_thread
+from app.api.routes import api_keys, auth, projects, documents, geometry, sketches, browser_geometry, browser_import, browser_pattern, browser_thread
 from app.config import get_settings
 
 settings = get_settings()
@@ -45,6 +45,7 @@ app.include_router(browser_thread.router, prefix="/api")
 app.include_router(sketches.router, prefix="/api")
 app.include_router(browser_geometry.router, prefix="/api")
 app.include_router(browser_import.router, prefix="/api")
+app.include_router(browser_pattern.router, prefix="/api")
 
 
 @app.get("/api/health")

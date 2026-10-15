@@ -1,7 +1,9 @@
 import type { TimelineEntry } from "@/types/api";
+import { patternReferenceBodies } from "./bodyPattern";
+import { patternModeOf, patternSpecFromParams } from "./bodyPatternParams";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 
-export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform";
+export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "pattern";
 
 export interface RebuildStep {
   entryId: string;
@@ -23,7 +25,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform", "pattern"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -31,6 +33,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   fillet: ["radius"],
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
+  pattern: ["count", "spacing", "angle", "count2", "spacing2"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -53,11 +56,21 @@ export function outputBodyOf(entry: TimelineEntry): string | null {
   return text(entry.kind === "boolean" ? entry.result_body_id : entry.body_id);
 }
 
+export function outputBodiesOf(entry: TimelineEntry): string[] {
+  if (Array.isArray(entry.body_ids)) return entry.body_ids.map(text).filter((id): id is string => id !== null);
+  const output = outputBodyOf(entry);
+  return output ? [output] : [];
+}
+
+function patternInputs(params: Record<string, unknown>): unknown[] {
+  return [params.target_body_id, ...patternReferenceBodies(patternSpecFromParams(params))];
+}
+
 export function inputBodiesOf(entry: TimelineEntry): string[] {
   const params = entry.params ?? {};
   const ids = entry.kind === "boolean"
     ? [entry.target_body_id, entry.tool_body_id]
-    : [params.target_body_id, params.up_to_body_id];
+    : entry.kind === "pattern" ? patternInputs(params) : [params.target_body_id, params.up_to_body_id];
   return [...new Set(ids.map(text).filter((id): id is string => id !== null))];
 }
 
@@ -127,6 +140,9 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
   if (entry.kind === "transform") {
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
   }
+  if (entry.kind === "pattern") {
+    return { kind: "pattern", featureKey, bodyId: text(params.target_body_id), pattern: patternSpecFromParams(params), mode: patternModeOf(params), instance: null };
+  }
   const edgeNames = Array.isArray(params.edge_ids) ? params.edge_ids.map(String) : [];
   const bodyId = text(params.target_body_id);
   if (entry.kind === "fillet") return { kind: "fillet", featureKey, bodyId, edgeNames, radius: number(params.radius, 1) };
@@ -147,20 +163,24 @@ export function browserRebuildPlan(
   const steps: RebuildPlanStep[] = [];
   document.timeline.slice(start).forEach((entry, offset) => {
     const inputs = inputBodiesOf(entry);
-    const output = outputBodyOf(entry);
+    const outputs = outputBodiesOf(entry);
     const owner = sketchOwnerBody(document, entry);
     if (offset > 0 && !inputs.some((id) => affected.has(id)) && !(owner && affected.has(owner))) return;
-    if (!isBrowserFeature(entry) || !output) {
+    if (!isBrowserFeature(entry) || outputs.length === 0) {
       throw new Error(`Операция «${entry.label}» зависит от изменённой, но не поддерживает пересборку в браузере.`);
     }
     const params = offset === 0 ? { ...entry.params, ...newParams } : entry.params ?? {};
-    const step: RebuildStep = { entryId: entry.id, kind: entry.kind as RebuildKind, outputBodyId: output, inputBodyIds: inputs, request: requestOf(document, entry, params) };
-    steps.push(entry.sketch_id && seated.has(entry.sketch_id) ? { ...step, sketchId: entry.sketch_id } : step);
-    affected.add(output);
-    for (const seat of sketchSeatSteps(document, output)) {
-      seated.add(seat.sketchId);
-      steps.push(seat);
-    }
+    const request = requestOf(document, entry, params);
+    outputs.forEach((output, index) => {
+      const instanceRequest = Array.isArray(entry.body_ids) ? { ...request, instance: index + 1 } : request;
+      const step: RebuildStep = { entryId: entry.id, kind: entry.kind as RebuildKind, outputBodyId: output, inputBodyIds: inputs, request: instanceRequest };
+      steps.push(entry.sketch_id && seated.has(entry.sketch_id) ? { ...step, sketchId: entry.sketch_id } : step);
+      affected.add(output);
+      for (const seat of sketchSeatSteps(document, output)) {
+        seated.add(seat.sketchId);
+        steps.push(seat);
+      }
+    });
   });
   return steps;
 }

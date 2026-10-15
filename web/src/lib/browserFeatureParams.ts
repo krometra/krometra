@@ -30,6 +30,10 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   distance2: 1,
   pitch: 1,
   length: 10,
+  count: 2,
+  spacing: 10,
+  count2: 1,
+  spacing2: 10,
 };
 
 export function editableValues(entry: TimelineEntry): Record<string, FeatureParamValue> {
@@ -52,6 +56,19 @@ function extrudeFields(entry: TimelineEntry, values: Record<string, FeatureParam
   return fields;
 }
 
+function patternFields(entry: TimelineEntry): FeatureParamField[] {
+  const params = entry.params ?? {};
+  const countField = (key: string, label: string, min: number): FeatureParamField[] => (
+    params.mode === "separate" ? [] : [{ key, label, kind: "number", min }]
+  );
+  if (params.pattern_type === "circular") {
+    return [...countField("count", "Количество", 2), { key: "angle", label: "Угол", kind: "number", suffix: "°", min: 0.1, max: 360 }];
+  }
+  const fields: FeatureParamField[] = [...countField("count", "Количество", 2), { key: "spacing", label: "Шаг", kind: "number", suffix: "мм" }];
+  if (!params.axis2) return fields;
+  return [...fields, ...countField("count2", "Количество 2", 1), { key: "spacing2", label: "Шаг 2", kind: "number", suffix: "мм" }];
+}
+
 export function featureParamFields(entry: TimelineEntry, values: Record<string, FeatureParamValue>): FeatureParamField[] {
   if (!isBrowserFeature(entry)) return [];
   if (entry.kind === "extrude") return extrudeFields(entry, values);
@@ -68,6 +85,7 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { key: "distance2", label: "Расстояние 2", kind: "number", suffix: "мм", min: 0.01 },
     ];
   }
+  if (entry.kind === "pattern") return patternFields(entry);
   if (entry.kind === "thread") {
     return [
       { key: "pitch", label: "Шаг", kind: "number", suffix: "мм", min: 0.01 },
@@ -97,6 +115,9 @@ export function isValidParams(values: Record<string, FeatureParamValue>): boolea
     if (key === "distance") return Math.abs(value) > 1e-9;
     if (key === "angle") return value > 0 && value <= 360;
     if (key === "offset") return true;
+    if (key === "count") return Number.isInteger(value) && value >= 2;
+    if (key === "count2") return Number.isInteger(value) && value >= 1;
+    if (key === "spacing" || key === "spacing2") return Math.abs(value) > 1e-9;
     if (key === "back_distance") return value >= 0;
     return value > 0;
   });

@@ -1,5 +1,5 @@
 import type { TimelineEntry } from "@/types/api";
-import { inputBodiesOf, outputBodyOf } from "./browserRebuildPlan";
+import { inputBodiesOf, outputBodiesOf } from "./browserRebuildPlan";
 
 export interface ModelDocument {
   components: Record<string, unknown>;
@@ -25,6 +25,7 @@ export function consumedBodiesOf(entry: TimelineEntry): string[] {
   if (entry.kind === "boolean") return [entry.target_body_id, entry.tool_body_id].map(text).filter((id): id is string => id !== null);
   const params = entry.params ?? {};
   if (entry.kind === "transform" && params.copy === true) return [];
+  if (entry.kind === "pattern" && params.mode === "separate") return [];
   const target = text(params.target_body_id);
   return target ? [target] : [];
 }
@@ -38,7 +39,7 @@ export function bodyConsumers(document: ModelDocument): Map<string, TimelineEntr
 }
 
 function producerOf(document: ModelDocument, bodyId: string): TimelineEntry | null {
-  return document.timeline.find((entry) => outputBodyOf(entry) === bodyId) ?? null;
+  return document.timeline.find((entry) => outputBodiesOf(entry).includes(bodyId)) ?? null;
 }
 
 function sketchBody(document: ModelDocument, sketchId: string | null | undefined): string | null {
@@ -60,7 +61,7 @@ function usesSketches(entry: TimelineEntry, sketches: Set<string>): boolean {
 }
 
 function removedOutputs(document: ModelDocument, entries: TimelineEntry[]) {
-  const bodies = new Set(entries.map(outputBodyOf).filter((id): id is string => id !== null));
+  const bodies = new Set(entries.flatMap(outputBodiesOf));
   const sketches = new Set(entries.filter((entry) => entry.kind === "sketch" && entry.sketch_id).map((entry) => entry.sketch_id as string));
   return { bodies, sketches, all: new Set([...bodies, ...sketches].filter((id) => id in document.components)) };
 }

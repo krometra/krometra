@@ -47,7 +47,7 @@ function selectSketchRow(sketchId: string) {
 
 function selectBodyRow(bodyId: string) {
   const entry = timelineEntries.value.find(
-    (e) => e.body_id === bodyId || e.result_body_id === bodyId,
+    (e) => e.body_id === bodyId || e.result_body_id === bodyId || e.body_ids?.includes(bodyId),
   );
   if (entry) selection.selectFeature(entry.id);
 }

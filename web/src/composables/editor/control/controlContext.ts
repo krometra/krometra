@@ -19,6 +19,7 @@ import type { ExportApi } from "../useExport";
 import type { ExtrudeRevolveApi } from "../useExtrudeRevolve";
 import type { FilletChamferApi } from "../useFilletChamfer";
 import type { ModelHistoryApi } from "../useModelHistory";
+import type { PatternApi } from "../usePattern";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { ThreadApi } from "../useThread";
@@ -35,6 +36,7 @@ export interface EditorControlDeps {
   booleanMode: BooleanModeApi;
   filletChamfer: FilletChamferApi;
   thread: ThreadApi;
+  pattern: PatternApi;
   exportApi: ExportApi;
   stepImport: StepImportApi;
   history: ModelHistoryApi;
@@ -64,6 +66,7 @@ export function createControlContext(deps: EditorControlDeps) {
       sweepPanel: deps.extrude.lastSavedSketchId.value ? deps.extrude.panelMode.value : null,
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
+      pattern: deps.pattern.patternMode.value,
       boolean: deps.booleanMode.booleanMode.value,
     });
   }
@@ -85,6 +88,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
+    if (deps.pattern.loading.value) return "Идёт построение массива.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";
     if (deps.sketchFlow.finishing.value || sketch.isLoading.value) return "Эскиз сохраняется или загружается.";
     if (deps.meshes.hydrating.value) return "Тела перезагружаются в сцену.";

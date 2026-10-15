@@ -15,6 +15,7 @@ from app.services.document_service import get_document
 
 from .browser_extrude import _error, is_browser_body, validated_browser_upload
 from .browser_naming import validated_browser_naming
+from .browser_pattern_params import checked_pattern_edit, pattern_reference_bodies
 from .browser_sketch_seat import apply_sketch_planes, feature_sketch_owner, seated_sketches, validated_sketch_planes
 from .browser_storage import browser_body_objects, persist_replaced_bodies
 from .limits import MAX_PARAMS_BYTES, MAX_REBUILD_BODIES
@@ -27,6 +28,7 @@ EDITABLE_PARAMS = {
     "fillet": {"radius"},
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
+    "pattern": {"count", "spacing", "angle", "count2", "spacing2"},
 }
 
 
@@ -112,10 +114,20 @@ def output_body(entry: dict) -> str | None:
     return entry.get("result_body_id") if entry.get("kind") == "boolean" else entry.get("body_id")
 
 
+def output_bodies(entry: dict) -> list[str]:
+    body_ids = entry.get("body_ids")
+    if isinstance(body_ids, list):
+        return [body_id for body_id in body_ids if isinstance(body_id, str) and body_id]
+    output = output_body(entry)
+    return [output] if output else []
+
+
 def input_bodies(entry: dict) -> set[str]:
     params = entry.get("params") or {}
     if entry.get("kind") == "boolean":
         ids = (entry.get("target_body_id"), entry.get("tool_body_id"))
+    elif entry.get("kind") == "pattern":
+        ids = (params.get("target_body_id"), *pattern_reference_bodies(params))
     else:
         ids = (params.get("target_body_id"), params.get("up_to_body_id"))
     return {body_id for body_id in ids if isinstance(body_id, str) and body_id}
@@ -131,9 +143,9 @@ def affected_bodies(timeline: list, start: int, components: dict) -> set[str]:
     for offset, entry in enumerate(timeline[start:]):
         if offset > 0 and not dependency_bodies(entry, components) & affected:
             continue
-        if (entry.get("params") or {}).get("engine") != "browser_wasm" or not output_body(entry):
+        if (entry.get("params") or {}).get("engine") != "browser_wasm" or not output_bodies(entry):
             _error("rebuild_unsupported", "От изменённой операции зависит операция, которую браузерное ядро не пересобирает.")
-        affected.add(output_body(entry))
+        affected.update(output_bodies(entry))
     return affected
 
 
@@ -168,6 +180,8 @@ async def save_browser_rebuild(
     index = _changed_entry(timeline, entry_id)
     changed = timeline[index]
     new_params = validated_rebuild_params(changed.get("kind"), params)
+    if changed.get("kind") == "pattern":
+        new_params = checked_pattern_edit(changed.get("params") or {}, new_params)
     components = dict(doc.components or {})
     affected = affected_bodies(timeline, index, components)
     uploaded = {body.body_id for body in bodies}

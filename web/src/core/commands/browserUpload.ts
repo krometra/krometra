@@ -21,18 +21,25 @@ export function browserBodyForm(
   return form;
 }
 
+export function browserBodiesForm(
+  fileStem: string,
+  fields: Record<string, string>,
+  bodies: Pick<BrowserBuildResult, "step" | "mesh" | "naming">[],
+): FormData {
+  const form = new FormData();
+  Object.entries(fields).forEach(([key, value]) => form.set(key, value));
+  bodies.forEach((body, index) => {
+    form.append("steps", new Blob([body.step], { type: "application/step" }), `${fileStem}-${index + 1}.step`);
+    form.append("meshes", JSON.stringify(body.mesh));
+    form.append("namings", JSON.stringify(body.naming));
+  });
+  return form;
+}
+
 export function browserImportForm(
   fileName: string,
   version: number,
   bodies: Pick<BrowserBuildResult, "step" | "mesh" | "naming">[],
 ): FormData {
-  const form = new FormData();
-  form.set("file_name", fileName);
-  form.set("document_version", String(version));
-  bodies.forEach((body, index) => {
-    form.append("steps", new Blob([body.step], { type: "application/step" }), `import-${index + 1}.step`);
-    form.append("meshes", JSON.stringify(body.mesh));
-    form.append("namings", JSON.stringify(body.naming));
-  });
-  return form;
+  return browserBodiesForm("import", { file_name: fileName, document_version: String(version) }, bodies);
 }

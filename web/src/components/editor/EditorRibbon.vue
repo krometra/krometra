@@ -52,7 +52,7 @@ const tools = computed<Tool[]>(() => {
     { label: "Отверстие", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", disabled: true, hint: "В разработке" },
     { label: "Оболочка", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4", disabled: true, hint: "В разработке" },
     { divider: true },
-    { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", disabled: true, hint: "В разработке" },
+    { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", action: "pattern", disabled: bodies < 1, testId: "ribbon-pattern", hint: bodies < 1 ? "Сначала постройте тело" : "Линейный или круговой массив тела" },
     { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", disabled: true, hint: "В разработке" },
   ];
 });

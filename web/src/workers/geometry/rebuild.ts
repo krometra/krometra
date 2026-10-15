@@ -5,6 +5,7 @@ import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
+import { patternNamed, type PatternRequest } from "./pattern";
 import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { seatSketchOnFace } from "./sketchSeat";
@@ -34,6 +35,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   chamfer: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   thread: (request: ThreadBuildRequest, lookup) => threadNamed(request, (bodyId) => lookup(bodyId)),
   transform: (request: TransformRequest, lookup) => transformNamed(request, lookup),
+  pattern: (request: PatternRequest, lookup) => patternNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

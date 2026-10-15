@@ -16,6 +16,7 @@ _LABELS = {
     "thread": "Резьба",
     "import": "Импорт",
     "transform": "Перемещение",
+    "pattern": "Массив",
 }
 
 

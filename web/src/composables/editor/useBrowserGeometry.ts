@@ -1,3 +1,4 @@
+import type { PatternMode, PatternSpec } from "@/lib/bodyPattern";
 import type { BodyTransform } from "@/lib/bodyTransform";
 import type { BrowserBooleanOperation, BrowserExtrudeOperation } from "@/lib/browserBoolean";
 import type { BrowserExtentType, BrowserExtrudeDirection } from "@/lib/browserExtrudeExtent";
@@ -227,6 +228,11 @@ export async function buildBrowserBoolean(operation: BrowserBooleanOperation, ta
 export async function buildBrowserTransform(bodyId: string, transform: BodyTransform, featureKey: string): Promise<BrowserBuildResult> {
   const result = await request({ kind: "transform", bodyId, ...cloneBrowserWorkerInput(transform), featureKey });
   return buildResult(result, "Браузерное ядро вернуло неполный результат перемещения.");
+}
+
+export async function buildBrowserPattern(bodyId: string, pattern: PatternSpec, mode: PatternMode, instance: number | null, featureKey: string): Promise<BrowserBuildResult> {
+  const result = await request({ kind: "pattern", bodyId, pattern: cloneBrowserWorkerInput(pattern), mode, instance, featureKey });
+  return buildResult(result, "Браузерное ядро вернуло неполный результат массива.");
 }
 
 export async function buildBrowserEdgeFeature(feature: BrowserEdgeFeature, featureKey: string): Promise<BrowserBuildResult> {

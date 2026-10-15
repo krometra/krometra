@@ -48,7 +48,7 @@ interface ThreadCore<Published> {
 const CLIP_RADIUS_FACTOR = 4;
 const CLIP_RADIUS_MARGIN = 10;
 
-function cylinderAxis(face: Face) {
+export function cylinderAxis(face: Face) {
   const adaptor = new (getOC().BRepAdaptor_Surface)(face.wrapped, false);
   try {
     const cylinder = adaptor.Cylinder();

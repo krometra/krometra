@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MeshData } from "@/types/api";
-import { browserImportForm } from "./browserUpload";
+import { browserBodiesForm, browserImportForm } from "./browserUpload";
 
 const mesh = (faceId: string): MeshData => ({
   vertices: [0, 0, 0, 1, 0, 0, 0, 1, 0],
@@ -29,5 +29,14 @@ describe("browserImportForm", () => {
     ]);
     expect(form.getAll("meshes").map((value) => JSON.parse(String(value)).face_triangle_map[0])).toEqual(["f-a", "f-b"]);
     expect(form.getAll("namings").map((value) => JSON.parse(String(value)).faces[0].name)).toEqual(["f-a", "f-b"]);
+  });
+});
+
+describe("browserBodiesForm", () => {
+  it("кладёт поля и тела массива под своим именем файлов", () => {
+    const form = browserBodiesForm("browser-pattern", { body_id: "body-aaaaaaaaaaaa", pattern: "{}" }, [body("f-a", 2)]);
+    expect(form.get("body_id")).toBe("body-aaaaaaaaaaaa");
+    expect(form.get("pattern")).toBe("{}");
+    expect((form.getAll("steps") as File[]).map((step) => step.name)).toEqual(["browser-pattern-1.step"]);
   });
 });

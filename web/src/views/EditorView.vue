@@ -15,6 +15,7 @@ import { useSketchLifecycle } from "@/composables/editor/useSketchLifecycle";
 import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
+import { usePattern } from "@/composables/editor/usePattern";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -42,6 +43,7 @@ import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
 import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
+import PatternPanel from "@/components/editor/PatternPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -94,6 +96,7 @@ const sketchFlow = useSketchLifecycle({
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -126,6 +129,7 @@ onMounted(async () => {
 function leaveActiveTools() {
   if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
   if (thread.threadMode.value) thread.exit();
+  if (pattern.patternMode.value) pattern.exit();
   if (booleanMode.booleanMode.value) booleanMode.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
@@ -145,6 +149,7 @@ function handleRibbonAction(action: RibbonAction) {
   if (action === "boolean") booleanMode.enter();
   else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
   else if (action === "thread") thread.enter();
+  else if (action === "pattern") pattern.enter();
   else extrude.startExtrudeFromRibbon(action);
 }
 
@@ -193,7 +198,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, pattern,
       exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
     });
 
@@ -219,6 +224,10 @@ function handleEscape() {
   }
   if (thread.threadMode.value) {
     thread.exit();
+    return;
+  }
+  if (pattern.patternMode.value) {
+    pattern.exit();
     return;
   }
   if (booleanMode.booleanMode.value) {
@@ -255,6 +264,7 @@ const busyLabel = computed(() => {
   if (extrude.revolveLoading.value) return "Вращение…";
   if (filletChamfer.loading.value) return "Построение…";
   if (thread.loading.value) return "Нарезка резьбы…";
+  if (pattern.loading.value) return "Построение массива…";
   if (booleanMode.loading.value) return "Булева операция…";
   return null;
 });
@@ -271,6 +281,7 @@ const onboarding = useOnboarding({
       extrude.lastSavedSketchId.value !== null ||
       filletChamfer.filletChamferMode.value ||
       thread.threadMode.value ||
+      pattern.patternMode.value ||
       booleanMode.booleanMode.value,
   ),
 });
@@ -342,7 +353,7 @@ const selectionLabel = computed(() => {
           @selection-cleared="onSelectionCleared"
           @body-selected="booleanMode.handleBodySelected"
           @body-deselected="booleanMode.handleBodyDeselected"
-          @edge-selection-changed="filletChamfer.onEdgeSelectionChanged"
+          @edge-selection-changed="filletChamfer.onEdgeSelectionChanged($event); pattern.onEdgeSelectionChanged($event)"
         />
 
         <div v-if="sketchFlow.facePickMode.value" :class="$style.facePickBanner">
@@ -424,6 +435,7 @@ const selectionLabel = computed(() => {
           v-else-if="thread.threadMode.value"
           :thread="thread"
         />
+        <PatternPanel v-else-if="pattern.patternMode.value" :pattern="pattern" />
         <BooleanPanel
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"
