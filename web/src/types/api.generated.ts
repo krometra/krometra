@@ -1111,7 +1111,7 @@ export interface components {
          * ConstraintType
          * @enum {string}
          */
-        ConstraintType: "horizontal" | "vertical" | "coincident" | "parallel" | "perpendicular" | "equal" | "distance" | "radius" | "angle";
+        ConstraintType: "horizontal" | "vertical" | "coincident" | "parallel" | "perpendicular" | "equal" | "distance" | "radius" | "angle" | "length" | "diameter" | "line_distance" | "point_line_distance" | "horizontal_distance" | "vertical_distance";
         /** DocumentResponse */
         DocumentResponse: {
             /** Id */

@@ -13,10 +13,12 @@
 
 import type { SketchEntity, SketchPoint } from "@/types/api";
 import { intersectLines, lineRefOf, projectOnLine, type LineRef } from "./geometry";
+import { SKETCH_ORIGIN } from "./sketchOrigin";
 
 export type SnapKind =
   | "endpoint"
   | "center"
+  | "origin"
   | "intersection"
   | "midpoint"
   | "quadrant"
@@ -39,6 +41,7 @@ const PRIORITY: Record<SnapKind, number> = {
   endpoint: 0,
   center: 0,
   quadrant: 1,
+  origin: 1,
   intersection: 2,
   midpoint: 3,
   perpendicular: 4,
@@ -49,6 +52,7 @@ const PRIORITY: Record<SnapKind, number> = {
 export const SNAP_LABELS: Record<SnapKind, string> = {
   endpoint: "Конец",
   center: "Центр",
+  origin: "Начало координат",
   intersection: "Пересечение",
   midpoint: "Середина",
   quadrant: "Квадрант",
@@ -153,7 +157,7 @@ export function intersectionCandidates(entities: SketchEntity[]): SnapCandidate[
 
 /** Все кандидаты эскиза: точки примитивов + пересечения прямых. */
 export function collectCandidates(entities: SketchEntity[]): SnapCandidate[] {
-  return [...entities.flatMap(entityCandidates), ...intersectionCandidates(entities)];
+  return [...entities.flatMap(entityCandidates), ...intersectionCandidates(entities), at({ ...SKETCH_ORIGIN }, "origin")];
 }
 
 const distance = (a: SketchPoint, b: SketchPoint) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -242,7 +246,8 @@ export function snapAt(
   gridSpacing?: number,
   anchor?: SketchPoint | null,
 ): SnapCandidate | null {
-  const exact = pickCandidate(collectCandidates(entities), cursor, threshold);
+  const candidates = collectCandidates(entities).filter((c) => !anchor || distance(c.point, anchor) > 1e-9);
+  const exact = pickCandidate(candidates, cursor, threshold);
   if (exact) return exact;
 
   if (anchor) {

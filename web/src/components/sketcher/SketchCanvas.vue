@@ -26,6 +26,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "canvas-click", screenX: number, screenY: number): void;
   (e: "canvas-move", screenX: number, screenY: number): void;
+  (e: "canvas-dblclick", screenX: number, screenY: number): void;
 }>();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -83,6 +84,11 @@ function onMouseMove(e: MouseEvent) {
   if (pos) emit("canvas-move", pos.x, pos.y);
 }
 
+function onDblClick(e: MouseEvent) {
+  const pos = viewport.canvasPos(e);
+  if (pos) emit("canvas-dblclick", pos.x, pos.y);
+}
+
 function onWheel(e: WheelEvent) {
   e.preventDefault();
   viewport.zoomAt(e);
@@ -125,6 +131,7 @@ defineExpose({
       @mousedown="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup="viewport.endPan()"
+      @dblclick="onDblClick"
       @wheel="onWheel"
       @contextmenu="onContextMenu"
     />

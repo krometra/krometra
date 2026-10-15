@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// Плавающее поле ввода одного значения (размерное ограничение, отступ
-// вспомогательной прямой) с подтверждением и отменой.
+// Плавающее поле ввода отступа вспомогательной прямой с подтверждением и отменой.
 import styles from "./dimension-overlay.module.css";
 import CsButton from "@/components/ui/CsButton.vue";
 import CsInput from "@/components/ui/CsInput.vue";

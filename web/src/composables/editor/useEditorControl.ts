@@ -17,6 +17,7 @@ import { patternOps } from "./control/controlPatternOps";
 import { readOps } from "./control/controlReadOps";
 import { shellOps } from "./control/controlShellOps";
 import { sketchOps } from "./control/controlSketchOps";
+import { sketchConstraintOps } from "./control/controlSketchConstraintOps";
 import { viewportOps } from "./control/controlViewportOps";
 
 declare global {
@@ -36,6 +37,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...exportOps(context, dispatcher.busyReason),
     ...viewportOps(context),
     ...sketchOps(context),
+    ...sketchConstraintOps(context),
     ...featureOps(context),
     ...shellOps(context),
     ...holeOps(context),

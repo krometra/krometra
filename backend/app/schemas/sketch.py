@@ -79,6 +79,12 @@ class ConstraintType(str, Enum):
     DISTANCE = "distance"
     RADIUS = "radius"
     ANGLE = "angle"
+    LENGTH = "length"
+    DIAMETER = "diameter"
+    LINE_DISTANCE = "line_distance"
+    POINT_LINE_DISTANCE = "point_line_distance"
+    HORIZONTAL_DISTANCE = "horizontal_distance"
+    VERTICAL_DISTANCE = "vertical_distance"
 
 
 class ConstraintRef(BaseModel):

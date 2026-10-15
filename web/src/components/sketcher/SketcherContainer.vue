@@ -11,6 +11,7 @@ import SketcherToolbar from "./SketcherToolbar.vue";
 import ConstraintToolbar from "./ConstraintToolbar.vue";
 import ValueInputOverlay from "./ValueInputOverlay.vue";
 import LiveDimensionsOverlay from "./LiveDimensionsOverlay.vue";
+import DimensionInputOverlay from "./DimensionInputOverlay.vue";
 import { isConstruction, isPointNearEntity } from "@/sketcher/geometry";
 import { useSketchEntities } from "@/composables/sketcher/useSketchEntities";
 import { useSketchSnapping } from "@/composables/sketcher/useSketchSnapping";
@@ -18,6 +19,7 @@ import { useAuxLines } from "@/composables/sketcher/useAuxLines";
 import { useLiveDimensions } from "@/composables/sketcher/useLiveDimensions";
 import { useEdgeDrag } from "@/composables/sketcher/useEdgeDrag";
 import { useSketchConstraints } from "@/composables/sketcher/useSketchConstraints";
+import { useSketchDimensions } from "@/composables/sketcher/useSketchDimensions";
 import { LineTool } from "./tools/LineTool";
 import { RectangleTool } from "./tools/RectangleTool";
 import { CircleTool } from "./tools/CircleTool";
@@ -54,6 +56,7 @@ const circleTool = tools.circle as CircleTool;
 
 const toolRef = computed(() => props.tool);
 const isSelectTool = computed(() => props.tool === "select");
+const isDimensionTool = computed(() => props.tool === "dimension");
 const currentTool = computed(() => tools[props.tool] ?? tools.line);
 
 const preview = ref<SketchEntity | null>(null);
@@ -114,6 +117,10 @@ const edgeDrag = useEdgeDrag({
   toggleSelection: sketch.toggleSelection,
 });
 
+const dimensions = useSketchDimensions({ sketch, zoom, screenToWorld, canvasRect });
+const dimension = dimensions.tool;
+const dimensionInput = dimensions.input;
+
 const constraints = useSketchConstraints({
   entities: sketch.entities,
   selectedEntityIds: sketch.selectedEntityIds,
@@ -121,10 +128,18 @@ const constraints = useSketchConstraints({
   addConstraint: sketch.addConstraint,
   clearSelection: sketch.clearSelection,
   solveAndApply: sketch.solveAndApply,
-  canvasRect,
+  openDimension: dimensions.openFromToolbar,
 });
 
+const highlightedIds = computed(() => [...sketch.selectedEntityIds.value, ...dimension.highlightedIds.value]);
+const canvasSnap = computed(() =>
+  isDimensionTool.value
+    ? dimension.marker.value
+    : snapping.snapPoint.value && { at: snapping.snapPoint.value, label: snapping.snapHint.value?.label ?? null },
+);
+
 const auxHint = computed(() => {
+  if (isDimensionTool.value) return dimension.hint.value;
   if (!aux.isAuxTool.value) return null;
   if (aux.auxPhase.value === "pick-base") return "Укажите базовую линию";
   if (aux.auxPhase.value !== "place") return null;
@@ -171,8 +186,21 @@ function pickOrDrag(world: SketchPoint): boolean {
   return true;
 }
 
+function clickHitsLabel(screenX: number, screenY: number): boolean {
+  if (aux.isAuxTool.value) return false;
+  const drawing = !isSelectTool.value && !isDimensionTool.value && currentTool.value.isActive();
+  return !drawing && dimensions.labelAt(screenX, screenY) !== null;
+}
+
 function onCanvasClick(screenX: number, screenY: number) {
   const world = screenToWorld(screenX, screenY);
+  dimensionInput.cancel();
+  if (clickHitsLabel(screenX, screenY)) return;
+
+  if (isDimensionTool.value) {
+    dimension.onClick(screenX, screenY);
+    return;
+  }
 
   if (aux.isAuxTool.value) {
     aux.handleClick(aux.auxPhase.value === "place" ? snapping.snapWorld(world) : world);
@@ -212,6 +240,12 @@ function onCanvasMove(screenX: number, screenY: number) {
   }
 
   if (isSelectTool.value) {
+    detectHover(screenX, screenY);
+    return;
+  }
+
+  if (isDimensionTool.value) {
+    dimension.onMove(screenX, screenY);
     detectHover(screenX, screenY);
     return;
   }
@@ -284,7 +318,7 @@ function onGlobalMouseUp(e: MouseEvent) {
     return;
   }
 
-  if (aux.isAuxTool.value || isSelectTool.value) return;
+  if (aux.isAuxTool.value || isSelectTool.value || isDimensionTool.value) return;
 
   const target = e.target as HTMLElement | null;
   if (target?.closest?.("[data-sketch-ui]")) return;
@@ -327,9 +361,11 @@ function resetInteraction() {
   liveDimensions.close();
   edgeDrag.cancel();
   aux.reset();
+  dimensions.reset();
 }
 
 watch(() => props.tool, resetInteraction, { immediate: true });
+watch(isDimensionTool, (active) => active && dimensions.startFromSelection());
 
 watch(
   () => props.active,
@@ -344,6 +380,7 @@ const HOTKEY_TOOLS: Record<string, SketchToolName> = {
   r: "rectangle", к: "rectangle",
   c: "circle", с: "circle",
   a: "arc", ф: "arc",
+  d: "dimension", в: "dimension",
 };
 
 function onSketchKeyDown(e: KeyboardEvent) {
@@ -367,6 +404,10 @@ function onSketchKeyDown(e: KeyboardEvent) {
       aux.reset();
       snapping.clearSnap();
       updatePreview();
+      return;
+    }
+    if (dimension.isPicking()) {
+      dimension.reset();
       return;
     }
     sketch.clearSelection();
@@ -432,14 +473,16 @@ defineExpose({
       @clear="sketch.clearSelection()"
     />
 
-    <ValueInputOverlay
-      v-if="constraints.dimensionalInput.value?.visible"
-      v-model="constraints.dimensionalInput.value.value"
-      :x="constraints.dimensionalInput.value.x"
-      :y="constraints.dimensionalInput.value.y"
-      :placeholder="constraints.dimensionalInput.value.type === 'radius' ? 'Радиус' : constraints.dimensionalInput.value.type === 'angle' ? 'Угол (°)' : 'Расстояние'"
-      @confirm="constraints.confirmDimensional"
-      @cancel="constraints.cancelDimensional"
+    <DimensionInputOverlay
+      v-if="dimensionInput.state.value"
+      :x="dimensionInput.state.value.x"
+      :y="dimensionInput.state.value.y"
+      :title="dimensionInput.state.value.title"
+      :text="dimensionInput.state.value.field.text.value"
+      :error="dimensionInput.state.value.field.error.value"
+      @update:text="dimensionInput.type"
+      @confirm="dimensionInput.confirm"
+      @cancel="dimensionInput.cancel"
     />
 
     <ValueInputOverlay
@@ -470,10 +513,11 @@ defineExpose({
       :preview="preview"
       :hovered-entity-id="hoveredEntityId"
       :constraints="sketch.constraints.value"
-      :selected-entity-ids="sketch.selectedEntityIds.value"
-      :snap-point="snapping.snapPoint.value"
-      :snap-label="snapping.snapHint.value?.label ?? null"
+      :selected-entity-ids="highlightedIds"
+      :snap-point="canvasSnap?.at ?? null"
+      :snap-label="canvasSnap?.label ?? null"
       @canvas-click="onCanvasClick"
+      @canvas-dblclick="dimensions.editAt"
       @canvas-move="onCanvasMove"
     />
   </div>

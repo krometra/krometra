@@ -280,3 +280,13 @@ describe("snapAt", () => {
     expect(got?.kind).toBe("on-line");
   });
 });
+
+describe("начало координат", () => {
+  it("ловится привязкой в пустом эскизе", () => {
+    expect(snapAt([], { x: 0.2, y: -0.1 }, 0.5)).toMatchObject({ kind: "origin", point: { x: 0, y: 0 }, label: "Начало координат" });
+  });
+
+  it("конец отрезка в начале координат важнее", () => {
+    expect(snapAt([line("l", 0, 0, 10, 0)], { x: 0.1, y: 0.1 }, 1)?.kind).toBe("endpoint");
+  });
+});

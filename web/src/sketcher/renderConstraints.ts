@@ -1,5 +1,7 @@
 import type { SketchConstraint, SketchEntity, SketchPoint } from "@/types/api";
-import { entityAngle, entityCenter, entityPoint } from "./entityGeometry";
+import { dimensionLayouts } from "./dimensionLayout";
+import { entityCenter, entityPoint } from "./entityGeometry";
+import { drawDimensions } from "./renderDimensions";
 import type { ViewParams } from "./renderEntities";
 
 /**
@@ -59,55 +61,6 @@ function drawCoincident(c: Ctx, constraint: SketchConstraint) {
   c.ctx.fillRect(pt.x - s, pt.y - s, s * 2, s * 2);
 }
 
-function drawDistance(c: Ctx, constraint: SketchConstraint) {
-  const pt1 = anchorPoint(c, constraint, 0);
-  const pt2 = anchorPoint(c, constraint, 1);
-  if (!pt1 || !pt2) return;
-
-  c.ctx.setLineDash([4 / c.zoom, 2 / c.zoom]);
-  c.ctx.beginPath();
-  c.ctx.moveTo(pt1.x, pt1.y);
-  c.ctx.lineTo(pt2.x, pt2.y);
-  c.ctx.stroke();
-  c.ctx.setLineDash([]);
-
-  const val = constraint.value !== null ? constraint.value.toFixed(1) : "?";
-  label(c, `↔${val}`, (pt1.x + pt2.x) / 2, (pt1.y + pt2.y) / 2 + 8 / c.zoom);
-}
-
-function drawRadius(c: Ctx, constraint: SketchConstraint) {
-  const e = anchorEntity(c, constraint, 0);
-  if (!e || (e.type !== "circle" && e.type !== "arc")) return;
-  if (!e.center || !e.radius) return;
-
-  c.ctx.setLineDash([3 / c.zoom, 2 / c.zoom]);
-  c.ctx.beginPath();
-  c.ctx.moveTo(e.center.x, e.center.y);
-  c.ctx.lineTo(e.center.x + e.radius, e.center.y);
-  c.ctx.stroke();
-  c.ctx.setLineDash([]);
-
-  const val =
-    constraint.value !== null ? `R${constraint.value.toFixed(1)}` : `R${e.radius.toFixed(1)}`;
-  label(c, val, e.center.x + e.radius / 2, e.center.y + 8 / c.zoom);
-}
-
-function drawAngle(c: Ctx, constraint: SketchConstraint) {
-  const e1 = anchorEntity(c, constraint, 0);
-  const e2 = anchorEntity(c, constraint, 1);
-  if (!e1 || !e2) return;
-  const c1 = entityCenter(e1);
-  if (!c1) return;
-
-  const r = 20 / c.zoom;
-  c.ctx.beginPath();
-  c.ctx.arc(c1.x, c1.y, r, entityAngle(e1), entityAngle(e2));
-  c.ctx.stroke();
-
-  const val = constraint.value !== null ? `${constraint.value.toFixed(1)}°` : "?";
-  label(c, `∠${val}`, c1.x + r * 1.2, c1.y + 8 / c.zoom);
-}
-
 export function drawConstraints(
   ctx: CanvasRenderingContext2D,
   view: ViewParams,
@@ -151,17 +104,9 @@ export function drawConstraints(
       case "equal":
         midpointGlyph(c, constraint, "=");
         break;
-      case "distance":
-        drawDistance(c, constraint);
-        break;
-      case "radius":
-        drawRadius(c, constraint);
-        break;
-      case "angle":
-        drawAngle(c, constraint);
-        break;
     }
   }
 
   ctx.restore();
+  drawDimensions(ctx, dimensionLayouts(constraints, entityList, 1 / view.zoom), view.zoom);
 }
