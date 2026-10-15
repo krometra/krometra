@@ -1,5 +1,4 @@
 import { nextTick } from "vue";
-import { SAVE_FAILED_MESSAGE } from "@/lib/apiError";
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { extrudeCaps } from "@/lib/control/extrudeCaps";
 import { param } from "@/lib/control/params";
@@ -9,11 +8,9 @@ import { browserExtrudeSpan, type BrowserExtrudeDirection } from "@/lib/browserE
 import type { PlaneBasis, SketchPlane } from "@/types/api";
 import { fail } from "@/lib/control/protocol";
 import type { EditorControlContext } from "./controlContext";
+import { applyControlFeature, FEATURE_RESULT, requireVisibleBody } from "./controlFeatureResult";
 
 const THREAD_FACE_TIMEOUT_MS = 30_000;
-
-const FEATURE_RESULT =
-  "Возвращает { feature: { id, kind, label, name, status, params, sketchId, bodyId }, mode }: feature — новая запись истории, feature.bodyId — тело-результат. После операции редактор в режиме model. Отказ ядра приходит ошибкой operation_failed с его объяснением, модель при этом не меняется. save_failed — геометрия построена, но сервер не сохранил её даже после повторов (нет связи, 502–504): модель не изменилась, повторите операцию через 10–20 с, сначала сверив op state.";
 
 const EXACT_EDGES =
   "В операцию уходят ровно перечисленные рёбра: касательная цепочка интерфейса их не расширяет.";
@@ -21,25 +18,12 @@ const EXACT_EDGES =
 export function featureOps(context: EditorControlContext): ControlOp[] {
   const { extrude, filletChamfer, booleanMode, thread } = context;
 
-  async function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
-    const known = new Set(context.model.timelineEntries.value.map((entry) => entry.id));
-    await run();
-    const error = readError();
-    leave();
-    if (error) throw fail(error === SAVE_FAILED_MESSAGE ? "save_failed" : "operation_failed", error);
-    const created = [...context.model.timelineEntries.value].reverse().find((entry) => !known.has(entry.id));
-    if (!created) throw fail("operation_failed", "Операция не добавила запись в историю модели.");
-    return { feature: context.timelineEntry(created), mode: context.mode() };
-  }
-
-  function requireVisibleBody(bodyId: string) {
-    context.bodyMesh(bodyId);
-    const body = context.model.bodies.value.find((candidate) => candidate.id === bodyId);
-    if (body?.visible === false) throw fail("operation_failed", `Тело «${bodyId}» скрыто: операция доступна только для видимого тела.`);
+  function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
+    return applyControlFeature(context, run, readError, leave);
   }
 
   function selectEdges(kind: "fillet" | "chamfer", bodyId: string, edgeIds: string[]) {
-    requireVisibleBody(bodyId);
+    requireVisibleBody(context, bodyId);
     context.leaveTools();
     filletChamfer.enter(kind);
     const viewport = context.viewport();

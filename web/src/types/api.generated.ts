@@ -546,6 +546,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/geometry/browser-shell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Shell Endpoint */
+        post: operations["browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -772,6 +789,30 @@ export interface components {
             /** Angle */
             angle: number;
             /** Direction */
+            direction: string;
+            /** Document Version */
+            document_version: number;
+            /** Naming */
+            naming?: string | null;
+            /** Feature Key */
+            feature_key?: string | null;
+        };
+        /** Body_browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post */
+        Body_browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post: {
+            /** Step */
+            step: string;
+            /** Mesh */
+            mesh: string;
+            /** Body Id */
+            body_id: string;
+            /** Face Ids */
+            face_ids: string;
+            /** Thickness */
+            thickness: number;
+            /**
+             * Direction
+             * @default inward
+             */
             direction: string;
             /** Document Version */
             document_version: number;
@@ -2401,6 +2442,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtrudeResponse"];
                 };
             };
             /** @description Validation Error */

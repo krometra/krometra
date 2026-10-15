@@ -15,6 +15,7 @@ import { useSketchLifecycle } from "@/composables/editor/useSketchLifecycle";
 import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
+import { useShell } from "@/composables/editor/useShell";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -42,6 +43,7 @@ import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
 import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
+import ShellPanel from "@/components/editor/ShellPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -94,6 +96,7 @@ const sketchFlow = useSketchLifecycle({
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -126,6 +129,7 @@ onMounted(async () => {
 function leaveActiveTools() {
   if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
   if (thread.threadMode.value) thread.exit();
+  if (shell.shellMode.value) shell.exit();
   if (booleanMode.booleanMode.value) booleanMode.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
@@ -145,6 +149,7 @@ function handleRibbonAction(action: RibbonAction) {
   if (action === "boolean") booleanMode.enter();
   else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
   else if (action === "thread") thread.enter();
+  else if (action === "shell") shell.enter();
   else extrude.startExtrudeFromRibbon(action);
 }
 
@@ -159,6 +164,7 @@ function onFaceSelected(payload: { bodyId: string; faceId: string | number; brep
     thread.onFaceSelected(payload);
     return;
   }
+  if (shell.onFaceSelected(payload)) return;
   if (extrude.pickExtentFace(payload)) return;
   selection.selectFace(payload.bodyId, payload.faceId, payload.brepTopo);
 }
@@ -195,6 +201,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
       exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
+      shell,
     });
 
 // --- Горячие клавиши ---
@@ -221,6 +228,7 @@ function handleEscape() {
     thread.exit();
     return;
   }
+  if (shell.shellMode.value) return shell.exit();
   if (booleanMode.booleanMode.value) {
     booleanMode.exit();
     return;
@@ -255,6 +263,7 @@ const busyLabel = computed(() => {
   if (extrude.revolveLoading.value) return "Вращение…";
   if (filletChamfer.loading.value) return "Построение…";
   if (thread.loading.value) return "Нарезка резьбы…";
+  if (shell.loading.value) return "Построение оболочки…";
   if (booleanMode.loading.value) return "Булева операция…";
   return null;
 });
@@ -271,6 +280,7 @@ const onboarding = useOnboarding({
       extrude.lastSavedSketchId.value !== null ||
       filletChamfer.filletChamferMode.value ||
       thread.threadMode.value ||
+      shell.shellMode.value ||
       booleanMode.booleanMode.value,
   ),
 });
@@ -424,6 +434,7 @@ const selectionLabel = computed(() => {
           v-else-if="thread.threadMode.value"
           :thread="thread"
         />
+        <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
         <BooleanPanel
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"

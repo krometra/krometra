@@ -29,7 +29,7 @@ type ControlErrorCode =
 
 - **`ready`** разрешается один раз, когда одновременно: вьюпорт смонтирован, документ этого проекта загружен, первая загрузка тел в сцену и ядро завершена (`useBodyMeshes.hydrated`), фаза браузерного ядра — `ready`. В тот же момент на `window` летит событие `cad-control-ready`. Промис не отклоняется: если ядро не запустилось, причина видна в `state` (`kernel: "failed"`, `kernelError`).
 - До готовности и при перезапуске ядра операции отвечают `not_ready` с причиной в `message`. `capabilities` и `state` доступны всегда.
-- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `boolean` → `model` (`mode.ts`).
+- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `boolean` → `model` (`mode.ts`).
 - **Мутирующие операции выполняются по одной.** Вторая во время первой получает `busy`; так же отвечает запрос, пришедший, пока редактор сам занят операцией из интерфейса, сохранением или перезагрузкой тел. Операции чтения проходят всегда и видят `state.busy = true`.
 - Операции модели (`extrude`, `fillet`, …) закрывают открытую панель инструмента, как это делает лента, но в открытом эскизе отвечают `wrong_mode`: эскиз нужно завершить (`sketch.finish`) или отменить (`sketch.cancel`). После операции — успешной или отклонённой ядром — редактор в режиме `model`.
 
@@ -43,7 +43,9 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `fillet`, `chamfer`, `boolean`, `thread`, `history.undo`, `history.redo`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `history.undo`, `history.redo`.
+
+`shell { bodyId, faceIds, thickness, direction? }` открывает перечисленные грани и оставляет стенку `thickness` мм: `inward` (по умолчанию) — внутрь, габарит сохраняется, `outward` — наружу. Слишком толстая стенка отклоняется `operation_failed` с толщиной, которая помещается.
 
 Параметры и вид результата — в `capabilities`.
 
@@ -68,7 +70,9 @@ composables/editor/
     ├── controlViewportOps.ts      камера, проекция, снимок, касательная цепочка выбора рёбер
     ├── controlSketchOps.ts        эскиз: чтение и создание
     ├── controlExportOps.ts        export: файл STEP/STL через useExport
-    └── controlFeatureOps.ts       операции модели и undo/redo
+    ├── controlFeatureOps.ts       операции модели и undo/redo
+    ├── controlFeatureResult.ts    общий ответ операций модели: новая запись истории
+    └── controlShellOps.ts         shell: оболочка с открытыми гранями
 
 composables/viewport/
 ├── sceneProbe.ts                  проекция точек и обход сцены в JSON

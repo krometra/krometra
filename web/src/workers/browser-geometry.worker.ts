@@ -17,10 +17,11 @@ import {
 import { initOcct, wasmHeapBytes } from "./geometry/occt";
 import { runThreadRequest } from "./geometry/thread";
 import { sectionBodies, type SectionRequest } from "./geometry/section";
+import { shellNamed, type ShellRequest } from "./geometry/shell";
 import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
-type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest;
+type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ShellRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -33,6 +34,7 @@ function buildShape(data: Request) {
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));
+  if (data.kind === "shell") return publishNamed(() => shellNamed(data, namedBodyShape));
   return null;
 }
 

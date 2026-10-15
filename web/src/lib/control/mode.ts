@@ -7,6 +7,7 @@ export type EditorMode =
   | "fillet"
   | "chamfer"
   | "thread"
+  | "shell"
   | "boolean";
 
 export interface EditorModeFlags {
@@ -15,6 +16,7 @@ export interface EditorModeFlags {
   sweepPanel: "extrude" | "revolve" | null;
   edgeFeature: "fillet" | "chamfer" | null;
   thread: boolean;
+  shell: boolean;
   boolean: boolean;
 }
 
@@ -24,6 +26,7 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.sweepPanel) return flags.sweepPanel;
   if (flags.edgeFeature) return flags.edgeFeature;
   if (flags.thread) return "thread";
+  if (flags.shell) return "shell";
   if (flags.boolean) return "boolean";
   return "model";
 }

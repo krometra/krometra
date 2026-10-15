@@ -22,6 +22,7 @@ import type { ModelHistoryApi } from "../useModelHistory";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { ThreadApi } from "../useThread";
+import type { ShellApi } from "../useShell";
 import type { ViewportRef } from "../types";
 
 export interface EditorControlDeps {
@@ -41,6 +42,7 @@ export interface EditorControlDeps {
   bodyPresentation: BodyPresentationApi;
   bodyTransform: BodyTransformApi;
   leaveActiveTools: () => void;
+  shell: ShellApi;
 }
 
 const KERNEL_WAITING: Record<string, string> = {
@@ -64,6 +66,7 @@ export function createControlContext(deps: EditorControlDeps) {
       sweepPanel: deps.extrude.lastSavedSketchId.value ? deps.extrude.panelMode.value : null,
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
+      shell: deps.shell.shellMode.value,
       boolean: deps.booleanMode.booleanMode.value,
     });
   }
@@ -82,6 +85,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.extrude.revolveLoading.value) return "Идёт вращение.";
     if (deps.filletChamfer.loading.value) return "Идёт построение скругления или фаски.";
     if (deps.thread.loading.value) return "Идёт нарезка резьбы.";
+    if (deps.shell.loading.value) return "Идёт построение оболочки.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";

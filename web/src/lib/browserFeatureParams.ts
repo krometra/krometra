@@ -30,7 +30,13 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   distance2: 1,
   pitch: 1,
   length: 10,
+  thickness: 1,
 };
+
+const SHELL_DIRECTION_OPTIONS = [
+  { label: "Внутрь", value: "inward" },
+  { label: "Наружу", value: "outward" },
+];
 
 export function editableValues(entry: TimelineEntry): Record<string, FeatureParamValue> {
   const params = entry.params ?? {};
@@ -73,6 +79,12 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { key: "pitch", label: "Шаг", kind: "number", suffix: "мм", min: 0.01 },
       { key: "length", label: "Длина", kind: "number", suffix: "мм", min: 0.01 },
       { key: "offset", label: "Отступ", kind: "number", suffix: "мм", min: 0 },
+    ];
+  }
+  if (entry.kind === "shell") {
+    return [
+      { key: "thickness", label: "Толщина стенки", kind: "number", suffix: "мм", min: 0.01 },
+      { key: "direction", label: "Направление", kind: "select", options: SHELL_DIRECTION_OPTIONS },
     ];
   }
   return [];
