@@ -124,6 +124,8 @@ describe("зеркало тела на реальном OCCT/WASM", () => {
       kind: "rebuild",
       steps: [{
         entryId: "tl-mirror",
+        label: "tl-mirror",
+        fallbackBodyId: null,
         kind: "mirror",
         outputBodyId: "box-mirror",
         inputBodyIds: ["box"],

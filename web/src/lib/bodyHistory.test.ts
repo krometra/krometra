@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TimelineEntry } from "@/types/api";
-import { bodyChain, bodyConsumers, deleteBody, deleteEntry, deleteSketch, HistoryEditError, type ModelDocument } from "./bodyHistory";
+import { bodyChain, bodyConsumers, deleteBody, deleteSketch, HistoryEditError, type ModelDocument } from "./bodyHistory";
 
 const describeEntry = (entry: TimelineEntry) => entry.label;
 
@@ -68,19 +68,6 @@ describe("deleteBody", () => {
     const document = documentWithJoinChain();
     document.timeline.push(entry("t-d", "extrude", { sketch_id: "s3", body_id: "d", params: { extent_type: "up_to_body", up_to_body_id: "b" } }));
     expect(() => deleteBody(document, "b", describeEntry)).toThrow(/t-d/);
-  });
-});
-
-describe("deleteEntry", () => {
-  it("удаляет последнюю операцию и показывает поглощённое ею тело", () => {
-    const result = deleteEntry(documentWithJoinChain(), "t-b", describeEntry);
-    expect(result.components.b).toBeUndefined();
-    expect(result.components.a).toEqual(body(true));
-    expect(result.timeline.map((item) => item.id)).not.toContain("t-b");
-  });
-
-  it("не удаляет операцию, на результат которой опираются", () => {
-    expect(() => deleteEntry(documentWithJoinChain(), "t-a", describeEntry)).toThrow(/t-b/);
   });
 });
 

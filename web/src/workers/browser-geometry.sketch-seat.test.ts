@@ -5,7 +5,7 @@ import { generatedFaceName } from "@/lib/browserNaming";
 import { browserRebuildPlan, type RebuildDocument } from "@/lib/browserRebuildPlan";
 import type { TimelineEntry } from "@/types/api";
 import { bodyShape } from "./geometry/shapes";
-import { buildBody, circle, extrudeRequest, faceNames, loadWorker, rectangle, send, sendOk, type WorkerReply } from "./testing/workerHarness";
+import { buildBody, circle, extrudeRequest, faceNames, loadWorker, rectangle, sendOk, type WorkerReply } from "./testing/workerHarness";
 
 vi.mock("replicad-opencascadejs/wasm?url", () => ({
   default: decodeURIComponent(new URL("../../node_modules/replicad-opencascadejs/dist/replicad_single.wasm", import.meta.url).pathname),
@@ -35,6 +35,10 @@ function rebuilt(reply: WorkerReply) {
     bodies: reply.bodies as (WorkerReply & { bodyId: string })[],
     sketchPlanes: reply.sketchPlanes as SeatedSketch[],
   };
+}
+
+function failuresOf(reply: WorkerReply) {
+  return reply.failures as { entryId: string; message: string }[];
 }
 
 async function retainAll(reply: WorkerReply) {
@@ -110,7 +114,7 @@ describe("ассоциативный эскиз на грани (реальны�
     expect(sketchPlanes).toEqual([{ sketchId: "s2", plane: "XY", planeOffset: 10, planeBasis: topBasis(10) }]);
   });
 
-  it("поворачивает эскиз вместе с торцом вращения и останавливается, когда торец исчез", async () => {
+  it("поворачивает эскиз вместе с торцом вращения и помечает ошибкой, когда торец исчез", async () => {
     const profile = [rectangle("q", 5, 0, 7, 2)];
     const half = await buildBody({
       kind: "revolve", entities: profile, plane: "XZ", planeOffset: 0, planeBasis: null,
@@ -137,7 +141,8 @@ describe("ассоциативный эскиз на грани (реальны�
 
     const turned = await sendOk({ kind: "rebuild", steps: browserRebuildPlan(document, "r1", { angle: 90 }) });
     await Promise.all(rebuilt(turned).bodies.map((body) => sendOk({ kind: "discard", shapeHandle: body.shapeHandle })));
-    const lost = await send({ kind: "rebuild", steps: browserRebuildPlan(document, "r1", { angle: 360 }) });
+    const lost = await sendOk({ kind: "rebuild", steps: browserRebuildPlan(document, "r1", { angle: 360 }) });
+    await Promise.all(rebuilt(lost).bodies.map((body) => sendOk({ kind: "discard", shapeHandle: body.shapeHandle })));
 
     const [seat] = rebuilt(turned).sketchPlanes;
     expect(seat.plane).toBe("YZ");
@@ -146,11 +151,12 @@ describe("ассоциативный эскиз на грани (реальны�
     const pin = rebuilt(turned).bodies.find((body) => body.bodyId === "sv-pin");
     expect(pin?.mesh?.bbox.min).toEqual([-3, 5.5, 0.5].map((value) => expect.closeTo(value, 2)));
     expect(pin?.mesh?.bbox.max).toEqual([0, 6.5, 1.5].map((value) => expect.closeTo(value, 2)));
-    expect(lost.ok).toBe(false);
-    expect(lost.error).toContain("«Эскиз 2»: грань, на которой построен эскиз, исчезла");
+    expect(rebuilt(lost).bodies.map((body) => body.bodyId)).toEqual(["sv-ring"]);
+    expect(failuresOf(lost).map((failure) => failure.entryId)).toEqual(["sk2", "e2"]);
+    expect(failuresOf(lost)[0].message).toContain("«Эскиз 2»: грань, на которой построен эскиз, исчезла");
   });
 
-  it("останавливает пересборку, когда грань эскиза не плоская", async () => {
+  it("помечает ошибкой эскиз, грань которого перестала быть плоской", async () => {
     const disc = [circle("c1", 0, 0, 5)];
     const cylinder = await buildBody(extrudeRequest(disc, "k-sc-rod"), "sc-rod");
     const side = faceNames(cylinder).find((name) => !browserFacePlane(cylinder.mesh!, name));
@@ -165,10 +171,11 @@ describe("ассоциативный эскиз на грани (реальны�
       ],
     };
 
-    const reply = await send({ kind: "rebuild", steps: browserRebuildPlan(document, "e1", { distance: 20 }) });
+    const reply = await sendOk({ kind: "rebuild", steps: browserRebuildPlan(document, "e1", { distance: 20 }) });
+    await Promise.all(rebuilt(reply).bodies.map((body) => sendOk({ kind: "discard", shapeHandle: body.shapeHandle })));
 
     expect(side).toBeTruthy();
-    expect(reply.ok).toBe(false);
-    expect(reply.error).toContain("перестала быть плоской");
+    expect(rebuilt(reply).sketchPlanes).toEqual([]);
+    expect(failuresOf(reply)).toEqual([{ entryId: "sk2", message: expect.stringContaining("перестала быть плоской") }]);
   });
 });

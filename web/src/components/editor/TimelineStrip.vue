@@ -1,23 +1,37 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
 import CsButton from "@/components/ui/CsButton.vue";
+import { useTimelineMarkerDrag } from "@/composables/editor/useTimelineMarkerDrag";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
 import { holeDetail } from "@/lib/holeFeature";
 import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
+import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
+import { entryStateHint, timelineSlots } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
 
-defineProps<{
+const props = defineProps<{
   entries: TimelineEntry[];
   selectedId: string | null;
+  marker: number;
 }>();
 
 const emit = defineEmits<{
   select: [id: string];
   "context-menu": [e: MouseEvent, id: string];
   "add-sketch": [];
+  rollback: [index: number];
 }>();
 
 const names = useDisplayNames();
+const track = ref<HTMLElement | null>(null);
+const drag = useTimelineMarkerDrag({
+  marker: computed(() => props.marker),
+  count: computed(() => props.entries.length),
+  nodes: () => [...(track.value?.querySelectorAll<HTMLElement>("[data-testid='timeline-node']") ?? [])],
+  onDrop: (index) => emit("rollback", index),
+});
+const slots = computed(() => timelineSlots(props.entries, drag.shown.value));
 
 function isEntryDirty(entry: TimelineEntry): boolean {
   return entry.status === "dirty";
@@ -98,23 +112,51 @@ function timelineDetail(entry: TimelineEntry): string {
 
 <template>
   <div :class="$style.timeline">
-    <div :class="$style.track">
-      <div
-        v-for="entry in entries"
-        :key="entry.id"
-        data-testid="timeline-node"
-        :class="$style.node"
-        @click="emit('select', entry.id)"
-        @contextmenu.prevent="emit('context-menu', $event, entry.id)"
-      >
-        <div :class="[$style.nodeIcon, selectedId === entry.id && $style.nodeIconActive, isEntryDirty(entry) && $style.nodeIconDirty]">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-            <path :d="timelineIcon(entry.kind)" />
-          </svg>
+    <div ref="track" :class="$style.track">
+      <template v-for="slot in slots" :key="slot.kind === 'entry' ? slot.entry.id : 'marker'">
+        <div
+          v-if="slot.kind === 'marker'"
+          data-testid="timeline-marker"
+          role="slider"
+          tabindex="0"
+          aria-label="Маркер отката истории"
+          :aria-valuemin="0"
+          :aria-valuemax="entries.length"
+          :aria-valuenow="drag.shown.value"
+          title="Маркер отката: перетащите, чтобы показать модель на этом шаге (стрелки влево/вправо)"
+          :class="[$style.marker, drag.dragging.value && $style.markerDragging]"
+          @pointerdown.prevent="drag.start"
+          @pointermove="drag.move"
+          @pointerup="drag.finish"
+          @pointercancel="drag.finish"
+          @keydown.left.prevent="drag.step(-1)"
+          @keydown.right.prevent="drag.step(1)"
+        />
+        <div
+          v-else
+          data-testid="timeline-node"
+          :data-state="isFailed(slot.entry) ? 'error' : isSuppressed(slot.entry) ? 'suppressed' : isRolledBack(slot.entry) ? 'rolled-back' : 'active'"
+          :title="entryStateHint(slot.entry) ?? undefined"
+          :class="[$style.node, (isSuppressed(slot.entry) || isRolledBack(slot.entry)) && $style.nodeInactive]"
+          @click="emit('select', slot.entry.id)"
+          @contextmenu.prevent="emit('context-menu', $event, slot.entry.id)"
+        >
+          <div
+            :class="[
+              $style.nodeIcon,
+              selectedId === slot.entry.id && $style.nodeIconActive,
+              isEntryDirty(slot.entry) && $style.nodeIconDirty,
+              isFailed(slot.entry) && $style.nodeIconError,
+            ]"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path :d="timelineIcon(slot.entry.kind)" />
+            </svg>
+          </div>
+          <div :class="[$style.nodeLabel, isSuppressed(slot.entry) && $style.nodeLabelSuppressed]">{{ names.entryLabel(slot.entry) }}</div>
+          <div :class="$style.nodeDetail">{{ timelineDetail(slot.entry) }}</div>
         </div>
-        <div :class="$style.nodeLabel">{{ names.entryLabel(entry) }}</div>
-        <div :class="$style.nodeDetail">{{ timelineDetail(entry) }}</div>
-      </div>
+      </template>
       <CsButton
         variant="ghost"
         size="sm"
@@ -179,6 +221,62 @@ function timelineDetail(entry: TimelineEntry): string {
 .nodeIconDirty {
   border-color: oklch(0.78 0.13 75);
   box-shadow: 0 0 0 4px oklch(0.78 0.13 75 / 0.15);
+}
+
+.nodeInactive {
+  opacity: 0.4;
+}
+
+.nodeIconError {
+  border-color: var(--cs-red-strong);
+  color: var(--cs-red-strong);
+}
+
+.nodeLabelSuppressed {
+  text-decoration: line-through;
+}
+
+.marker {
+  align-self: stretch;
+  width: 12px;
+  margin: 10px -2px;
+  flex-shrink: 0;
+  cursor: ew-resize;
+  position: relative;
+  touch-action: none;
+  border-radius: 4px;
+}
+
+.marker::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--cs-primary);
+}
+
+.marker::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cs-primary);
+}
+
+.marker:focus-visible {
+  outline: 2px solid var(--cs-primary);
+  outline-offset: 2px;
+}
+
+.markerDragging::before,
+.markerDragging::after {
+  background: var(--cs-primary-active);
 }
 
 .nodeLabel {

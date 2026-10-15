@@ -168,7 +168,7 @@ describe("массив тел на реальном OCCT/WASM", () => {
     const request = { kind: "pattern", featureKey: "k-pattern", bodyId: "peg", pattern: linear({ count: 4 }), mode: "join", instance: null };
     const result = await runRebuildRequest({
       id: 4, kind: "rebuild",
-      steps: [{ entryId: "pa", kind: "pattern", outputBodyId: "pegs", inputBodyIds: ["peg"], request }],
+      steps: [{ entryId: "pa", label: "pa", fallbackBodyId: null, kind: "pattern", outputBodyId: "pegs", inputBodyIds: ["peg"], request }],
     });
     expect(result.bodies.map((rebuilt) => rebuilt.bodyId)).toEqual(["pegs"]);
     retainShape(result.bodies[0].shapeHandle, "pegs");

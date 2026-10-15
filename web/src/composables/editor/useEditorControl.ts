@@ -14,6 +14,7 @@ import { featureOps } from "./control/controlFeatureOps";
 import { holeOps } from "./control/controlHoleOps";
 import { historyOps } from "./control/controlHistoryOps";
 import { patternOps } from "./control/controlPatternOps";
+import { timelineOps } from "./control/controlTimelineOps";
 import { readOps } from "./control/controlReadOps";
 import { shellOps } from "./control/controlShellOps";
 import { sketchOps } from "./control/controlSketchOps";
@@ -42,6 +43,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...shellOps(context),
     ...holeOps(context),
     ...historyOps(context),
+    ...timelineOps(context),
     ...bodyOps(context),
     ...patternOps(context),
     ...importOps(context),

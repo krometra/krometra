@@ -2,7 +2,8 @@ import { computed, ref, type Ref } from "vue";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { apiErrorMessage, toast } from "@/composables/useToast";
-import { deleteBody, deleteEntry } from "@/lib/bodyHistory";
+import { deleteBody } from "@/lib/bodyHistory";
+import { isSuppressed } from "@/lib/timelineFlags";
 import type { DocumentEdit } from "@/core/commands/DocumentEditCommand";
 import type { CtxItem, TreeItemKind } from "./types";
 import type { BodyPresentationApi } from "./useBodyPresentation";
@@ -11,6 +12,7 @@ import type { ExportApi } from "./useExport";
 import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
 import type { ModelHistoryApi } from "./useModelHistory";
 import type { SketchLifecycleApi } from "./useSketchLifecycle";
+import type { TimelineEditsApi } from "./useTimelineEdits";
 
 interface Renamer {
   startRename(id: string, name: string): void;
@@ -24,8 +26,9 @@ export function useTreeContextMenu(deps: {
   history: ModelHistoryApi;
   bodyPresentation: BodyPresentationApi;
   exportApi: ExportApi;
+  timelineEdits: TimelineEditsApi;
 }) {
-  const { tree, model, sketchFlow, extrude, history, bodyPresentation, exportApi } = deps;
+  const { tree, model, sketchFlow, extrude, history, bodyPresentation, exportApi, timelineEdits } = deps;
   const selection = useSelection();
   const names = useDisplayNames();
   const menu = ref<{ x: number; y: number; kind: TreeItemKind; id: string } | null>(null);
@@ -66,7 +69,8 @@ export function useTreeContextMenu(deps: {
       { label: "Вращать", action: () => extrude.startExtrudeFromSketch(id, "revolve") },
       { label: "Переименовать", action: () => tree.value?.startRename(id, names.sketchLabel(id)) },
     ];
-    if (!model.sketchHasFeature(id)) items.push({ label: "Удалить", danger: true, action: () => sketchFlow.deleteSketch(id) });
+    const removeSketch = () => (model.sketchHasFeature(id) ? timelineEdits.requestSketchDelete(id) : sketchFlow.deleteSketch(id));
+    items.push({ label: "Удалить", danger: true, action: removeSketch });
     return items;
   }
 
@@ -83,6 +87,16 @@ export function useTreeContextMenu(deps: {
     ];
   }
 
+  function markerItems(id: string): CtxItem[] {
+    const items: CtxItem[] = [{ label: "Откатить сюда", action: () => timelineEdits.rollAfter(id) }];
+    if (!timelineEdits.rolledBack.value) return items;
+    return [
+      ...items,
+      { label: "Вернуть маркер в конец", action: () => timelineEdits.rollTo(model.timelineEntries.value.length) },
+      { label: "Удалить всё после маркера", danger: true, action: () => timelineEdits.deleteAfterMarker() },
+    ];
+  }
+
   function featureItems(id: string): CtxItem[] {
     const entry = model.timelineEntries.value.find((candidate) => candidate.id === id);
     const items: CtxItem[] = [{ label: "Показать свойства", action: () => selection.selectFeature(id) }];
@@ -91,11 +105,11 @@ export function useTreeContextMenu(deps: {
       const sketchId = entry.sketch_id;
       items.push({ label: "Редактировать эскиз", action: () => sketchFlow.editSketch(sketchId) });
     }
-    const label = `Удалить ${names.entryLabel(entry)}`;
-    items.push(
-      { label: "Переименовать", action: () => tree.value?.startRename(id, names.entryLabel(entry)) },
-      { label: "Удалить", danger: true, action: () => remove(label, (document) => deleteEntry(document, id, names.entryLabel)) },
-    );
+    items.push({ label: "Переименовать", action: () => tree.value?.startRename(id, names.entryLabel(entry)) });
+    if (entry.kind !== "sketch") {
+      items.push({ label: isSuppressed(entry) ? "Снять подавление" : "Подавить", action: () => timelineEdits.toggleSuppressed(id) });
+    }
+    items.push(...markerItems(id), { label: "Удалить", danger: true, action: () => timelineEdits.requestDelete(id) });
     return items;
   }
 

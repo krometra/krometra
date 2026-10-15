@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TimelineEntry } from "@/types/api";
-import { bodyConsumers, deleteBody, deleteEntry, type ModelDocument } from "./bodyHistory";
+import { bodyConsumers, deleteBody, type ModelDocument } from "./bodyHistory";
+import { deleteTimelineEntry } from "./timelineEdits";
 import { browserRebuildPlan, inputBodiesOf, isBodyStep, outputBodiesOf } from "./browserRebuildPlan";
 
 const entry = (patch: Partial<TimelineEntry> & Pick<TimelineEntry, "id" | "kind">): TimelineEntry => ({
@@ -66,7 +67,7 @@ describe("массив в истории тел", () => {
   it("удаление массива убирает все его тела", () => {
     const doc = document("separate");
     doc.timeline = doc.timeline.filter((item) => item.id !== "bo");
-    const result = deleteEntry(doc, "pa", (item) => item.label);
+    const result = deleteTimelineEntry(doc, "pa").document;
     expect(result.components).not.toHaveProperty("copy1");
     expect(result.components).not.toHaveProperty("copy2");
     expect(result.components).toHaveProperty("pin");
@@ -75,11 +76,13 @@ describe("массив в истории тел", () => {
   it("второй экземпляр отдельного массива знает свою операцию", () => {
     const doc = document("separate");
     doc.timeline = doc.timeline.filter((item) => item.id !== "bo");
-    const result = deleteBody(doc, "copy2", (item) => item.label);
+    const result = deleteBody(doc, "copy2", (item: TimelineEntry) => item.label);
     expect(result.timeline.map((item) => item.id)).toEqual(["e-pin", "e-hub"]);
   });
 
-  it("на копию массива опирается вырез — массив не удаляется", () => {
-    expect(() => deleteEntry(document("separate"), "pa", (item) => item.label)).toThrow("bo");
+  it("удаление массива, на копию которого опирается вырез, отдаёт вырез на пересборку", () => {
+    const result = deleteTimelineEntry(document("separate"), "pa");
+    expect(result.document.timeline.map((item) => item.id)).toEqual(["e-pin", "e-hub", "bo"]);
+    expect(result.seeds.bodies).toEqual(["copy1", "copy2"]);
   });
 });

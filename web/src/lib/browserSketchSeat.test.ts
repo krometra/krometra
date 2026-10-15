@@ -191,14 +191,19 @@ describe("runRebuild с эскизами на гранях", () => {
     expect(again.hits).toBe(3);
   });
 
-  it("останавливается на эскизе с пропавшей гранью и не строит операции от него", () => {
+  it("помечает ошибкой эскиз с пропавшей гранью и операции от него, не строя их", () => {
     const { backend, built } = fakeBackend((step) => {
       seatFaceIndex(["f-side"], step);
       return step.placement;
     });
 
-    expect(() => runRebuild(browserRebuildPlan(document(), "e1", { distance: 30 }), backend, new RebuildCache(10, backend.dispose)))
-      .toThrow("«Эскиз 2»: грань, на которой построен эскиз, исчезла");
-    expect(built).toEqual(["e1"]);
+    const { failures, shapes } = runRebuild(browserRebuildPlan(document(), "e1", { distance: 30 }), backend, new RebuildCache(10, backend.dispose));
+
+    expect(built).not.toContain("e2");
+    expect([...shapes.keys()]).toEqual(["b1"]);
+    expect(failures.map((failure) => failure.entryId)).toEqual(["sk2", "s3", "e2", "f1"]);
+    expect(failures[0].message).toContain("«Эскиз 2»: грань, на которой построен эскиз, исчезла");
+    expect(failures[2].message).toBe(failures[0].message);
+    expect(failures[3].message).toContain("удалено или не построилось");
   });
 });

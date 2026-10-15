@@ -7,6 +7,7 @@ import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import type SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
 import { resolveEditorMode, type EditorMode } from "@/lib/control/mode";
+import { entryError, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { fail } from "@/lib/control/protocol";
 import type { MeshData, TimelineEntry } from "@/types/api";
 import { useBrowserKernelStatus } from "../browserKernelStatus";
@@ -162,6 +163,9 @@ export function createControlContext(deps: EditorControlDeps) {
       label: entry.label,
       name: names.entryLabel(entry),
       status: entry.status,
+      error: entryError(entry),
+      suppressed: isSuppressed(entry),
+      rolledBack: isRolledBack(entry),
       params: entry.params ?? {},
       sketchId: entry.sketch_id ?? null,
       bodyId: entry.result_body_id ?? entry.body_id ?? null,

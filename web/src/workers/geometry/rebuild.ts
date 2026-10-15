@@ -65,7 +65,7 @@ const cache = new RebuildCache<NamedShape>(CACHE_CAPACITY, backend.dispose);
 export async function runRebuildRequest(request: RebuildRequest) {
   await initOcct();
   const startedAt = performance.now();
-  const { shapes, seats, hits } = runRebuild(request.steps, backend, cache);
+  const { shapes, seats, failures, hits } = runRebuild(request.steps, backend, cache);
   const bodies: (Awaited<ReturnType<typeof publishShape>> & { bodyId: string })[] = [];
   try {
     for (const [bodyId, named] of shapes) {
@@ -76,5 +76,5 @@ export async function runRebuildRequest(request: RebuildRequest) {
     throw error;
   }
   const sketchPlanes = [...seats].map(([sketchId, placement]) => ({ sketchId, ...placement }));
-  return { bodies, sketchPlanes, cacheHits: hits, elapsedMs: Math.round(performance.now() - startedAt) };
+  return { bodies, sketchPlanes, failures, cacheHits: hits, elapsedMs: Math.round(performance.now() - startedAt) };
 }

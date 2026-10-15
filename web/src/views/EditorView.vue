@@ -31,6 +31,7 @@ import { useBodyPresentation } from "@/composables/editor/useBodyPresentation";
 import { useBodyTransform } from "@/composables/editor/useBodyTransform";
 import { useDocumentWatch } from "@/composables/editor/useDocumentWatch";
 import { useTreeContextMenu } from "@/composables/editor/useTreeContextMenu";
+import { useTimelineEdits } from "@/composables/editor/useTimelineEdits";
 import { useProjectThumbnail } from "@/composables/editor/useProjectThumbnail";
 import { useEditorControl } from "@/composables/editor/useEditorControl";
 import { useViewInspect } from "@/composables/editor/useViewInspect";
@@ -44,6 +45,7 @@ import EditorRibbon from "@/components/editor/EditorRibbon.vue";
 import ModelTree from "@/components/editor/ModelTree.vue";
 import TreeContextMenu from "@/components/editor/TreeContextMenu.vue";
 import TimelineStrip from "@/components/editor/TimelineStrip.vue";
+import SketchDeleteDialog from "@/components/editor/SketchDeleteDialog.vue";
 import EditorStatusBar from "@/components/editor/EditorStatusBar.vue";
 import SketchPropsPanel from "@/components/editor/SketchPropsPanel.vue";
 import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
@@ -186,7 +188,8 @@ function onSelectionCleared() {
   selection.clearSelection();
 }
 
-const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation, exportApi });
+const timelineEdits = useTimelineEdits({ model, history });
+const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation, exportApi, timelineEdits });
 
 // --- Undo / Redo ---
 
@@ -255,6 +258,7 @@ if (!props.watch) useEditorHotkeys({
   onFilletChamfer: () => handleRibbonAction("fillet"),
   onChamfer: () => handleRibbonAction("chamfer"),
   onToggleHelp: () => (showShortcuts.value = !showShortcuts.value),
+  onDelete: () => timelineEdits.deleteSelected(),
 });
 
 // --- Вспомогательные вычисления для оверлеев ---
@@ -448,7 +452,9 @@ const selectionLabel = useSelectionLabel();
       :inert="watchInert"
       :entries="model.timelineEntries.value"
       :selected-id="selection.selectedFeatureId.value"
+      :marker="timelineEdits.marker.value"
       @select="selection.selectFeature($event)"
+      @rollback="timelineEdits.rollTo"
       @context-menu="(e, id) => contextMenu.open(e, 'feature', id)"
       @add-sketch="enterSketchMode()"
     />
@@ -460,6 +466,7 @@ const selectionLabel = useSelectionLabel();
 
     <ShortcutsDialog v-model:open="showShortcuts" />
     <MeshExportDialog :export-api="exportApi" />
+    <SketchDeleteDialog :pending="timelineEdits.pendingSketchDelete.value" @confirm="timelineEdits.confirmSketchDelete" @cancel="timelineEdits.cancelSketchDelete" />
     <LegacyProjectNotice v-if="meshes.legacyProject.value" />
 
     <TreeContextMenu

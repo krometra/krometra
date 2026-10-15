@@ -1,6 +1,8 @@
 import { useApi } from "@/composables/useApi";
 import { rebaseDocument, removedBodyIds, type DocumentState, type TimelineItem } from "@/lib/documentRebase";
 import type { Document } from "@/types/api";
+import type { RegenSeeds } from "@/lib/browserRebuildPlan";
+import { placeNewEntriesAtMarker, regenerateStoredTimeline } from "./browserRegen";
 import type { Command } from "./Command";
 
 export class HistoryConflictError extends Error {
@@ -22,6 +24,7 @@ export abstract class RecordedCommand implements Command {
   abstract label: string;
   private before: DocumentState | null = null;
   private after: DocumentState | null = null;
+  private markerSeeds: RegenSeeds | null = null;
 
   constructor(readonly projectId: string) {}
 
@@ -42,7 +45,10 @@ export abstract class RecordedCommand implements Command {
     const { state: before } = await this.loadState();
     await this.perform();
     this.before = before;
-    this.after = (await this.loadState()).state;
+    let performed = await this.loadState();
+    this.markerSeeds = await placeNewEntriesAtMarker(this.projectId, before, performed.document);
+    if (this.markerSeeds) performed = await this.loadState();
+    this.after = performed.state;
   }
 
   async undo(): Promise<void> {
@@ -62,5 +68,6 @@ export abstract class RecordedCommand implements Command {
     const { releaseBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
     await Promise.all(removedBodyIds(from, to).map((bodyId) => releaseBrowserShape(bodyId).catch(() => undefined)));
     await this.afterRestore();
+    if (this.markerSeeds) await regenerateStoredTimeline(this.projectId, this.markerSeeds);
   }
 }

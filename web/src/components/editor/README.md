@@ -28,6 +28,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useParametersSync        синхронизация Параметров ↔ document.metadata
 │   ├── useViewInspect           вид по нормали и меню ПКМ грани/базовой плоскости; внутри useSectionMode — сечение вьюпорта
 │   ├── useEditorHotkeys         подписка на клавиатуру (логика Esc-цепочки — в EditorView)
+│   ├── useTimelineEdits         удаление, подавление, маркер отката (TimelineEditCommand, отмена одним Ctrl+Z)
 │   ├── useEditorControl         канал управления window.cadControl: публикация, ready, сборка операций
 │   └── control/                 операции канала по доменам: чтение, вьюпорт, эскиз, операции модели
 └── components/editor/           разметка + CSS Modules
@@ -36,7 +37,8 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── EditorRibbon             лента инструментов → emit action
     ├── ModelTree                дерево модели + rename (expose startRename/cancelRename)
     ├── TreeContextMenu          контекстное меню (items приходят из EditorView)
-    ├── TimelineStrip            таймлайн операций + undo/redo
+    ├── TimelineStrip            таймлайн операций, состояния записей и перетаскиваемый маркер отката
+    ├── SketchDeleteDialog       предупреждение при удалении эскиза, от которого зависят операции
     ├── EditorStatusBar          нижний статус-бар
     ├── ParametersModal          модалка Параметров (состояние формы — внутри)
     ├── PropsPanelShell          каркас правой панели (head/body/foot-слоты)

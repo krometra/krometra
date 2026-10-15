@@ -3,6 +3,8 @@ import { computed, reactive, ref } from "vue";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
+import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
+import { entryStateHint } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
 import type { TreeItemKind } from "@/composables/editor/types";
 import type { SectionBase } from "@/lib/sectionPlane";
@@ -185,7 +187,14 @@ defineExpose({ startRename, cancelRename, isRenaming });
         <div
           v-for="e in timelineEntries"
           :key="e.id"
-          :class="[$style.treeRow, selectedTimelineId === e.id && $style.treeRowActive, isEntryDirty(e) && $style.treeRowDirty]"
+          :class="[
+            $style.treeRow,
+            selectedTimelineId === e.id && $style.treeRowActive,
+            isEntryDirty(e) && $style.treeRowDirty,
+            (isSuppressed(e) || isRolledBack(e)) && $style.treeRowInactive,
+            isFailed(e) && $style.treeRowError,
+          ]"
+          :title="entryStateHint(e) ?? undefined"
           @click="selection.selectFeature(e.id)"
           @dblclick="startRename(e.id, names.entryLabel(e))"
           @contextmenu.prevent="emit('context-menu', $event, 'feature', e.id)"
@@ -203,6 +212,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
           />
           <template v-else>{{ names.entryLabel(e) }}</template>
           <span v-if="isEntryDirty(e)" :class="$style.dirtyIcon" title="Требуется перестроение — параметры изменились">⚠</span>
+          <span v-else-if="isFailed(e)" :class="$style.dirtyIcon">⚠</span>
         </div>
       </template>
     </div>
@@ -293,6 +303,14 @@ defineExpose({ startRename, cancelRename, isRenaming });
 
 .treeRowDirty {
   color: var(--cs-amber-strong);
+}
+
+.treeRowInactive {
+  opacity: 0.45;
+}
+
+.treeRowError {
+  color: var(--cs-red-strong);
 }
 
 .dirtyIcon {

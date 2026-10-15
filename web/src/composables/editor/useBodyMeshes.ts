@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from "vue";
+import { ref, computed, watch, type Ref } from "vue";
 import { useApi } from "@/composables/useApi";
 import { toast } from "@/composables/useToast";
 import { sceneStats } from "@/lib/sceneStats";
@@ -36,6 +36,15 @@ export function useBodyMeshes(deps: {
     const color = bodies.value.find((body) => body.id === bodyId)?.color;
     return typeof color === "string" ? color : null;
   }
+
+  watch(
+    () => Object.fromEntries(bodies.value.map((body) => [body.id, body.visible !== false])),
+    (next, previous) => {
+      for (const [bodyId, visible] of Object.entries(next)) {
+        if (previous[bodyId] !== undefined && previous[bodyId] !== visible) viewportRef.value?.setMeshVisibility(bodyId, visible);
+      }
+    },
+  );
 
   function trackMesh(bodyId: string, mesh: MeshData) {
     viewportRef.value?.addMesh(mesh, bodyId, true, colorOf(bodyId));

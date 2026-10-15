@@ -12,16 +12,17 @@ describe("browserRebuildForm", () => {
   it("передаёт серверу пересчитанные плоскости эскизов в полях документа", () => {
     const form = browserRebuildForm("e1", { distance: 30 }, 7, [body], [
       { sketchId: "sketch-top", plane: "XY", planeOffset: 30, planeBasis: basis },
-    ]);
+    ], [{ entryId: "f1", message: "Скругление не строится." }]);
 
     expect(JSON.parse(String(form.get("sketch_planes")))).toEqual({
       "sketch-top": { plane: "XY", plane_offset: 30, plane_basis: basis },
     });
     expect(JSON.parse(String(form.get("bodies")))).toEqual(["body-000000000001"]);
     expect(form.get("document_version")).toBe("7");
+    expect(JSON.parse(String(form.get("failed")))).toEqual({ f1: "Скругление не строится." });
   });
 
   it("шлёт пустой набор плоскостей, когда эскизов на пересобранных телах нет", () => {
-    expect(browserRebuildForm("e1", {}, 7, [], []).get("sketch_planes")).toBe("{}");
+    expect(browserRebuildForm("e1", {}, 7, [], [], []).get("sketch_planes")).toBe("{}");
   });
 });
