@@ -1,5 +1,6 @@
 import type { TimelineEntry } from "@/types/api";
 import { editableBrowserParams, isBrowserFeature } from "./browserRebuildPlan";
+import { MIRROR_BASE_PLANES } from "./mirrorPlane";
 
 export type FeatureParamValue = number | string;
 
@@ -31,6 +32,7 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   pitch: 1,
   length: 10,
   thickness: 1,
+  plane: "XY",
 };
 
 const SHELL_DIRECTION_OPTIONS = [
@@ -72,6 +74,13 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
     return [
       { key: "distance1", label: "Расстояние 1", kind: "number", suffix: "мм", min: 0.01 },
       { key: "distance2", label: "Расстояние 2", kind: "number", suffix: "мм", min: 0.01 },
+    ];
+  }
+  if (entry.kind === "mirror") {
+    if (entry.params?.face_id) return [];
+    return [
+      { key: "plane", label: "Плоскость", kind: "select", options: MIRROR_BASE_PLANES.map((plane) => ({ label: plane, value: plane })) },
+      { key: "offset", label: "Смещение", kind: "number", suffix: "мм" },
     ];
   }
   if (entry.kind === "thread") {

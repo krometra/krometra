@@ -3,6 +3,7 @@ import type { RebuildKind, RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import { booleanNamed } from "./boolean";
 import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
+import { mirrorNamed, type MirrorRequest } from "./mirror";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
 import { revolveNamed } from "./revolve";
@@ -36,6 +37,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   thread: (request: ThreadBuildRequest, lookup) => threadNamed(request, (bodyId) => lookup(bodyId)),
   transform: (request: TransformRequest, lookup) => transformNamed(request, lookup),
   shell: (request: ShellRequest, lookup) => shellNamed(request, lookup),
+  mirror: (request: MirrorRequest, lookup) => mirrorNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

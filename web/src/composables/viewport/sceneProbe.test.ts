@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
 import {
-  cameraForView,
+  cameraForView, mirrorPreviewSnapshot,
   projectToClient,
   shownSketchOutlineIds,
   threadPreviewSnapshot,
@@ -165,5 +165,22 @@ describe("threadPreviewSnapshot", () => {
       threads: 2,
       bbox: { min: [-5, -1, 0], max: [5, 1, 9] },
     });
+  });
+});
+
+describe("mirrorPreviewSnapshot", () => {
+  it("без призрака зеркала возвращает null, с ним — исходное тело и габарит", () => {
+    const scene = new THREE.Scene();
+    scene.add(bodyMesh("a"));
+    expect(mirrorPreviewSnapshot(scene)).toBeNull();
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([-10, 0, 0, 0, 4, 2]), 3));
+    const ghost = new THREE.Mesh(geometry);
+    ghost.userData.mirrorPreview = { sourceBodyId: "a" };
+    scene.add(ghost);
+
+    expect(mirrorPreviewSnapshot(scene)).toEqual({ sourceBodyId: "a", bbox: { min: [-10, 0, 0], max: [0, 4, 2] } });
+    expect(visibleSceneBodyIds(scene)).toEqual(["a"]);
   });
 });

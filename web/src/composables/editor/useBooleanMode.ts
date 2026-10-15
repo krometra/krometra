@@ -6,6 +6,7 @@ import type { BooleanOperation } from "@/types/api";
 import { isBrowserBody } from "./browserShapeHydration";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { SelectionMode, ViewportRef } from "./types";
+import type { EditorTool } from "./useEditorTools";
 
 export function useBooleanMode(deps: {
   projectId: string;
@@ -138,7 +139,10 @@ export function useBooleanMode(deps: {
     error.value = null;
   }
 
+  const tool: EditorTool = { actions: ["boolean"], active: booleanMode, loading, busyLabel: "Булева операция…", enter, exit };
+
   return {
+    tool,
     booleanMode,
     targetId,
     toolId,

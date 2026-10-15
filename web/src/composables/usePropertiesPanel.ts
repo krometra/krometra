@@ -35,7 +35,7 @@ export interface VertexProperties {
 
 export interface FeatureProperties {
   entry: TimelineEntry;
-  kind: "extrude" | "revolve" | "fillet" | "chamfer" | "boolean" | "sketch" | "thread" | "import" | "transform" | "shell";
+  kind: "extrude" | "revolve" | "fillet" | "chamfer" | "boolean" | "sketch" | "thread" | "import" | "transform" | "shell" | "mirror";
   params: Record<string, unknown>;
 }
 

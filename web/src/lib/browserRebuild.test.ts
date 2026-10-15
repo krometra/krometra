@@ -56,7 +56,21 @@ describe("browserRebuildPlan", () => {
     expect(sketchRebuildRoots(doc, "s1")).toEqual(["e1", "e2"]);
   });
 
+  it("пересобирает зеркало с новой плоскостью и цепочку после него", () => {
+    const doc = document();
+    doc.timeline.push(entry({ id: "m1", kind: "mirror", body_id: "b5", params: browser({ target_body_id: "b4", plane: "XY", offset: 0, face_id: null, merge: true, feature_key: "km" }) }));
+    doc.timeline.push(entry({ id: "m2", kind: "mirror", body_id: "b6", params: browser({ target_body_id: "b5", plane: null, face_id: "f-cap", merge: false, feature_key: "kn" }) }));
+
+    const steps = browserRebuildPlan(doc, "m1", { plane: "YZ", offset: 3 }).filter(isBodyStep);
+
+    expect(steps.map((step) => step.entryId)).toEqual(["m1", "m2"]);
+    expect(steps[0]).toMatchObject({ kind: "mirror", outputBodyId: "b5", inputBodyIds: ["b4"], request: { kind: "mirror", featureKey: "km", bodyId: "b4", plane: { kind: "base", plane: "YZ", offset: 3 }, merge: true } });
+    expect(steps[1].request).toMatchObject({ bodyId: "b5", plane: { kind: "face", faceId: "f-cap" }, merge: false });
+    expect(browserRebuildPlan(doc, "e1", { distance: 3 }).filter(isBodyStep).map((step) => step.entryId)).toEqual(["e1", "f1", "bo", "m1", "m2"]);
+  });
+
   it("знает редактируемые параметры операций", () => {
+    expect(editableBrowserParams("mirror")).toEqual(["plane", "offset"]);
     expect(editableBrowserParams("fillet")).toEqual(["radius"]);
     expect(editableBrowserParams("boolean")).toEqual([]);
   });

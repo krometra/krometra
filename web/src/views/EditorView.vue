@@ -16,6 +16,8 @@ import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
 import { useShell } from "@/composables/editor/useShell";
+import { useMirror } from "@/composables/editor/useMirror";
+import { useEditorTools } from "@/composables/editor/useEditorTools";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -44,6 +46,7 @@ import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
 import ShellPanel from "@/components/editor/ShellPanel.vue";
+import MirrorPanel from "@/components/editor/MirrorPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -98,6 +101,8 @@ const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportS
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const tools = useEditorTools([filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -128,10 +133,7 @@ onMounted(async () => {
 // --- Режимы: эскиз выходит из остальных, между собой они не пересекаются ---
 
 function leaveActiveTools() {
-  if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
-  if (thread.threadMode.value) thread.exit();
-  if (shell.shellMode.value) shell.exit();
-  if (booleanMode.booleanMode.value) booleanMode.exit();
+  tools.leaveAll();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
 }
@@ -147,11 +149,8 @@ function handleRibbonAction(action: RibbonAction) {
     return;
   }
   leaveActiveTools();
-  if (action === "boolean") booleanMode.enter();
-  else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
-  else if (action === "thread") thread.enter();
-  else if (action === "shell") shell.enter();
-  else extrude.startExtrudeFromRibbon(action);
+  if (action === "extrude" || action === "revolve") extrude.startExtrudeFromRibbon(action);
+  else tools.enter(action);
 }
 
 // --- События вьюпорта ---
@@ -161,17 +160,13 @@ function onFaceSelected(payload: { bodyId: string; faceId: string | number; brep
     sketchFlow.handleFaceSketchStart(payload);
     return;
   }
-  if (thread.threadMode.value) {
-    thread.onFaceSelected(payload);
-    return;
-  }
-  if (shell.onFaceSelected(payload)) return;
+  if (tools.onFaceSelected(payload)) return;
   if (extrude.pickExtentFace(payload)) return;
   selection.selectFace(payload.bodyId, payload.faceId, payload.brepTopo);
 }
 
 function onSelectionCleared() {
-  thread.onSelectionCleared();
+  tools.onSelectionCleared();
   selection.clearSelection();
 }
 
@@ -200,9 +195,8 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
-      exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
-      shell,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror,
+      shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
     });
 
 // --- Горячие клавиши ---
@@ -221,19 +215,7 @@ function handleEscape() {
     return;
   }
   if (sketch.sketchMode.value) return; // инструменты скетчера обрабатывают Esc сами
-  if (filletChamfer.filletChamferMode.value) {
-    filletChamfer.exit();
-    return;
-  }
-  if (thread.threadMode.value) {
-    thread.exit();
-    return;
-  }
-  if (shell.shellMode.value) return shell.exit();
-  if (booleanMode.booleanMode.value) {
-    booleanMode.exit();
-    return;
-  }
+  if (tools.exitActive()) return;
   if (extrude.lastSavedSketchId.value) {
     extrude.clearSketchContext();
     return;
@@ -262,11 +244,7 @@ if (!props.watch) useEditorHotkeys({
 const busyLabel = computed(() => {
   if (extrude.extrudeLoading.value) return "Выдавливание…";
   if (extrude.revolveLoading.value) return "Вращение…";
-  if (filletChamfer.loading.value) return "Построение…";
-  if (thread.loading.value) return "Нарезка резьбы…";
-  if (shell.loading.value) return "Построение оболочки…";
-  if (booleanMode.loading.value) return "Булева операция…";
-  return null;
+  return tools.busyLabel.value;
 });
 
 const visibleBodyCount = meshes.totalBodies;
@@ -279,10 +257,7 @@ const onboarding = useOnboarding({
       sketch.sketchMode.value ||
       sketchFlow.facePickMode.value ||
       extrude.lastSavedSketchId.value !== null ||
-      filletChamfer.filletChamferMode.value ||
-      thread.threadMode.value ||
-      shell.shellMode.value ||
-      booleanMode.booleanMode.value,
+      tools.anyActive.value,
   ),
 });
 
@@ -437,6 +412,7 @@ const selectionLabel = computed(() => {
           :thread="thread"
         />
         <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
+        <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
         <BooleanPanel
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"

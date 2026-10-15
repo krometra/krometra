@@ -1,7 +1,8 @@
 import type { TimelineEntry } from "@/types/api";
+import { mirrorPlaneOfParams } from "./mirrorPlane";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 
-export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell";
+export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror";
 
 export interface RebuildStep {
   entryId: string;
@@ -23,7 +24,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -32,6 +33,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
   shell: ["thickness", "direction"],
+  mirror: ["plane", "offset"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -138,6 +140,9 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
   }
   if (entry.kind === "shell") return { kind: "shell", featureKey, ...shellRequest(params) };
+  if (entry.kind === "mirror") {
+    return { kind: "mirror", featureKey, bodyId: text(params.target_body_id), plane: mirrorPlaneOfParams(params), merge: params.merge === true };
+  }
   const edgeNames = Array.isArray(params.edge_ids) ? params.edge_ids.map(String) : [];
   const bodyId = text(params.target_body_id);
   if (entry.kind === "fillet") return { kind: "fillet", featureKey, bodyId, edgeNames, radius: number(params.radius, 1) };

@@ -38,6 +38,17 @@ describe("bodyConsumers", () => {
     };
     expect(bodyConsumers(document).size).toBe(0);
   });
+
+  it("зеркальная копия тело не поглощает, зеркало с объединением поглощает", () => {
+    const document: ModelDocument = {
+      components: { a: body(), b: body(), c: body(), d: body() },
+      timeline: [
+        entry("t-copy", "mirror", { body_id: "b", params: { target_body_id: "a", merge: false } }),
+        entry("t-merge", "mirror", { body_id: "d", params: { target_body_id: "c", merge: true } }),
+      ],
+    };
+    expect([...bodyConsumers(document)].map(([bodyId, consumer]) => [bodyId, consumer.id])).toEqual([["c", "t-merge"]]);
+  });
 });
 
 describe("deleteBody", () => {

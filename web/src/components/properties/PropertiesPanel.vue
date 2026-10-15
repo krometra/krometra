@@ -7,6 +7,7 @@ import CsCollapsible from "@/components/ui/CsCollapsible.vue";
 import FeatureParamsEditor from "./FeatureParamsEditor.vue";
 import { editableValues, featureParamFields } from "@/lib/browserFeatureParams";
 import { transformParams } from "@/lib/bodyTransform";
+import { mirrorParams } from "@/lib/mirrorPlane";
 import type { MeshData, TimelineEntry } from "@/types/api";
 
 const emit = defineEmits<{
@@ -46,7 +47,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -109,6 +110,8 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
         { label: "Направление", value: p.direction === "outward" ? "Наружу" : "Внутрь" },
         { label: "Открытых граней", value: String(Array.isArray(p.face_ids) ? p.face_ids.length : 0) },
       ];
+    case "mirror":
+      return mirrorParams(p);
     case "boolean":
       return [
         { label: "Операция", value: OPERATION_LABELS[entry.operation ?? ""] ?? entry.operation ?? "?" },

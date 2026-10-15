@@ -9,6 +9,7 @@ import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { BrowserThreadFace } from "./browserThread";
 import { isBrowserBody } from "./browserShapeHydration";
 import type { SelectionMode, ViewportRef } from "./types";
+import type { EditorTool } from "./useEditorTools";
 
 /**
  * Режим нарезки резьбы: пользователь выбирает цилиндрическую грань, задаёт шаг.
@@ -193,7 +194,10 @@ export function useThread(deps: {
     }
   }
 
+  const tool: EditorTool = { actions: ["thread"], active: threadMode, loading, busyLabel: "Нарезка резьбы…", enter, exit, onFaceSelected, onSelectionCleared };
+
   return {
+    tool,
     threadMode,
     bodyId,
     faceId,

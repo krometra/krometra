@@ -14,6 +14,7 @@ from app.schemas.ids import is_body_id, is_component_id
 from app.services.document_service import get_document
 
 from .browser_extrude import _error, is_browser_body, validated_browser_upload
+from .browser_mirror import MIRROR_PLANES, check_mirror_rebuild
 from .browser_naming import validated_browser_naming
 from .browser_sketch_seat import apply_sketch_planes, feature_sketch_owner, seated_sketches, validated_sketch_planes
 from .browser_storage import browser_body_objects, persist_replaced_bodies
@@ -32,6 +33,7 @@ EDITABLE_PARAMS = {
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
     "shell": {"thickness", "direction"},
+    "mirror": {"plane", "offset"},
 }
 
 
@@ -55,6 +57,10 @@ def _validated_value(kind: str, key: str, value: object):
     if key == "direction":
         if value not in DIRECTIONS.get(kind, ()):
             _invalid("Недопустимое направление операции.")
+        return value
+    if key == "plane":
+        if value not in MIRROR_PLANES:
+            _invalid("Базовая плоскость зеркала — XY, XZ или YZ.")
         return value
     if not _is_number(value):
         _invalid("Параметры операции должны быть конечными числами.")
@@ -173,6 +179,7 @@ async def save_browser_rebuild(
     index = _changed_entry(timeline, entry_id)
     changed = timeline[index]
     new_params = validated_rebuild_params(changed.get("kind"), params)
+    check_mirror_rebuild(changed, new_params)
     components = dict(doc.components or {})
     affected = affected_bodies(timeline, index, components)
     uploaded = {body.body_id for body in bodies}

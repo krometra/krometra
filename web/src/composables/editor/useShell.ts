@@ -6,6 +6,7 @@ import { shellFaceRows, toggleShellFace, type ShellDirection, type ShellFaceSele
 import type { BrepTopo } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { SelectionMode, ViewportRef } from "./types";
+import type { EditorTool } from "./useEditorTools";
 
 const EMPTY: ShellFaceSelection = { bodyId: null, faceIds: [] };
 
@@ -118,7 +119,10 @@ export function useShell(deps: {
     }
   }
 
+  const tool: EditorTool = { actions: ["shell"], active: shellMode, loading, busyLabel: "Построение оболочки…", enter, exit, onFaceSelected };
+
   return {
+    tool,
     shellMode,
     bodyId,
     faceIds,

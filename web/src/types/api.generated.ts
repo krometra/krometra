@@ -563,6 +563,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/geometry/browser-mirror": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Mirror Endpoint */
+        post: operations["browser_mirror_endpoint_api_projects__project_id__geometry_browser_mirror_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -773,6 +790,35 @@ export interface components {
             file_name: string;
             /** Document Version */
             document_version: number;
+        };
+        /** Body_browser_mirror_endpoint_api_projects__project_id__geometry_browser_mirror_post */
+        Body_browser_mirror_endpoint_api_projects__project_id__geometry_browser_mirror_post: {
+            /** Step */
+            step: string;
+            /** Mesh */
+            mesh: string;
+            /** Body Id */
+            body_id: string;
+            /** Plane */
+            plane?: string | null;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /** Face Id */
+            face_id?: string | null;
+            /**
+             * Merge
+             * @default false
+             */
+            merge: boolean;
+            /** Document Version */
+            document_version: number;
+            /** Naming */
+            naming?: string | null;
+            /** Feature Key */
+            feature_key?: string | null;
         };
         /** Body_browser_revolve_endpoint_api_projects__project_id__geometry_browser_revolve_post */
         Body_browser_revolve_endpoint_api_projects__project_id__geometry_browser_revolve_post: {
@@ -2467,6 +2513,41 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtrudeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_mirror_endpoint_api_projects__project_id__geometry_browser_mirror_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_mirror_endpoint_api_projects__project_id__geometry_browser_mirror_post"];
             };
         };
         responses: {

@@ -2,6 +2,7 @@ import type { Vec3 } from "@/lib/threadGeometry";
 import type { SceneContext } from "./types";
 import {
   cameraForView,
+  mirrorPreviewSnapshot,
   projectToClient,
   shownSketchOutlineIds,
   threadPreviewSnapshot,
@@ -29,7 +30,7 @@ export function useViewportProbe(context: SceneContext) {
     return {
       visibleBodyIds: visibleSceneBodyIds(scene),
       sketchOutlineIds: shownSketchOutlineIds(scene),
-      threadPreview: threadPreviewSnapshot(scene),
+      threadPreview: threadPreviewSnapshot(scene), mirrorPreview: mirrorPreviewSnapshot(scene),
     };
   }
 

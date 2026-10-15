@@ -7,6 +7,7 @@ import type { EdgeSelectionSnapshot } from "@/composables/viewport/useEdgeSelect
 import type { BrowserEdgeFeature } from "./useBrowserGeometry";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { SelectionMode, ViewportRef } from "./types";
+import type { EditorTool } from "./useEditorTools";
 
 export function useFilletChamfer(deps: {
   projectId: string;
@@ -162,7 +163,17 @@ export function useFilletChamfer(deps: {
     }, "Ошибка фаски");
   }
 
+  const tool: EditorTool = {
+    actions: ["fillet", "chamfer"],
+    active: filletChamferMode,
+    loading,
+    busyLabel: "Построение…",
+    enter: (action) => enter(action === "chamfer" ? "chamfer" : "fillet"),
+    exit,
+  };
+
   return {
+    tool,
     filletChamferMode,
     mode,
     setMode,

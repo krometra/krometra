@@ -46,7 +46,7 @@ export interface DocumentUpdate {
 export interface TimelineEntry {
   id: string;
   timestamp: string;
-  kind: "sketch" | "extrude" | "boolean" | "revolve" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell";
+  kind: "sketch" | "extrude" | "boolean" | "revolve" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror";
   label: string;
   status: "ok" | "warning" | "error" | "dirty";
   sketch_id?: string;

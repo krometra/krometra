@@ -16,6 +16,7 @@ import { useEdgeSelection } from "@/composables/viewport/useEdgeSelection";
 import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
+import { useMirrorPreview } from "@/composables/viewport/useMirrorPreview";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
 
 export type { SketchFrame } from "@/composables/viewport/types";
@@ -53,6 +54,7 @@ const { context } = core;
 const planes = usePlaneHelpers(context);
 const outlines = useSketchOutlines(core.sketchGroup);
 const previews = usePreviews(context);
+const mirrorPreview = useMirrorPreview(context);
 const probe = useViewportProbe(context);
 
 const faces = useFaceSelection({
@@ -224,6 +226,8 @@ defineExpose({
   hideFilletPreview: previews.hideFillet,
   showThreadPreview: previews.showThread,
   hideThreadPreview: previews.hideThread,
+  showMirrorPreview: mirrorPreview.show,
+  hideMirrorPreview: mirrorPreview.hide,
   fitAllBodies,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,
