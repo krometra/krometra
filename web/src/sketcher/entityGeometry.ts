@@ -45,13 +45,6 @@ export function entityPoint(entity: SketchEntity, subIndex: number): SketchPoint
   }
 }
 
-export function entityAngle(entity: SketchEntity): number {
-  if (entity.type === "line") {
-    return Math.atan2(entity.end.y - entity.start.y, entity.end.x - entity.start.x);
-  }
-  return 0;
-}
-
 export interface BBox {
   x1: number;
   y1: number;

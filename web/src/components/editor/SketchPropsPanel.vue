@@ -5,6 +5,8 @@ import { useDisplayNames } from "@/composables/useDisplayNames";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { SketchConstraint } from "@/types/api";
 import CsNumberInput from "@/components/ui/CsNumberInput.vue";
+import { isDimensionType } from "@/sketcher/dimensionKinds";
+import { SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
 
 const emit = defineEmits<{ ok: []; cancel: [] }>();
 
@@ -38,6 +40,12 @@ const constraintIconMap: Record<string, string> = {
   distance: "↔",
   radius: "R",
   angle: "∠",
+  length: "⟷",
+  diameter: "⌀",
+  line_distance: "↔",
+  point_line_distance: "↔",
+  horizontal_distance: "↔",
+  vertical_distance: "↕",
 };
 
 const CONSTRAINT_LABELS: Record<string, string> = {
@@ -50,6 +58,12 @@ const CONSTRAINT_LABELS: Record<string, string> = {
   distance: "Расст.",
   radius: "Радиус",
   angle: "Угол",
+  length: "Длина",
+  diameter: "Диаметр",
+  line_distance: "Расст. между",
+  point_line_distance: "До линии",
+  horizontal_distance: "По гориз.",
+  vertical_distance: "По верт.",
 };
 
 const ENTITY_KIND_LABELS: Record<string, string> = {
@@ -62,7 +76,7 @@ const ENTITY_KIND_LABELS: Record<string, string> = {
 
 const entityLabels = computed(() => {
   const counters: Record<string, number> = {};
-  const map = new Map<string, string>();
+  const map = new Map<string, string>([[SKETCH_ORIGIN_ID, "Начало"]]);
   for (const e of sketch.entities.value) {
     counters[e.type] = (counters[e.type] ?? 0) + 1;
     map.set(e.id, `${ENTITY_KIND_LABELS[e.type] ?? e.type} ${counters[e.type]}`);
@@ -80,10 +94,8 @@ function constraintTargets(c: SketchConstraint): string {
     .join(" · ");
 }
 
-const DIMENSIONAL = new Set(["distance", "radius", "angle"]);
-
 function isDimensional(c: SketchConstraint): boolean {
-  return DIMENSIONAL.has(c.type);
+  return isDimensionType(c.type);
 }
 
 function constraintUnit(c: SketchConstraint): string {

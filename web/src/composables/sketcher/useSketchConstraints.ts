@@ -1,18 +1,18 @@
-import { ref, type Ref } from "vue";
-import type {
-  ConstraintRef,
-  ConstraintType,
-  SketchConstraint,
-  SketchEntity,
-} from "@/types/api";
-import { constraintBlocker, planConstraints, type ConstraintPick } from "@/sketcher/constraintPlan";
+import type { Ref } from "vue";
+import type { ConstraintType, SketchConstraint, SketchEntity } from "@/types/api";
+import { constraintBlocker, planConstraints, toolbarDimension, type ConstraintPick } from "@/sketcher/constraintPlan";
+import type { DimensionDraft } from "@/sketcher/dimensionPlan";
 
-export const CONSTRAINT_TYPES: ConstraintType[] = [
+const TOOLBAR_TYPES = [
   "horizontal", "vertical", "coincident", "parallel", "perpendicular",
   "equal", "distance", "radius", "angle",
-];
+] as const;
 
-const CONSTRAINT_LABELS: Record<ConstraintType, string> = {
+type ToolbarConstraintType = (typeof TOOLBAR_TYPES)[number];
+
+export const CONSTRAINT_TYPES: ConstraintType[] = [...TOOLBAR_TYPES];
+
+const CONSTRAINT_LABELS: Record<ToolbarConstraintType, string> = {
   horizontal: "Гор",
   vertical: "Вер",
   coincident: "Совп",
@@ -24,35 +24,25 @@ const CONSTRAINT_LABELS: Record<ConstraintType, string> = {
   angle: "∠",
 };
 
-const CONSTRAINT_HINTS: Record<ConstraintType, string> = {
+const CONSTRAINT_HINTS: Record<ToolbarConstraintType, string> = {
   horizontal: "Горизонтальность — выберите один или несколько отрезков",
   vertical: "Вертикальность — выберите один или несколько отрезков",
   coincident: "Совпадение — выберите два объекта или больше",
   parallel: "Параллельность — выберите два отрезка или больше",
   perpendicular: "Перпендикулярность — выберите два отрезка",
   equal: "Равенство — выберите отрезки или окружности и дуги",
-  distance: "Расстояние — выберите два объекта",
+  distance: "Размер (D) — длина отрезка, расстояние между параллельными, угол, диаметр",
   radius: "Радиус — выберите окружность или дугу",
   angle: "Угол — выберите два отрезка",
 };
 
+const isToolbarType = (type: ConstraintType): type is ToolbarConstraintType =>
+  (TOOLBAR_TYPES as readonly ConstraintType[]).includes(type);
+
 export function constraintLabel(type: ConstraintType): string {
-  return CONSTRAINT_LABELS[type] ?? type;
+  return isToolbarType(type) ? CONSTRAINT_LABELS[type] : type;
 }
 
-interface DimensionalInput {
-  visible: boolean;
-  x: number;
-  y: number;
-  value: string;
-  type: ConstraintType;
-  anchors: ConstraintRef[];
-}
-
-/**
- * Применение ограничений к выбранным объектам: проверка применимости,
- * ввод размерных значений и создание записи.
- */
 export function useSketchConstraints(deps: {
   entities: Ref<SketchEntity[]>;
   selectedEntityIds: Ref<string[]>;
@@ -60,7 +50,7 @@ export function useSketchConstraints(deps: {
   addConstraint: (constraint: SketchConstraint, opts?: { silent?: boolean }) => void;
   clearSelection: () => void;
   solveAndApply: () => void;
-  canvasRect: () => DOMRect | undefined;
+  openDimension: (draft: DimensionDraft) => void;
 }) {
   const {
     entities,
@@ -69,10 +59,8 @@ export function useSketchConstraints(deps: {
     addConstraint,
     clearSelection,
     solveAndApply,
-    canvasRect,
+    openDimension,
   } = deps;
-
-  const dimensionalInput = ref<DimensionalInput | null>(null);
 
   function selectedPicks(): ConstraintPick[] {
     return selectedEntityIds.value.flatMap((id) => {
@@ -92,29 +80,17 @@ export function useSketchConstraints(deps: {
   }
 
   function title(type: ConstraintType): string {
+    const hint = isToolbarType(type) ? CONSTRAINT_HINTS[type] : type;
     const reason = blocker(type);
-    return reason ? `${CONSTRAINT_HINTS[type]} (недоступно: ${reason})` : CONSTRAINT_HINTS[type];
-  }
-
-  function openDimensionalInput(type: ConstraintType, anchors: ConstraintRef[]) {
-    const rect = canvasRect();
-    if (!rect) return;
-    dimensionalInput.value = {
-      visible: true,
-      x: rect.left + rect.width / 2 - 50,
-      y: rect.top + 100,
-      value: "",
-      type,
-      anchors,
-    };
+    return reason ? `${hint} (недоступно: ${reason})` : hint;
   }
 
   function create(type: ConstraintType) {
     if (!canApply(type)) return;
     const picks = selectedPicks();
-
-    if (type === "distance" || type === "radius" || type === "angle") {
-      openDimensionalInput(type, picks.map((pick) => pick.ref));
+    const draft = toolbarDimension(type, picks);
+    if (draft) {
+      openDimension(draft);
       return;
     }
 
@@ -125,39 +101,12 @@ export function useSketchConstraints(deps: {
     solveAndApply();
   }
 
-  function confirmDimensional() {
-    const input = dimensionalInput.value;
-    if (!input) return;
-    const val = parseFloat(input.value);
-    if (isNaN(val) || input.anchors.length === 0) {
-      dimensionalInput.value = null;
-      return;
-    }
-
-    addConstraint({
-      id: nextConstraintId(),
-      type: input.type,
-      anchors: input.anchors,
-      value: val,
-    });
-    clearSelection();
-    dimensionalInput.value = null;
-    solveAndApply();
-  }
-
-  function cancelDimensional() {
-    dimensionalInput.value = null;
-  }
-
   return {
     constraintTypes: CONSTRAINT_TYPES,
-    dimensionalInput,
     canApply,
     title,
     label: constraintLabel,
     create,
-    confirmDimensional,
-    cancelDimensional,
   };
 }
 

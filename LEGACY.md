@@ -5,8 +5,8 @@
 ## Крупные файлы (не-оркестраторы, тренд вниз)
 
 Монолитов не осталось: потолок `max-lines` (600) держит линтер без исключений.
-Ближайшие к порогу файлы: `sketcher/solver/solveSketch.ts` (576),
-`DashboardView.vue` (565), `EditorView.vue` (564).
+Ближайшие к порогу файлы: `DashboardView.vue` (565), `EditorView.vue` (564),
+`SketcherContainer.vue` (534).
 Подходишь к порогу — режь по доменам, а не дописывай.
 
 Разобрано (август–сентябрь 2026):
@@ -15,6 +15,7 @@
 - `SketchCanvas.vue` 828 → 144 строки: отрисовка — в `sketcher/renderEntities.ts` и `sketcher/renderConstraints.ts`, геометрия сущностей — в `sketcher/entityGeometry.ts`, pan/zoom/fit — в `composables/sketcher/useCanvasViewport.ts`.
 - Серверное ядро pythonOCC (`backend/geometry/`, серверные операции `geometry_ops/*`, regenerate/rebuild, превью и экспорт на сервере) удалено 24.09.2026: геометрию считает только браузерное ядро OCCT/WASM, `geometry_ops/` хранит лишь сохранение browser-результатов.
 - `ViewportContainer.vue` 1620 → 292 строки (коммит c262210): сцена, picking и превью — в `composables/viewport/`.
+- `sketcher/solver/solveSketch.ts` 576 → ~100 строк (15.10.2026): карта точек и обратная запись — в `solver/pointMap.ts`, геометрические ограничения — в `solver/geometricConstraints.ts`, размерные — в `solver/dimensionConstraints.ts`.
 - `EditorView.vue` 640 → 564 строки (октябрь 2026): контекстное меню дерева — в `useTreeContextMenu`, видимость и цвет тела — в `useBodyPresentation`, отмена и повтор — в `useModelHistory`; файл снят с исключений `max-lines`.
 
 ## Дублирование

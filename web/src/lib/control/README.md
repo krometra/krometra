@@ -43,7 +43,7 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `fillet`, `chamfer`, `boolean`, `thread`, `history.undo`, `history.redo`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `fillet`, `chamfer`, `boolean`, `thread`, `history.undo`, `history.redo`.
 
 Параметры и вид результата — в `capabilities`.
 

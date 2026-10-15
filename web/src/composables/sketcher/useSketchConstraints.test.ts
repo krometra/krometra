@@ -17,7 +17,7 @@ function setup(selected: string[]) {
     }),
     clearSelection: vi.fn(),
     solveAndApply: vi.fn(),
-    canvasRect: () => ({ left: 0, top: 0, width: 800, height: 600 }) as DOMRect,
+    openDimension: vi.fn(),
   };
   return { api: useSketchConstraints(deps), deps, added };
 }
@@ -55,14 +55,24 @@ describe("useSketchConstraints для нескольких объектов", ()
     api.create("perpendicular");
     api.create("distance");
     expect(deps.addConstraint).not.toHaveBeenCalled();
-    expect(api.dimensionalInput.value).toBeNull();
+    expect(deps.openDimension).not.toHaveBeenCalled();
   });
 
-  it("размер для двух объектов по-прежнему открывает поле значения", () => {
+  it("размер для двух параллельных отрезков открывает поле расстояния между ними", () => {
     const { api, deps } = setup(["a", "b"]);
     api.create("distance");
-    expect(api.dimensionalInput.value?.anchors.map((a) => a.entity_id)).toEqual(["a", "b"]);
+    expect(deps.openDimension).toHaveBeenCalledWith({
+      type: "line_distance",
+      anchors: [{ entity_id: "a", sub_index: 0 }, { entity_id: "b", sub_index: 0 }],
+      value: 0,
+    });
     expect(deps.addConstraint).not.toHaveBeenCalled();
+  });
+
+  it("размер для одного отрезка открывает поле длины", () => {
+    const { api, deps } = setup(["c"]);
+    api.create("distance");
+    expect(deps.openDimension).toHaveBeenCalledWith(expect.objectContaining({ type: "length", value: Math.hypot(10, 1) }));
   });
 
   it("удалённый из эскиза объект в выделении блокирует ограничения", () => {

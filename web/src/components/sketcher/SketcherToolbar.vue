@@ -24,6 +24,7 @@ const DRAW_TOOLS = [
   { id: "circle", label: "Окруж.", title: "Окружность (C)" },
   { id: "arc", label: "Дуга", title: "Дуга (A)" },
   { id: "arc3", label: "Дуга 3т", title: "Дуга по трём точкам: начало, конец, точка на дуге" },
+  { id: "dimension", label: "Размер", title: "Размер (D): длина, расстояние, угол, диаметр — по выбранным объектам" },
 ] as const;
 
 const AUX_BUTTONS = [
@@ -88,6 +89,7 @@ function select(tool: SketchToolName) {
         <circle v-if="t.id === 'arc3'" cx="4" cy="17" r="1.5" />
         <circle v-if="t.id === 'arc3'" cx="12" cy="9" r="1.5" />
         <circle v-if="t.id === 'arc3'" cx="20" cy="17" r="1.5" />
+        <path v-if="t.id === 'dimension'" d="M4 8v8 M20 8v8 M4 12h16 M7 9l-3 3 3 3 M17 9l3 3-3 3" />
       </svg>
       <span :class="$style.toolLabel">{{ t.label }}</span>
     </button>

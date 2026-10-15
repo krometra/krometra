@@ -163,7 +163,9 @@ export interface SketchSaveResponse {
 export type ConstraintType =
   | "horizontal" | "vertical" | "coincident"
   | "parallel" | "perpendicular" | "equal"
-  | "distance" | "radius" | "angle";
+  | "distance" | "radius" | "angle"
+  | "length" | "diameter" | "line_distance" | "point_line_distance"
+  | "horizontal_distance" | "vertical_distance";
 
 export interface ConstraintRef {
   entity_id: string;

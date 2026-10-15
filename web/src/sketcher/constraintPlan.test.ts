@@ -44,7 +44,7 @@ describe("constraintBlocker", () => {
     const three = picks(line("a"), line("b"), line("c"));
     expect(constraintBlocker("perpendicular", three)).toBe("только для двух отрезков, выбрано 3");
     expect(constraintBlocker("angle", three)).toBe("только для двух отрезков, выбрано 3");
-    expect(constraintBlocker("distance", three)).toBe("только для двух объектов, выбрано 3");
+    expect(constraintBlocker("distance", three)).toBe("только для одного или двух объектов, выбрано 3");
     expect(constraintBlocker("perpendicular", picks(line("a"), line("b")))).toBeNull();
     expect(constraintBlocker("distance", picks(line("a"), circle("b")))).toBeNull();
   });
