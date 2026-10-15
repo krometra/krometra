@@ -352,7 +352,7 @@ const selectionLabel = computed(() => {
         </div>
 
         <OnboardingHint
-          v-if="onboarding.hint.value && !props.watch"
+          v-if="onboarding.hint.value && !props.watch && !control?.relay.attached.value"
           :hint="onboarding.hint.value"
           @act="runOnboardingStep(onboarding.hint.value.step)"
           @dismiss="onboarding.dismiss(onboarding.hint.value.step)"
