@@ -38,6 +38,7 @@ onMounted(() => {
         :model-value="text"
         :error="error ?? undefined"
         :aria-label="title"
+        :placeholder="title"
         title="Значение или выражение с единицами: 20, 3/4 in, width/2"
         inputmode="decimal"
         @update:model-value="emit('update:text', $event)"

@@ -60,7 +60,7 @@ async function gapBetween(cad: CadEditor, leftId: string, rightId: string): Prom
 
 async function drawTwoRectangles(cad: CadEditor) {
   await cad.drawRect(-45, -10, 30, 20);
-  await cad.drawRect(0, -15, 25, 30);
+  await cad.drawRect(0, -5, 25, 30);
   const sides = verticalSides(await sketchState(cad));
   expect(sides, "у двух прямоугольников четыре вертикальные стороны").toHaveLength(4);
   return { aRight: sides[1], bLeft: sides[2] };
