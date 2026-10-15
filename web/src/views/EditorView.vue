@@ -15,6 +15,7 @@ import { useSketchLifecycle } from "@/composables/editor/useSketchLifecycle";
 import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
+import { useSweep } from "@/composables/editor/useSweep";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -42,6 +43,7 @@ import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
 import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
+import SweepPanel from "@/components/editor/SweepPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -94,6 +96,7 @@ const sketchFlow = useSketchLifecycle({
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const sweep = useSweep({ projectId: props.id, meshes, model });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -127,6 +130,7 @@ function leaveActiveTools() {
   if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
   if (thread.threadMode.value) thread.exit();
   if (booleanMode.booleanMode.value) booleanMode.exit();
+  if (sweep.sweepMode.value) sweep.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
 }
@@ -145,6 +149,7 @@ function handleRibbonAction(action: RibbonAction) {
   if (action === "boolean") booleanMode.enter();
   else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
   else if (action === "thread") thread.enter();
+  else if (action === "sweep") sweep.enter();
   else extrude.startExtrudeFromRibbon(action);
 }
 
@@ -193,7 +198,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, sweep,
       exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
     });
 
@@ -223,6 +228,10 @@ function handleEscape() {
   }
   if (booleanMode.booleanMode.value) {
     booleanMode.exit();
+    return;
+  }
+  if (sweep.sweepMode.value) {
+    sweep.exit();
     return;
   }
   if (extrude.lastSavedSketchId.value) {
@@ -256,6 +265,7 @@ const busyLabel = computed(() => {
   if (filletChamfer.loading.value) return "Построение…";
   if (thread.loading.value) return "Нарезка резьбы…";
   if (booleanMode.loading.value) return "Булева операция…";
+  if (sweep.loading.value) return "Протяжка…";
   return null;
 });
 
@@ -271,7 +281,8 @@ const onboarding = useOnboarding({
       extrude.lastSavedSketchId.value !== null ||
       filletChamfer.filletChamferMode.value ||
       thread.threadMode.value ||
-      booleanMode.booleanMode.value,
+      booleanMode.booleanMode.value ||
+      sweep.sweepMode.value,
   ),
 });
 
@@ -428,6 +439,7 @@ const selectionLabel = computed(() => {
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"
         />
+        <SweepPanel v-else-if="sweep.sweepMode.value" :sweep="sweep" />
         <PropertiesPanel
           v-else
           @edit-sketch="sketchFlow.editSketch"

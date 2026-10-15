@@ -83,6 +83,18 @@ describe("deleteSketch", () => {
     expect(result.timeline.map((item) => item.id)).not.toContain("t-s4");
   });
 
+  it("не удаляет эскиз пути протяжки и удаляет его вместе с телом протяжки", () => {
+    const document = documentWithJoinChain();
+    document.components.s4 = sketch();
+    document.components.d = body();
+    document.timeline.push(
+      entry("t-s4", "sketch", { sketch_id: "s4" }),
+      entry("t-d", "sweep", { sketch_id: "s3", body_id: "d", params: { path_sketch_id: "s4" } }),
+    );
+    expect(() => deleteSketch(document, "s4", describeEntry)).toThrow(/t-d/);
+    expect(bodyChain(document, "d").map((item) => item.id)).toEqual(["t-s4", "t-d"]);
+  });
+
   it("не удаляет эскиз, по которому построена операция", () => {
     expect(() => deleteSketch(documentWithJoinChain(), "s3", describeEntry)).toThrow(/t-c/);
   });

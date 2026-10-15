@@ -35,7 +35,11 @@ function extentPoints(request: ExtrudeRequest, lookup: BodyLookup): Vector3[] | 
   return null;
 }
 
-function combineWithTarget(tool: NamedShape, request: ExtrudeRequest, lookup: BodyLookup): NamedShape {
+export function combineWithTarget(
+  tool: NamedShape,
+  request: Pick<ExtrudeRequest, "operation" | "targetBodyId" | "featureKey">,
+  lookup: BodyLookup,
+): NamedShape {
   const booleanOperation = browserBooleanOfExtrude(request.operation);
   if (!booleanOperation) return tool;
   try {

@@ -5,6 +5,7 @@ const idle: EditorModeFlags = {
   sketch: false,
   planePick: false,
   sweepPanel: null,
+  sweep: false,
   edgeFeature: null,
   thread: false,
   boolean: false,
@@ -24,6 +25,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, edgeFeature: "chamfer" })).toBe("chamfer");
     expect(resolveEditorMode({ ...idle, thread: true })).toBe("thread");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
+    expect(resolveEditorMode({ ...idle, sweep: true })).toBe("sweep");
   });
 
   it("эскиз перекрывает панель операции так же, как правая панель редактора", () => {

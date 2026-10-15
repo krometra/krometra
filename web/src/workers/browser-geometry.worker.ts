@@ -17,10 +17,11 @@ import {
 import { initOcct, wasmHeapBytes } from "./geometry/occt";
 import { runThreadRequest } from "./geometry/thread";
 import { sectionBodies, type SectionRequest } from "./geometry/section";
+import { sweepNamed, type SweepRequest } from "./geometry/sweep";
 import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
-type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest;
+type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | SweepRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -30,6 +31,7 @@ const worker = globalThis as unknown as {
 function buildShape(data: Request) {
   if (data.kind === "extrude") return publishNamed(() => extrudeNamed(data, namedBodyShape));
   if (data.kind === "revolve") return publishNamed(() => revolveNamed(data));
+  if (data.kind === "sweep") return publishNamed(() => sweepNamed(data, namedBodyShape));
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));

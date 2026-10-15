@@ -19,7 +19,7 @@ const EXACT_EDGES =
   "В операцию уходят ровно перечисленные рёбра: касательная цепочка интерфейса их не расширяет.";
 
 export function featureOps(context: EditorControlContext): ControlOp[] {
-  const { extrude, filletChamfer, booleanMode, thread } = context;
+  const { extrude, filletChamfer, booleanMode, thread, sweep } = context;
 
   async function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
     const known = new Set(context.model.timelineEntries.value.map((entry) => entry.id));
@@ -187,6 +187,34 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           direction,
         });
         return applyFeature(extrude.handleRevolve, () => extrude.revolveError.value, extrude.clearSketchContext);
+      },
+    }),
+
+    defineOp({
+      op: "sweep",
+      description: `Протягивает замкнутый профиль одного эскиза по пути из другого — панель «По траектории». Путь — цепочка отрезков и дуг (можно замкнутая) на другой плоскости; один её конец обязан лежать в плоскости профиля на контуре профиля или внутри него, и путь должен уходить из этой плоскости. Ошибка пути приходит operation_failed с объяснением. Правка любого из двух эскизов перестраивает тело. ${FEATURE_RESULT}`,
+      mutates: true,
+      params: {
+        profileSketchId: param.id("Эскиз профиля: замкнутый контур, как у extrude."),
+        pathSketchId: param.id("Эскиз пути: отрезки и дуги одной цепочкой, начатой на профиле."),
+        operation: param.optional(param.oneOf(["new_body", "join", "cut"], "new_body — новое тело (по умолчанию), join — приклеить к телу, cut — вырезать из тела.")),
+        targetBodyId: param.optional(param.id("Тело для join и cut, обязательно для них.")),
+        orientation: param.optional(
+          param.oneOf(["corrected", "frenet"], "corrected — профиль без закрутки вдоль пути (по умолчанию), frenet — по сопровождающему трёхграннику Френе."),
+        ),
+      },
+      run: async ({ profileSketchId, pathSketchId, operation, targetBodyId, orientation }) => {
+        if (profileSketchId === pathSketchId) throw fail("invalid_params", "Профиль и путь должны быть в разных эскизах.");
+        if (operation !== undefined && operation !== "new_body" && targetBodyId === undefined) {
+          throw fail("invalid_params", "Для join и cut задайте targetBodyId.");
+        }
+        context.requireSketch(profileSketchId);
+        context.requireSketch(pathSketchId);
+        if (targetBodyId !== undefined) context.bodyMesh(targetBodyId);
+        context.leaveTools();
+        sweep.enter();
+        sweep.configure({ profileSketchId, pathSketchId, operation, targetBodyId, orientation });
+        return applyFeature(sweep.apply, () => sweep.error.value, sweep.exit);
       },
     }),
 

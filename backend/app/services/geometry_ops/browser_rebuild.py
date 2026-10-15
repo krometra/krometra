@@ -21,9 +21,11 @@ from .limits import MAX_PARAMS_BYTES, MAX_REBUILD_BODIES
 
 DIRECTIONS = {"extrude": ("one_side", "symmetric", "two_sided"), "revolve": ("one_side", "symmetric")}
 POSITIVE = {"radius", "distance1", "distance2", "pitch", "length"}
+ORIENTATIONS = ("corrected", "frenet")
 EDITABLE_PARAMS = {
     "extrude": {"distance", "direction", "back_distance", "offset"},
     "revolve": {"angle", "direction"},
+    "sweep": {"orientation"},
     "fillet": {"radius"},
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
@@ -50,6 +52,10 @@ def _validated_value(kind: str, key: str, value: object):
     if key == "direction":
         if value not in DIRECTIONS.get(kind, ()):
             _invalid("Недопустимое направление операции.")
+        return value
+    if key == "orientation":
+        if value not in ORIENTATIONS:
+            _invalid("Ориентация профиля протяжки — corrected или frenet.")
         return value
     if not _is_number(value):
         _invalid("Параметры операции должны быть конечными числами.")

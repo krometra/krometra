@@ -30,6 +30,7 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   distance2: 1,
   pitch: 1,
   length: 10,
+  orientation: "corrected",
 };
 
 export function editableValues(entry: TimelineEntry): Record<string, FeatureParamValue> {
@@ -60,6 +61,12 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { key: "angle", label: "Угол", kind: "number", suffix: "°", min: 0.1, max: 360 },
       { key: "direction", label: "Направление", kind: "select", options: [DIRECTION_OPTIONS.one_side, DIRECTION_OPTIONS.symmetric] },
     ];
+  }
+  if (entry.kind === "sweep") {
+    return [{ key: "orientation", label: "Ориентация", kind: "select", options: [
+      { label: "Без закрутки", value: "corrected" },
+      { label: "По Френе", value: "frenet" },
+    ] }];
   }
   if (entry.kind === "fillet") return [{ key: "radius", label: "Радиус", kind: "number", suffix: "мм", min: 0.01 }];
   if (entry.kind === "chamfer") {

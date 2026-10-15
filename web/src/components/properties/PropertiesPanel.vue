@@ -46,7 +46,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "fillet", "chamfer", "boolean", "thread", "import", "transform"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "sweep", "fillet", "chamfer", "boolean", "thread", "import", "transform"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -77,6 +77,11 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       return [
         { label: "Угол", value: `${p.angle ?? "?"}°` },
         { label: "Направление", value: DIRECTION_LABELS[String(p.direction)] ?? "—" },
+      ];
+    case "sweep":
+      return [
+        { label: "Путь", value: typeof p.path_sketch_id === "string" ? names.sketchLabel(p.path_sketch_id) : "—" },
+        { label: "Ориентация", value: p.orientation === "frenet" ? "По Френе" : "Без закрутки" },
       ];
     case "fillet":
       return [

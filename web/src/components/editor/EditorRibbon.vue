@@ -33,7 +33,7 @@ const tools = computed<Tool[]>(() => {
     { divider: true },
     { label: "Выдавить", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M12 3v18", action: "extrude", hint: "Выдавить эскиз в тело — E", testId: "ribbon-extrude" },
     { label: "Вращать", icon: "M4 12a8 8 0 1 1 8 8 M12 4v8l5 3", action: "revolve", hint: "Тело вращения из эскиза — R", testId: "ribbon-revolve" },
-    { label: "По траект.", icon: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z", disabled: true, hint: "В разработке" },
+    { label: "По траект.", icon: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z", action: "sweep", hint: "Протянуть профиль одного эскиза по пути из другого", testId: "ribbon-sweep" },
     { divider: true },
     {
       label: "Комбинировать",

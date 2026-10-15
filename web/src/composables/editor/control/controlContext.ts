@@ -21,6 +21,7 @@ import type { FilletChamferApi } from "../useFilletChamfer";
 import type { ModelHistoryApi } from "../useModelHistory";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
+import type { SweepApi } from "../useSweep";
 import type { ThreadApi } from "../useThread";
 import type { ViewportRef } from "../types";
 
@@ -35,6 +36,7 @@ export interface EditorControlDeps {
   booleanMode: BooleanModeApi;
   filletChamfer: FilletChamferApi;
   thread: ThreadApi;
+  sweep: SweepApi;
   exportApi: ExportApi;
   stepImport: StepImportApi;
   history: ModelHistoryApi;
@@ -65,6 +67,7 @@ export function createControlContext(deps: EditorControlDeps) {
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
       boolean: deps.booleanMode.booleanMode.value,
+      sweep: deps.sweep.sweepMode.value,
     });
   }
 
@@ -83,6 +86,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.filletChamfer.loading.value) return "Идёт построение скругления или фаски.";
     if (deps.thread.loading.value) return "Идёт нарезка резьбы.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
+    if (deps.sweep.loading.value) return "Идёт протяжка по траектории.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";

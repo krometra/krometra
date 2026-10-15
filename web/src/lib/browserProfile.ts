@@ -25,17 +25,30 @@ export function browserProfilesOf(entities: SketchEntity[]): BrowserProfile[] {
   return regions;
 }
 
-export function browserProfileCenter(profile: BrowserProfile): SketchPoint {
-  if (isBrowserCircle(profile)) return profile.center;
-  if (isBrowserRectangle(profile)) {
-    return { x: (profile.corner1.x + profile.corner2.x) / 2, y: (profile.corner1.y + profile.corner2.y) / 2 };
+export interface BrowserProfileBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+export function browserProfileBounds(profile: BrowserProfile): BrowserProfileBounds {
+  if (isBrowserCircle(profile)) {
+    const { center, radius } = profile;
+    return { minX: center.x - radius, maxX: center.x + radius, minY: center.y - radius, maxY: center.y + radius };
   }
-  const bounds = browserContourPolygon(profile.outer).reduce(
+  const points = isBrowserRectangle(profile) ? [profile.corner1, profile.corner2] : browserContourPolygon(profile.outer);
+  return points.reduce(
     (result, point) => ({
       minX: Math.min(result.minX, point.x), maxX: Math.max(result.maxX, point.x),
       minY: Math.min(result.minY, point.y), maxY: Math.max(result.maxY, point.y),
     }),
     { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity },
   );
+}
+
+export function browserProfileCenter(profile: BrowserProfile): SketchPoint {
+  if (isBrowserCircle(profile)) return profile.center;
+  const bounds = browserProfileBounds(profile);
   return { x: (bounds.minX + bounds.maxX) / 2, y: (bounds.minY + bounds.maxY) / 2 };
 }

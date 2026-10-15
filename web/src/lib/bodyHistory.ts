@@ -1,5 +1,5 @@
 import type { TimelineEntry } from "@/types/api";
-import { inputBodiesOf, outputBodyOf } from "./browserRebuildPlan";
+import { featureSketchIds, inputBodiesOf, outputBodyOf } from "./browserRebuildPlan";
 
 export interface ModelDocument {
   components: Record<string, unknown>;
@@ -56,7 +56,7 @@ function usesBodies(document: ModelDocument, entry: TimelineEntry, bodies: Set<s
 }
 
 function usesSketches(entry: TimelineEntry, sketches: Set<string>): boolean {
-  return entry.kind !== "sketch" && entry.sketch_id !== undefined && sketches.has(entry.sketch_id);
+  return featureSketchIds(entry).some((sketchId) => sketches.has(sketchId));
 }
 
 function removedOutputs(document: ModelDocument, entries: TimelineEntry[]) {
@@ -97,7 +97,7 @@ export function bodyChain(document: ModelDocument, bodyId: string): TimelineEntr
     chain.set(producer.id, producer);
     pending.push(...consumedBodiesOf(producer));
   }
-  const sketches = new Set([...chain.values()].map((entry) => entry.sketch_id).filter((id): id is string => Boolean(id)));
+  const sketches = new Set([...chain.values()].flatMap(featureSketchIds));
   for (const sketchId of sketches) {
     const entry = sketchEntryOf(document, sketchId);
     const sharedWithOthers = document.timeline.some((other) => !chain.has(other.id) && usesSketches(other, new Set([sketchId])));
@@ -106,7 +106,7 @@ export function bodyChain(document: ModelDocument, bodyId: string): TimelineEntr
   const bodies = removedOutputs(document, [...chain.values()]).bodies;
   for (const entry of document.timeline) {
     if (entry.kind === "sketch" && !chain.has(entry.id) && usesBodies(document, entry, bodies)) {
-      const used = document.timeline.some((other) => !chain.has(other.id) && other.kind !== "sketch" && other.sketch_id === entry.sketch_id);
+      const used = document.timeline.some((other) => !chain.has(other.id) && usesSketches(other, new Set([entry.sketch_id ?? ""])));
       if (!used) chain.set(entry.id, entry);
     }
   }

@@ -1,5 +1,6 @@
 import { computed } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
+import { featureSketchIds } from "@/lib/browserRebuildPlan";
 import type { TimelineEntry } from "@/types/api";
 
 export interface ComponentEntry {
@@ -34,12 +35,12 @@ export function useDocumentModel() {
   });
 
   function sketchHasFeature(sketchId: string): boolean {
-    return timelineEntries.value.some((e) => e.kind !== "sketch" && e.sketch_id === sketchId);
+    return timelineEntries.value.some((e) => featureSketchIds(e).includes(sketchId));
   }
 
   function dependentFeatures(sketchId: string): TimelineEntry[] {
     return timelineEntries.value.filter(
-      (e) => (e.kind === "extrude" || e.kind === "revolve") && e.sketch_id === sketchId,
+      (e) => (e.kind === "extrude" || e.kind === "revolve" || e.kind === "sweep") && featureSketchIds(e).includes(sketchId),
     );
   }
 

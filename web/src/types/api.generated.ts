@@ -546,6 +546,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/geometry/browser-sweep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Sweep Endpoint */
+        post: operations["browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -775,6 +792,35 @@ export interface components {
             direction: string;
             /** Document Version */
             document_version: number;
+            /** Naming */
+            naming?: string | null;
+            /** Feature Key */
+            feature_key?: string | null;
+        };
+        /** Body_browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post */
+        Body_browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post: {
+            /** Step */
+            step: string;
+            /** Mesh */
+            mesh: string;
+            /** Sketch Id */
+            sketch_id: string;
+            /** Path Sketch Id */
+            path_sketch_id: string;
+            /** Document Version */
+            document_version: number;
+            /**
+             * Orientation
+             * @default corrected
+             */
+            orientation: string;
+            /**
+             * Operation
+             * @default new_body
+             */
+            operation: string;
+            /** Target Body Id */
+            target_body_id?: string | null;
             /** Naming */
             naming?: string | null;
             /** Feature Key */
@@ -2401,6 +2447,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtrudeResponse"];
                 };
             };
             /** @description Validation Error */

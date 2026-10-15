@@ -22,6 +22,12 @@ describe("параметры browser-операций", () => {
     expect(featureParamFields({ ...entry("fillet", {}), params: { radius: 1 } }, {})).toEqual([]);
   });
 
+  it("даёт протяжке выбор ориентации профиля", () => {
+    expect(editableValues(entry("sweep", { path_sketch_id: "s2" }))).toEqual({ orientation: "corrected" });
+    expect(featureParamFields(entry("sweep", {}), { orientation: "corrected" }).map((field) => field.options?.map((option) => option.value)))
+      .toEqual([["corrected", "frenet"]]);
+  });
+
   it("отдаёт только изменённые параметры для команды и отката", () => {
     expect(changedParams({ radius: 1, x: 2 }, { radius: 1, x: 2 })).toBeNull();
     expect(changedParams({ distance: 10, direction: "one_side" }, { distance: 12, direction: "one_side" }))

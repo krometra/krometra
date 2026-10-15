@@ -50,7 +50,7 @@ function closedContour(entity: SketchEntity): BrowserContour | null {
   return null;
 }
 
-function openSegment(entity: SketchEntity): BrowserSegment | null {
+export function openSegment(entity: SketchEntity): BrowserSegment | null {
   if (entity.type === "line") return { kind: "line", start: entity.start, end: entity.end };
   if (entity.type === "arc") {
     const { center, radius, startAngle, endAngle } = entity;
@@ -64,11 +64,11 @@ function openSegment(entity: SketchEntity): BrowserSegment | null {
   return null;
 }
 
-function reversed(segment: BrowserSegment): BrowserSegment {
+export function reversed(segment: BrowserSegment): BrowserSegment {
   return { ...segment, start: segment.end, end: segment.start };
 }
 
-function chainContour(first: BrowserSegment, rest: BrowserSegment[]): BrowserContour {
+export function chainSegments(first: BrowserSegment, rest: BrowserSegment[]): BrowserSegment[] {
   let chain = [first];
   for (let attached = true; attached; ) {
     attached = false;
@@ -83,6 +83,11 @@ function chainContour(first: BrowserSegment, rest: BrowserSegment[]): BrowserCon
     else chain = [reversed(segment), ...chain];
     attached = true;
   }
+  return chain;
+}
+
+function chainContour(first: BrowserSegment, rest: BrowserSegment[]): BrowserContour {
+  const chain = chainSegments(first, rest);
   const start = chain[0].start;
   if (!near(chain[chain.length - 1].end, start)) {
     throw new Error("Контур эскиза не замкнут — соедините концы отрезков и дуг.");
@@ -99,18 +104,27 @@ export function browserContours(entities: SketchEntity[]): BrowserContour[] {
   return contours;
 }
 
-function arcSamples(segment: Extract<BrowserSegment, { kind: "arc" }>): SketchPoint[] {
+type ArcSegment = Extract<BrowserSegment, { kind: "arc" }>;
+
+export function arcCircle(segment: ArcSegment): { center: SketchPoint; ccw: boolean } | null {
   const { start: a, via: b, end: c } = segment;
   const d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
-  if (Math.abs(d) < 1e-12) return [c];
+  if (Math.abs(d) < 1e-12) return null;
   const sq = (p: SketchPoint) => p.x * p.x + p.y * p.y;
   const center = {
     x: (sq(a) * (b.y - c.y) + sq(b) * (c.y - a.y) + sq(c) * (a.y - b.y)) / d,
     y: (sq(a) * (c.x - b.x) + sq(b) * (a.x - c.x) + sq(c) * (b.x - a.x)) / d,
   };
+  return { center, ccw: d > 0 };
+}
+
+function arcSamples(segment: ArcSegment): SketchPoint[] {
+  const { start: a, end: c } = segment;
+  const circle = arcCircle(segment);
+  if (!circle) return [c];
+  const { center, ccw } = circle;
   const radius = Math.hypot(a.x - center.x, a.y - center.y);
   const angle = (p: SketchPoint) => Math.atan2(p.y - center.y, p.x - center.x);
-  const ccw = d > 0;
   const sweep = (from: number, to: number) => {
     const delta = ccw ? to - from : from - to;
     return ((delta % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
