@@ -114,6 +114,14 @@ class SketchData(BaseModel):
     constraints: list[SketchConstraint] = Field(default_factory=list)
 
 
+SKETCH_PRESENTATION_FIELDS = ("visible",)
+
+
+def sketch_component(data: SketchData, previous: object) -> dict:
+    kept = {field: previous[field] for field in SKETCH_PRESENTATION_FIELDS if isinstance(previous, dict) and field in previous}
+    return {**data.model_dump(), **kept}
+
+
 class SketchSaveResponse(BaseModel):
     """Response after saving a sketch."""
     sketch_id: str

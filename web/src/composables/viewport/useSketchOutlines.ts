@@ -99,6 +99,7 @@ export function useSketchOutlines(sketchGroup: THREE.Group) {
     const frame = resolveFrame(sketchFrame);
     const normal = frameNormal(sketchFrame);
     const group = new THREE.Group();
+    group.userData.sketchOutline = sketchId;
     const material = new LineMaterial({ color: OUTLINE_COLOR, linewidth: OUTLINE_WIDTH_PX });
 
     for (const entity of entities) {

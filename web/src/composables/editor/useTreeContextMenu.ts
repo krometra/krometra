@@ -50,8 +50,15 @@ export function useTreeContextMenu(deps: {
     await bodyPresentation.setVisible(bodyId, visible).catch((error) => toast(apiErrorMessage(error, "Не удалось изменить видимость"), "warning"));
   }
 
+  async function toggleSketchVisibility(sketchId: string) {
+    const visible = model.sketches.value.find((sketch) => sketch.id === sketchId)?.visible === false;
+    await bodyPresentation.setSketchVisible(sketchId, visible).catch((error) => toast(apiErrorMessage(error, "Не удалось изменить видимость"), "warning"));
+  }
+
   function sketchItems(id: string): CtxItem[] {
+    const sketch = model.sketches.value.find((candidate) => candidate.id === id);
     const items: CtxItem[] = [
+      { label: sketch?.visible !== false ? "Скрыть" : "Показать", action: () => toggleSketchVisibility(id) },
       { label: "Редактировать эскиз", action: () => sketchFlow.editSketch(id) },
       { label: "Выдавить", action: () => extrude.startExtrudeFromSketch(id, "extrude") },
       { label: "Вращать", action: () => extrude.startExtrudeFromSketch(id, "revolve") },
@@ -95,5 +102,5 @@ export function useTreeContextMenu(deps: {
     return featureItems(current.id);
   });
 
-  return { menu, items, open, close, toggleVisibility };
+  return { menu, items, open, close, toggleVisibility, toggleSketchVisibility };
 }

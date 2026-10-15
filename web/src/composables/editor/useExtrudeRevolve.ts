@@ -6,12 +6,13 @@ import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useParameters } from "@/composables/useParameters";
 import { toast } from "@/composables/useToast";
 import { liveBodyId } from "@/lib/browserBodySuccession";
-import { evaluateExpression } from "@/lib/expr";
+import { parameterQuantities } from "@/lib/units";
 import type { ExtrudeOperation, PlaneBasis, SketchEntity, SketchPlane } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { ViewportRef } from "./types";
 import { useExtrudeExtent, type ExtrudeExtentSettings } from "./useExtrudeExtent";
+import { useQuantityField } from "./useQuantityField";
 
 export interface ExtrudeSettings extends ExtrudeExtentSettings {
   distance?: number;
@@ -45,9 +46,14 @@ export function useExtrudeRevolve(deps: {
   const lastSavedSketchTargetId = ref<string | null>(null);
   // Панель одна на две операции; режим решает, какую из них показать.
   const panelMode = ref<"extrude" | "revolve">("extrude");
-  const extrudeDistance = ref(30.0);
-  const extrudeDistanceExpr = ref("30");
-  const extrudeDistanceInvalid = ref(false);
+  const parameterVariables = () => parameterQuantities(paramsStore.parameters.value);
+  const distanceField = useQuantityField({
+    dimension: "length",
+    initial: 30,
+    variables: parameterVariables,
+    rangeError: (value) => (value > 0 ? null : "Расстояние должно быть больше нуля — сторону задаёт «Реверс»."),
+  });
+  const extrudeDistance = distanceField.value;
   const extrudeDirection = ref<"one_side" | "symmetric" | "two_sided">("one_side");
   const extrudeReversed = ref(false);
   const extrudeOperation = ref<ExtrudeOperation>("new_body");
@@ -56,7 +62,13 @@ export function useExtrudeRevolve(deps: {
   const extrudeLoading = ref(false);
   const extrudeError = ref<string | null>(null);
 
-  const revolveAngle = ref(360.0);
+  const revolveAngleField = useQuantityField({
+    dimension: "angle",
+    initial: 360,
+    variables: parameterVariables,
+    rangeError: (value) => (value > 0 && value <= 360 ? null : "Угол вращения должен быть больше 0 и не больше 360°"),
+  });
+  const revolveAngle = revolveAngleField.value;
   const revolveAxis = ref<"x" | "y">("y");
   const revolveAxisOrigin = ref({ x: 0, y: 0 });
   const revolveDirection = ref<"one_side" | "symmetric">("one_side");
@@ -143,33 +155,7 @@ export function useExtrudeRevolve(deps: {
 
   function onDistanceWheel(e: WheelEvent) {
     const step = e.deltaY < 0 ? 1 : -1;
-    setDistance(Math.max(1, Math.round(extrudeDistance.value + step)));
-  }
-
-  // Инпут расстояния принимает выражения: «30/2», «width*2» (имена из Параметров)
-  function parameterVariables(): Record<string, number> {
-    return Object.fromEntries(paramsStore.parameters.value.map((p) => [p.name, p.value]));
-  }
-
-  // Значение применяется на каждый символ, но текст поля при этом не переписываем:
-  // иначе «12.5» схлопывалось бы в «12» прямо под курсором.
-  function onDistanceInput() {
-    const value = evaluateExpression(extrudeDistanceExpr.value, parameterVariables());
-    extrudeDistanceInvalid.value = value === null || !(value > 0);
-    if (!extrudeDistanceInvalid.value) extrudeDistance.value = value as number;
-  }
-
-  function applyDistanceExpr() {
-    onDistanceInput();
-    if (!extrudeDistanceInvalid.value) {
-      extrudeDistanceExpr.value = String(Number(extrudeDistance.value.toFixed(3)));
-    }
-  }
-
-  function setDistance(value: number) {
-    extrudeDistance.value = value;
-    extrudeDistanceInvalid.value = false;
-    extrudeDistanceExpr.value = String(Number(value.toFixed(3)));
+    distanceField.set(Math.max(1, Math.round(extrudeDistance.value + step)));
   }
 
   function configureExtrude(settings: ExtrudeSettings) {
@@ -177,12 +163,12 @@ export function useExtrudeRevolve(deps: {
     if (settings.targetBodyId !== undefined) extrudeTargetBodyId.value = settings.targetBodyId;
     if (settings.direction !== undefined) extrudeDirection.value = settings.direction;
     if (settings.reversed !== undefined) extrudeReversed.value = settings.reversed;
-    if (settings.distance !== undefined) setDistance(settings.distance);
+    if (settings.distance !== undefined) distanceField.set(settings.distance);
     extent.configure(settings);
   }
 
   function configureRevolve(settings: RevolveSettings) {
-    if (settings.angle !== undefined) revolveAngle.value = settings.angle;
+    if (settings.angle !== undefined) revolveAngleField.set(settings.angle);
     if (settings.axis !== undefined) revolveAxis.value = settings.axis;
     if (settings.axisOrigin !== undefined) revolveAxisOrigin.value = { ...settings.axisOrigin };
     if (settings.direction !== undefined) revolveDirection.value = settings.direction;
@@ -318,7 +304,7 @@ export function useExtrudeRevolve(deps: {
     extrudeReversed.value = false;
     extent.reset();
     revolveDirection.value = "one_side";
-    revolveAngle.value = 360.0;
+    revolveAngleField.set(360);
   }
 
   function startExtrudeFromSketch(sketchId: string, mode: "extrude" | "revolve" = "extrude") {
@@ -358,8 +344,7 @@ export function useExtrudeRevolve(deps: {
     lastSavedSketchTargetId,
     panelMode,
     extrudeDistance,
-    extrudeDistanceExpr,
-    extrudeDistanceInvalid,
+    distanceField,
     extrudeDirection,
     extrudeReversed,
     extrudeSignedDistance,
@@ -370,7 +355,7 @@ export function useExtrudeRevolve(deps: {
     pickExtentFace,
     extrudeLoading,
     extrudeError,
-    revolveAngle,
+    revolveAngleField,
     revolveAxis,
     revolveAxisOrigin,
     revolveDirection,
@@ -379,8 +364,6 @@ export function useExtrudeRevolve(deps: {
     lastOpMs,
     clearSketchContext,
     onDistanceWheel,
-    onDistanceInput,
-    applyDistanceExpr,
     configureExtrude,
     configureRevolve,
     handleExtrude,

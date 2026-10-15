@@ -4,11 +4,11 @@ import type { ViewportRef } from "./types";
 export function useBodyPresentation(deps: { projectId: string; viewportRef: ViewportRef }) {
   const documentStore = useDocument();
 
-  async function updateBody(bodyId: string, patch: Record<string, unknown>) {
+  async function updateComponent(componentId: string, patch: Record<string, unknown>) {
     const doc = documentStore.document.value;
-    const body = doc?.components[bodyId] as Record<string, unknown> | undefined;
-    if (!doc || !body) throw new Error(`Тело «${bodyId}» не найдено в документе.`);
-    documentStore.document.value = { ...doc, components: { ...doc.components, [bodyId]: { ...body, ...patch } } };
+    const component = doc?.components[componentId] as Record<string, unknown> | undefined;
+    if (!doc || !component) throw new Error(`«${componentId}» не найден в документе.`);
+    documentStore.document.value = { ...doc, components: { ...doc.components, [componentId]: { ...component, ...patch } } };
     documentStore.markDirty();
     await documentStore.save(deps.projectId);
     if (documentStore.isDirty.value) throw new Error("Не удалось сохранить документ: он изменён в другой вкладке или сервер недоступен.");
@@ -16,15 +16,19 @@ export function useBodyPresentation(deps: { projectId: string; viewportRef: View
 
   async function setVisible(bodyId: string, visible: boolean) {
     deps.viewportRef.value?.setMeshVisibility(bodyId, visible);
-    await updateBody(bodyId, { visible });
+    await updateComponent(bodyId, { visible });
+  }
+
+  async function setSketchVisible(sketchId: string, visible: boolean) {
+    await updateComponent(sketchId, { visible });
   }
 
   async function setColor(bodyId: string, color: string | null) {
     deps.viewportRef.value?.setMeshColor(bodyId, color);
-    await updateBody(bodyId, { color });
+    await updateComponent(bodyId, { color });
   }
 
-  return { setVisible, setColor };
+  return { setVisible, setSketchVisible, setColor };
 }
 
 export type BodyPresentationApi = ReturnType<typeof useBodyPresentation>;

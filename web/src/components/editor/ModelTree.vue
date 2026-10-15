@@ -11,6 +11,7 @@ const props = defineProps<{ projectId: string }>();
 const emit = defineEmits<{
   "context-menu": [e: MouseEvent, kind: TreeItemKind, id: string];
   "toggle-visibility": [bodyId: string];
+  "toggle-sketch-visibility": [sketchId: string];
 }>();
 
 const selection = useSelection();
@@ -124,6 +125,12 @@ defineExpose({ startRename, cancelRename, isRenaming });
             @blur="commitRename"
           />
           <template v-else>{{ names.sketchLabel(s.id) }}</template>
+          <span
+            :class="$style.treeMeta"
+            title="Кликните, чтобы скрыть/показать"
+            data-testid="sketch-visibility"
+            @click.stop="emit('toggle-sketch-visibility', s.id)"
+          >{{ s.visible !== false ? 'видимо' : 'скрыто' }}</span>
         </div>
       </template>
 

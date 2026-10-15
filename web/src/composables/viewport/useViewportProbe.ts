@@ -3,6 +3,7 @@ import type { SceneContext } from "./types";
 import {
   cameraForView,
   projectToClient,
+  shownSketchOutlineIds,
   threadPreviewSnapshot,
   visibleSceneBodyIds,
   type CameraView,
@@ -25,7 +26,11 @@ export function useViewportProbe(context: SceneContext) {
   function inspectScene() {
     if (!context.ready()) return null;
     const scene = context.scene();
-    return { visibleBodyIds: visibleSceneBodyIds(scene), threadPreview: threadPreviewSnapshot(scene) };
+    return {
+      visibleBodyIds: visibleSceneBodyIds(scene),
+      sketchOutlineIds: shownSketchOutlineIds(scene),
+      threadPreview: threadPreviewSnapshot(scene),
+    };
   }
 
   return { projectPoints, inspectScene };
