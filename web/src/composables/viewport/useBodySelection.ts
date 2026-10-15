@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { MeshEntry } from "./types";
 import { findByBody, findByMesh, visibleMeshes } from "./types";
 import type { SceneContext } from "./types";
+import { visibleBodyHits } from "./clipRaycast";
 
 /** Роль тела в булевой операции. Слоты симметричны — код у них общий. */
 export type BodyRole = "target" | "tool";
@@ -78,7 +79,7 @@ export function useBodySelection(options: {
   function handleClick() {
     const meshes = visibleMeshes(context.entries);
     context.raycaster().setFromCamera(context.pointer(), context.camera());
-    const hits = context.raycaster().intersectObjects(meshes, false);
+    const hits = visibleBodyHits(context, context.raycaster().intersectObjects(meshes, false));
 
     if (hits.length === 0) {
       clear();

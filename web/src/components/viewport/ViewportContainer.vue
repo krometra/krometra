@@ -17,6 +17,10 @@ import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
+import { useSectionView } from "@/composables/viewport/useSectionView";
+import { useCameraLookAt } from "@/composables/viewport/useCameraLookAt";
+import { bodyFaceFrame, visibleBounds } from "@/composables/viewport/bodyGeometry";
+import { raycastFace } from "@/composables/viewport/faceRaycast";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -32,6 +36,7 @@ const emit = defineEmits<{
   bodyDeselected: [payload: { bodyId: string }];
   edgeSelectionChanged: [snapshot: import("@/composables/viewport/useEdgeSelection").EdgeSelectionSnapshot];
   planePicked: [payload: { plane: import("@/types/api").SketchPlane }];
+  faceContextMenu: [payload: { bodyId: string; faceId: string | number; x: number; y: number }];
 }>();
 
 const RENDERING_MODE_LABELS: Record<RenderingMode, string> = {
@@ -54,6 +59,8 @@ const planes = usePlaneHelpers(context);
 const outlines = useSketchOutlines(core.sketchGroup);
 const previews = usePreviews(context);
 const probe = useViewportProbe(context);
+const section = useSectionView(context);
+const lookAt = useCameraLookAt(context, core.animateCameraTo);
 
 const faces = useFaceSelection({
   context,
@@ -79,7 +86,10 @@ const registry = useBodyRegistry({
   shadedEdgesGroup: core.shadedEdgesGroup,
   renderingMode: () => renderingMode.value,
   fitCameraToSphere: core.fitCameraToSphere,
-  onMeshAdded: (entry) => faces.adopt(entry),
+  onMeshAdded: (entry) => {
+    faces.adopt(entry);
+    section.adopt(entry);
+  },
   onMeshRemoved: (entry) => {
     edges.forget(entry);
     faces.forget(entry);
@@ -89,11 +99,12 @@ const registry = useBodyRegistry({
 
 onMounted(() => {
   if (!canvasContainer.value) return;
-  core.init(canvasContainer.value, { onClick: onCanvasClick, onMove: onCanvasMouseMove });
+  core.init(canvasContainer.value, { onClick: onCanvasClick, onMove: onCanvasMouseMove, onContextMenu: onCanvasContextMenu });
   context.scene().add(planes.group);
 });
 
 onUnmounted(() => {
+  section.dispose();
   core.dispose();
   registry.clearAll();
   outlines.clearAll();
@@ -135,6 +146,13 @@ function onCanvasMouseMove(event: MouseEvent) {
   const faceHovered = quad ? (faces.restoreSelected(), false) : faces.handleHover();
 
   core.setCursor(quad || faceHovered ? "pointer" : idleCursor());
+}
+
+function onCanvasContextMenu(event: MouseEvent) {
+  if (!context.ready()) return;
+  core.updatePointer(event);
+  const found = raycastFace(context);
+  if (found) emit("faceContextMenu", { bodyId: found.entry.bodyId, faceId: found.faceId, x: event.clientX, y: event.clientY });
 }
 
 function idleCursor(): string {
@@ -199,12 +217,19 @@ watch(
 
 defineExpose({
   getCameraState: core.getCameraState,
-  captureImage: core.captureImage,
+  captureImage: (width: number, height: number) => section.unclipped(() => core.captureImage(width, height)),
   projectPoints: probe.projectPoints,
   inspectScene: probe.inspectScene,
   setCameraView: core.setCameraView,
   setHelpersVisible: core.setHelpersVisible,
   animateCameraTo: core.animateCameraTo,
+  lookAt: lookAt.lookAt,
+  lookAtFace: lookAt.lookAtFace,
+  faceFrame: (bodyId: string, faceId: string | number) => bodyFaceFrame(entries, bodyId, faceId),
+  modelBounds: () => visibleBounds(entries),
+  setSection: section.apply,
+  clearSection: section.clear,
+  getSection: section.snapshot,
   addMesh,
   removeMesh: registry.removeMesh,
   setMeshVisibility: registry.setMeshVisibility,

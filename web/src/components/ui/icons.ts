@@ -40,6 +40,14 @@ export const ICONS = {
     { d: "M9.5 4.5h11v11h-11z", faded: true },
     { d: "M3.5 8.5 9.5 4.5 M14.5 8.5l6-4 M14.5 19.5l6-4 M3.5 19.5l6-4", faded: true },
   ],
+  section: [
+    { d: CUBE_OUTLINE, faded: true },
+    { d: "M2.5 12.5 12 8l9.5 4.5L12 17z", fill: true },
+  ],
+  lookAt: [
+    { d: "M3.5 19.5h17 M6 16h12", faded: true },
+    { d: "M12 3v9.5 M8.5 9 12 12.5 15.5 9" },
+  ],
 } satisfies Record<string, IconPath[]>;
 
 export type IconName = keyof typeof ICONS;

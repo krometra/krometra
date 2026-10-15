@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { SketchPlane } from "@/types/api";
 import type { SceneContext } from "./types";
 import { visibleMeshes } from "./types";
+import { unclippedHits, visibleBodyHits } from "./clipRaycast";
 import { planeHelperWins } from "@/lib/pickPriority";
 
 const COLORS: Record<SketchPlane, number> = {
@@ -90,8 +91,8 @@ export function usePlaneHelpers(context: SceneContext) {
     if (!group.visible) return null;
     const raycaster = context.raycaster();
     raycaster.setFromCamera(context.pointer(), context.camera());
-    const meshHits = raycaster.intersectObjects(visibleMeshes(context.entries), false);
-    const planeHits = raycaster.intersectObjects(group.children, false);
+    const meshHits = visibleBodyHits(context, raycaster.intersectObjects(visibleMeshes(context.entries), false));
+    const planeHits = unclippedHits(context, raycaster.intersectObjects(group.children, false));
     const meshDist = meshHits.length > 0 ? meshHits[0].distance : Infinity;
     if (planeHits.length > 0 && planeHelperWins(planeHits[0].distance, meshDist)) {
       return planeHits[0].object as THREE.Mesh;

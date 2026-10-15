@@ -25,7 +25,9 @@ export function useViewportProbe(context: SceneContext) {
   function inspectScene() {
     if (!context.ready()) return null;
     const scene = context.scene();
-    return { visibleBodyIds: visibleSceneBodyIds(scene), threadPreview: threadPreviewSnapshot(scene) };
+    const [clip] = context.renderer().clippingPlanes;
+    const section = clip ? { normal: clip.normal.toArray(), constant: clip.constant } : null;
+    return { visibleBodyIds: visibleSceneBodyIds(scene), threadPreview: threadPreviewSnapshot(scene), section };
   }
 
   return { projectPoints, inspectScene };

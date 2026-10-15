@@ -6,8 +6,12 @@ import type { RenderingMode } from "@/composables/editor/types";
 
 const renderingMode = defineModel<RenderingMode>("renderingMode", { required: true });
 
+defineProps<{ sectionActive?: boolean }>();
+
 const emit = defineEmits<{
   "fit-all": [];
+  "look-at": [];
+  "toggle-section": [];
 }>();
 
 const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = [
@@ -29,6 +33,29 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       @click="emit('fit-all')"
     >
       <CsIcon name="fitAll" :size="17" />
+    </CsButton>
+    <CsButton
+      variant="ghost"
+      size="sm"
+      :class="$style.viewBtn"
+      title="Вид по нормали к выбранной грани"
+      aria-label="Вид по нормали к выбранной грани"
+      data-testid="view-look-at"
+      @click="emit('look-at')"
+    >
+      <CsIcon name="lookAt" :size="17" />
+    </CsButton>
+    <CsButton
+      variant="ghost"
+      size="sm"
+      :class="[$style.viewBtn, sectionActive && $style.viewBtnActive]"
+      title="Сечение модели"
+      aria-label="Сечение модели"
+      :aria-pressed="!!sectionActive"
+      data-testid="view-section"
+      @click="emit('toggle-section')"
+    >
+      <CsIcon name="section" :size="17" />
     </CsButton>
     <div :class="$style.vSep" />
     <CsButton

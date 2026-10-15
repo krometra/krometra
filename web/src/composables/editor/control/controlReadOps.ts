@@ -108,10 +108,10 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
     defineOp({
       op: "scene.get",
       description:
-        "Что реально находится в 3D-сцене (обход сцены, а не документ). Возвращает { visibleBodyIds, visibleBodyCount, threadPreview }. threadPreview — призрак резьбы до применения: { starts, pitch, depth, external, threads, bbox: { min, max } } либо null.",
+        "Что реально находится в 3D-сцене (обход сцены, а не документ). Возвращает { visibleBodyIds, visibleBodyCount, threadPreview, section }. threadPreview — призрак резьбы до применения: { starts, pitch, depth, external, threads, bbox: { min, max } } либо null. section — секущая плоскость режима «Сечение» вьюпорта { normal, constant } (остаются точки, где normal·p + constant >= 0) либо null.",
       run: () => {
         const scene = context.viewport().inspectScene();
-        if (!scene) return { visibleBodyIds: [], visibleBodyCount: 0, threadPreview: null };
+        if (!scene) return { visibleBodyIds: [], visibleBodyCount: 0, threadPreview: null, section: null };
         return { ...scene, visibleBodyCount: scene.visibleBodyIds.length };
       },
     }),

@@ -19,6 +19,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useThread                режим резьбы: выбор грани, призрак витков, apply
 │   ├── useStepImport            импорт STEP: выбор файла, лимиты, команда импорта, меши тел
 │   ├── useParametersSync        синхронизация Параметров ↔ document.metadata
+│   ├── useViewInspect           вид по нормали и меню ПКМ грани/базовой плоскости; внутри useSectionMode — сечение вьюпорта
 │   ├── useEditorHotkeys         подписка на клавиатуру (логика Esc-цепочки — в EditorView)
 │   ├── useEditorControl         канал управления window.cadControl: публикация, ready, сборка операций
 │   └── control/                 операции канала по доменам: чтение, вьюпорт, эскиз, операции модели
@@ -39,6 +40,7 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── EdgeSelectionList        чекбокс касательной цепочки + список выбранных рёбер с точечным снятием
     ├── ThreadPanel              панель резьбы: пресеты профиля, шаг, заходы, призрак
     ├── ViewportControls         кнопки вида и режима рендера
+    ├── ViewInspectOverlay       панель сечения (SectionPanel) и меню ПКМ вьюпорта
     └── AxisTriad                триада осей, следит за камерой (Z-up)
 ```
 
@@ -51,4 +53,4 @@ EditorView.vue (оркестратор, ~580 строк)
 - Composable, которому нужен доступ к сцене, принимает `viewportRef` через deps-объект; общие для редактора refs (`viewportSelectionMode`) создаёт EditorView и передаёт вниз.
 - Шаблонные типы, нужные и компоненту, и EditorView, кладём в `composables/editor/types.ts` — `export type` внутри `<script setup>` не компилируется.
 - **Канал управления `window.cadControl`** (e2e-драйвер, MCP) публикует `useEditorControl`; контракт и правила добавления операции — `web/src/lib/control/README.md`. Операция канала вызывает те же методы composables, что панель и лента, и ничего не кликает. Новому режиму или операции редактора нужна своя операция в `composables/editor/control/` и своё имя в `lib/control/mode.ts` — иначе драйвер и MCP их не увидят.
-- Esc-цепочка приоритетов (меню → rename → выбор плоскости → эскиз → режимы → панель extrude → выделение) живёт в `EditorView.handleEscape` — при добавлении нового режима встрой его туда осознанно.
+- Esc-цепочка приоритетов (меню → rename → выбор плоскости → эскиз → меню ПКМ вьюпорта и сечение → режимы → панель extrude → выделение) живёт в `EditorView.handleEscape` — при добавлении нового режима встрой его туда осознанно.
