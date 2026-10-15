@@ -5,6 +5,7 @@ import type { CameraView } from "./sceneProbe";
 import { createGrid, WORLD_UP } from "@/lib/orientation";
 import { ISO_VIEW } from "@/composables/useViewCube";
 import { coverCrop } from "@/lib/projectThumbnail";
+import { isFinitePoint, isUsableCamera, isUsableRadius, viewDirection, type Point3 } from "@/lib/cameraGuard";
 
 /**
  * Порог в пикселях, ниже которого движение мыши с зажатой кнопкой всё ещё
@@ -58,6 +59,8 @@ export function useSceneCore(entries: MeshEntry[]) {
   let animationId: number | null = null;
   let cameraAnimFrame: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
+  let viewportShown = true;
+  let lastGoodView: CameraView | null = null;
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -96,11 +99,7 @@ export function useSceneCore(entries: MeshEntry[]) {
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     applyDefaultView(camera);
 
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.target.set(0, 0, 0);
-    controls.update();
+    controls = createControls(camera, renderer.domElement, new THREE.Vector3(0, 0, 0));
 
     grid = createGrid(20, 20);
     scene.add(grid);
@@ -129,11 +128,15 @@ export function useSceneCore(entries: MeshEntry[]) {
       onPointerDown: guarded.onPointerDown,
     };
 
-    // w/h равны нулю, пока вьюпорт скрыт через v-show
+    // w/h равны нулю, пока вьюпорт скрыт через v-show: OrbitControls делит
+    // протяжку мыши на высоту элемента и копит NaN, поэтому скрытый вьюпорт
+    // не принимает ввод
     resizeObserver = new ResizeObserver(() => {
       const w = container.clientWidth;
       const h = container.clientHeight;
-      if (!renderer || !camera || w === 0 || h === 0) return;
+      viewportShown = w > 0 && h > 0;
+      if (controls) controls.enabled = viewportShown;
+      if (!renderer || !camera || !viewportShown) return;
       renderer.setSize(w, h);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -156,9 +159,48 @@ export function useSceneCore(entries: MeshEntry[]) {
     cam.lookAt(ISO_VIEW.target);
   }
 
+  function createControls(cam: THREE.PerspectiveCamera, element: HTMLElement, target: THREE.Vector3) {
+    const created = new OrbitControls(cam, element);
+    created.enableDamping = true;
+    created.dampingFactor = 0.08;
+    created.enabled = viewportShown;
+    created.target.copy(target);
+    created.update();
+    return created;
+  }
+
+  function point(vector: THREE.Vector3): Point3 {
+    return [vector.x, vector.y, vector.z];
+  }
+
+  function currentView(): CameraView | null {
+    if (!camera || !controls) return null;
+    return { position: point(camera.position), target: point(controls.target), up: point(camera.up) };
+  }
+
+  function rebuildControls(view: CameraView) {
+    if (!camera || !renderer) return;
+    controls?.dispose();
+    camera.position.set(...view.position);
+    camera.up.set(...view.up);
+    controls = createControls(camera, renderer.domElement, new THREE.Vector3(...view.target));
+  }
+
+  function guardCamera() {
+    const view = currentView();
+    if (!view) return;
+    if (isUsableCamera(view.position, view.target)) {
+      lastGoodView = view;
+      return;
+    }
+    stopCameraAnimation();
+    rebuildControls(lastGoodView ?? { position: point(ISO_VIEW.position), target: [0, 0, 0], up: point(ISO_VIEW.up) });
+  }
+
   function animate() {
     animationId = requestAnimationFrame(animate);
     controls?.update();
+    guardCamera();
     if (headlight && camera && controls) {
       headlight.position.copy(camera.position);
       headlight.target.position.copy(controls.target);
@@ -186,9 +228,13 @@ export function useSceneCore(entries: MeshEntry[]) {
 
   function fitCameraToSphere(sphere: THREE.Sphere) {
     if (!camera || !controls || !scene) return;
+    if (!isUsableRadius(sphere.radius) || !isFinitePoint(point(sphere.center))) {
+      resetView();
+      return;
+    }
 
     const distance = (sphere.radius / Math.sin((camera.fov * Math.PI) / 360)) * 1.4;
-    const direction = camera.position.clone().sub(controls.target).normalize();
+    const direction = new THREE.Vector3(...viewDirection(point(camera.position), point(controls.target), point(ISO_VIEW.position)));
 
     controls.target.copy(sphere.center);
     camera.position.copy(sphere.center).addScaledVector(direction, distance);
@@ -233,10 +279,7 @@ export function useSceneCore(entries: MeshEntry[]) {
   function setCameraView(view: CameraView) {
     if (!camera || !controls) return;
     stopCameraAnimation();
-    camera.position.set(...view.position);
-    controls.target.set(...view.target);
-    camera.up.set(...view.up);
-    controls.update();
+    rebuildControls(view);
     camera.updateMatrixWorld();
   }
 

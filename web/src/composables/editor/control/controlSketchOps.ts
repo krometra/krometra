@@ -1,3 +1,4 @@
+import { browserPlaneFrame } from "@/lib/browserExtrudeFrame";
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { param } from "@/lib/control/params";
 import { fail } from "@/lib/control/protocol";
@@ -38,7 +39,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
       loaded: sketch.activeSketchId.value !== null && sketchFlow.canvasSketchId.value === sketch.activeSketchId.value,
       plane: sketch.sketchMode.value ? sketch.sketchPlane.value : null,
       planeOffset: sketch.planeOffset.value,
-      planeBasis: sketch.planeBasis.value,
+      planeBasis: sketch.sketchMode.value ? sketch.planeBasis.value ?? basePlaneBasis() : null,
       refBodyId: sketch.refBodyId.value,
       refFaceId: sketch.refFaceId.value === null ? null : String(sketch.refFaceId.value),
       tool: sketch.currentTool.value,
@@ -47,6 +48,16 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
       canUndo: sketch.canUndo.value,
       canRedo: sketch.canRedo.value,
     };
+  }
+
+  function basePlaneBasis() {
+    const { origin, u, v, n } = browserPlaneFrame({
+      plane: sketch.sketchPlane.value,
+      planeOffset: sketch.planeOffset.value,
+      planeBasis: null,
+      center: { x: 0, y: 0 },
+    });
+    return { origin, u, v, n };
   }
 
   function canvas() {
@@ -127,7 +138,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.get",
       description:
-        "Открытый эскиз. Возвращает { active, id, loaded, plane, planeOffset, planeBasis, refBodyId, refFaceId, tool, entities, constraints, canUndo, canRedo }. Вне режима эскиза active = false, id = null, entities пуст. loaded = true, когда канвас загрузил эскиз и готов к вводу. Сущности: line { start, end }, rectangle { corner1, corner2 }, circle { center, radius }, arc { center, radius, startAngle, endAngle }; construction = true у линий построения (контур грани под эскизом).",
+        "Открытый эскиз. Возвращает { active, id, loaded, plane, planeOffset, planeBasis, refBodyId, refFaceId, tool, entities, constraints, canUndo, canRedo }. planeBasis { origin, u, v, n } — система координат эскиза и на базовой плоскости, и на грани: мировая точка = origin + x·u + y·v. Вне режима эскиза active = false, id = null, planeBasis = null, entities пуст. loaded = true, когда канвас загрузил эскиз и готов к вводу. Сущности: line { start, end }, rectangle { corner1, corner2 }, circle { center, radius }, arc { center, radius, startAngle, endAngle }; construction = true у линий построения (контур грани под эскизом).",
       run: snapshot,
     }),
 

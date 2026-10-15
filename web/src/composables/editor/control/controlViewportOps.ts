@@ -36,7 +36,7 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "camera.set",
       description:
-        "Ставит камеру 3D-вьюпорта в заданную точку сразу, без анимации: следующий кадр и viewport.capture уже покажут новый ракурс. Документ не меняет. Возвращает итоговое { position, target, up }.",
+        "Ставит камеру 3D-вьюпорта в заданную точку сразу, без анимации, полностью перезаписывая её состояние (в том числе после сбоя с NaN): следующий кадр и viewport.capture уже покажут новый ракурс. Документ не меняет. Возвращает итоговое { position, target, up }.",
       params: {
         position: param.vec3("Позиция камеры [x, y, z], мм."),
         target: param.optional(param.vec3("Точка, на которую смотрит камера, [x, y, z]. По умолчанию — текущая цель орбиты.")),
@@ -44,6 +44,16 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
       },
       run: (params) => {
         context.viewport().setCameraView(resolveView(params));
+        return cameraState();
+      },
+    }),
+
+    defineOp({
+      op: "camera.fit",
+      description:
+        "Вписывает видимые тела в кадр — кнопка «Вписать модель»: направление взгляда сохраняется, меняются цель и расстояние. Если камера сломана (например, NaN после сбоя), ставит изометрию. Документ не меняет. Возвращает итоговое { position, target, up }.",
+      run: () => {
+        context.viewport().fitAllBodies();
         return cameraState();
       },
     }),
