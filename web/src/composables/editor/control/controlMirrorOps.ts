@@ -22,11 +22,11 @@ export function mirrorOps(context: EditorControlContext): ControlOp[] {
       },
       run: async ({ bodyId, plane, offset, faceId, merge }) => {
         const target = requestedMirrorPlane(plane, offset, faceId);
-        if (target.kind === "face") context.bodyFace(bodyId, target.faceId);
-        else context.bodyMesh(bodyId);
         if (bodyLineage(context)(bodyId).consumedBy !== null) {
           throw fail("operation_failed", `Тело «${bodyId}» уже поглощено операцией: отражайте его результат (replacedBy в op state).`);
         }
+        if (target.kind === "face") context.bodyFace(bodyId, target.faceId);
+        else context.bodyMesh(bodyId);
         context.leaveTools();
         const known = new Set(context.model.timelineEntries.value.map((entry) => entry.id));
         const resultId = await context.mirror.run(bodyId, target, merge === true);

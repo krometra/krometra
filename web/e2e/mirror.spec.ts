@@ -62,7 +62,7 @@ test("зеркало из ленты: призрак, применение, пр
   expectBox(across?.bbox, [-10, 0, 0], [0, 4, 2], "призрак через YZ");
 
   await page.getByTestId("mirror-plane-XY").dispatchEvent("click");
-  await page.getByTestId("mirror-offset").fill("5");
+  await page.getByTestId("mirror-offset").locator("input").fill("5");
   await expect.poll(async () => (await ghost(cad))?.bbox.min[2], { message: "призрак следует за смещением" }).toBeCloseTo(8, 1);
   expectBox((await ghost(cad))?.bbox, [0, 0, 8], [10, 4, 10], "призрак через XY + 5 мм");
   expect(await channelKinds(cad), "призрак ничего не строит").not.toContain("mirror");
