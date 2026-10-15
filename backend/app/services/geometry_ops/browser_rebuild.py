@@ -20,13 +20,15 @@ from .browser_storage import browser_body_objects, persist_replaced_bodies
 from .limits import MAX_PARAMS_BYTES, MAX_REBUILD_BODIES
 
 DIRECTIONS = {"extrude": ("one_side", "symmetric", "two_sided"), "revolve": ("one_side", "symmetric")}
-POSITIVE = {"radius", "distance1", "distance2", "pitch", "length"}
+POSITIVE = {"radius", "distance1", "distance2", "pitch", "length", "diameter", "depth", "cbore_diameter", "cbore_depth", "csink_diameter", "csink_angle"}
+CHOICES = {"hole_type": ("simple", "counterbore", "countersink"), "extent": ("distance", "through_all"), "bottom": ("flat", "cone")}
 EDITABLE_PARAMS = {
     "extrude": {"distance", "direction", "back_distance", "offset"},
     "revolve": {"angle", "direction"},
     "fillet": {"radius"},
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
+    "hole": {"hole_type", "diameter", "extent", "depth", "bottom", "cbore_diameter", "cbore_depth", "csink_diameter", "csink_angle"},
 }
 
 
@@ -51,6 +53,10 @@ def _validated_value(kind: str, key: str, value: object):
         if value not in DIRECTIONS.get(kind, ()):
             _invalid("Недопустимое направление операции.")
         return value
+    if key in CHOICES:
+        if value not in CHOICES[key]:
+            _invalid("Недопустимый вариант параметра операции.")
+        return value
     if not _is_number(value):
         _invalid("Параметры операции должны быть конечными числами.")
     if key in POSITIVE and value <= 0:
@@ -61,6 +67,8 @@ def _validated_value(kind: str, key: str, value: object):
         _invalid("Обратное расстояние не может быть отрицательным.")
     if key == "angle" and not 0 < value <= 360:
         _invalid("Угол вращения должен быть в пределах (0, 360].")
+    if key == "csink_angle" and value >= 180:
+        _invalid("Угол зенковки должен быть меньше 180°.")
     if kind == "thread" and key == "offset" and value < 0:
         _invalid("Отступ резьбы не может быть отрицательным.")
     return float(value)

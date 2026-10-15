@@ -7,6 +7,7 @@ const idle: EditorModeFlags = {
   sweepPanel: null,
   edgeFeature: null,
   thread: false,
+  hole: false,
   boolean: false,
 };
 
@@ -23,6 +24,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, edgeFeature: "fillet" })).toBe("fillet");
     expect(resolveEditorMode({ ...idle, edgeFeature: "chamfer" })).toBe("chamfer");
     expect(resolveEditorMode({ ...idle, thread: true })).toBe("thread");
+    expect(resolveEditorMode({ ...idle, hole: true })).toBe("hole");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
   });
 
@@ -30,5 +32,6 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, sketch: true, sweepPanel: "extrude", boolean: true })).toBe("sketch");
     expect(resolveEditorMode({ ...idle, sweepPanel: "revolve", edgeFeature: "fillet", thread: true })).toBe("revolve");
     expect(resolveEditorMode({ ...idle, edgeFeature: "chamfer", thread: true, boolean: true })).toBe("chamfer");
+    expect(resolveEditorMode({ ...idle, hole: true, boolean: true })).toBe("hole");
   });
 });

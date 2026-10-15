@@ -4,6 +4,7 @@ import { findByMesh, visibleMeshes } from "./types";
 export interface FaceHit {
   entry: MeshEntry;
   faceId: string | number;
+  point: [number, number, number];
 }
 
 export function raycastFace(context: SceneContext): FaceHit | null {
@@ -15,5 +16,5 @@ export function raycastFace(context: SceneContext): FaceHit | null {
   const entry = findByMesh(context.entries, hits[0].object);
   const faceId = entry?.faceTriangleMap[hits[0].faceIndex];
   if (!entry || faceId === undefined) return null;
-  return { entry, faceId };
+  return { entry, faceId, point: hits[0].point.toArray() };
 }

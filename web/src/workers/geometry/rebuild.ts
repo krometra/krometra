@@ -3,6 +3,7 @@ import type { RebuildKind, RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import { booleanNamed } from "./boolean";
 import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
+import { holeNamed, type HoleBuildRequest } from "./hole";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
 import { revolveNamed } from "./revolve";
@@ -34,6 +35,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   chamfer: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   thread: (request: ThreadBuildRequest, lookup) => threadNamed(request, (bodyId) => lookup(bodyId)),
   transform: (request: TransformRequest, lookup) => transformNamed(request, lookup),
+  hole: (request: HoleBuildRequest, lookup) => holeNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

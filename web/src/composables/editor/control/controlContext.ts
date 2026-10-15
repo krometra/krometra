@@ -18,6 +18,7 @@ import type { useDocumentModel } from "../useDocumentModel";
 import type { ExportApi } from "../useExport";
 import type { ExtrudeRevolveApi } from "../useExtrudeRevolve";
 import type { FilletChamferApi } from "../useFilletChamfer";
+import type { HoleApi } from "../useHole";
 import type { ModelHistoryApi } from "../useModelHistory";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
@@ -35,6 +36,7 @@ export interface EditorControlDeps {
   booleanMode: BooleanModeApi;
   filletChamfer: FilletChamferApi;
   thread: ThreadApi;
+  hole: HoleApi;
   exportApi: ExportApi;
   stepImport: StepImportApi;
   history: ModelHistoryApi;
@@ -64,6 +66,7 @@ export function createControlContext(deps: EditorControlDeps) {
       sweepPanel: deps.extrude.lastSavedSketchId.value ? deps.extrude.panelMode.value : null,
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
+      hole: deps.hole.holeMode.value,
       boolean: deps.booleanMode.booleanMode.value,
     });
   }
@@ -82,6 +85,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.extrude.revolveLoading.value) return "Идёт вращение.";
     if (deps.filletChamfer.loading.value) return "Идёт построение скругления или фаски.";
     if (deps.thread.loading.value) return "Идёт нарезка резьбы.";
+    if (deps.hole.loading.value) return "Идёт сверление отверстий.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";

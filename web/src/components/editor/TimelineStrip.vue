@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CsButton from "@/components/ui/CsButton.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
+import { holeDetail } from "@/lib/holeFeature";
 import type { TimelineEntry } from "@/types/api";
 
 defineProps<{
@@ -28,6 +29,7 @@ function timelineIcon(kind: string): string {
     revolve: "M12 3a9 9 0 1 1 0 18 M12 5v9l4 3",
     fillet: "M4 20V10a6 6 0 0 1 6-6h10",
     chamfer: "M4 20L20 4 M4 14v6h6",
+    hole: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
     import: "M12 3v12 M7 10l5 5 5-5 M4 19h16",
     transform: "M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M21 12l-3-3 M21 12l-3 3",
   };
@@ -65,6 +67,8 @@ function timelineDetail(entry: TimelineEntry): string {
       const kind = p.kind === 'internal' ? 'внутр.' : 'внеш.';
       return `${kind} · шаг ${p.pitch ?? '?'}мм`;
     }
+    case "hole":
+      return holeDetail(entry.params ?? {});
     case "import":
       return typeof entry.params?.file_name === 'string' ? entry.params.file_name : 'STEP';
     case "transform":

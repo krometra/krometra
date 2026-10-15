@@ -17,6 +17,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useBooleanMode           режим CSG: выбор target/tool, apply
 │   ├── useFilletChamfer         режим скругления/фаски: выбор рёбер, apply
 │   ├── useThread                режим резьбы: выбор грани, призрак витков, apply
+│   ├── useHole                  режим отверстия: плоская грань, центры кликами или из эскиза, призрак, apply
 │   ├── useStepImport            импорт STEP: выбор файла, лимиты, команда импорта, меши тел
 │   ├── useParametersSync        синхронизация Параметров ↔ document.metadata
 │   ├── useEditorHotkeys         подписка на клавиатуру (логика Esc-цепочки — в EditorView)
@@ -38,6 +39,7 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── FilletChamferPanel       панель скругления/фаски (prop: FilletChamferApi)
     ├── EdgeSelectionList        чекбокс касательной цепочки + список выбранных рёбер с точечным снятием
     ├── ThreadPanel              панель резьбы: пресеты профиля, шаг, заходы, призрак
+    ├── HolePanel                панель отверстия: тип, центры, диаметр, глубина, дно, цековка/зенковка
     ├── ViewportControls         кнопки вида и режима рендера
     └── AxisTriad                триада осей, следит за камерой (Z-up)
 ```

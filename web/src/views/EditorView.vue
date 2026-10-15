@@ -15,6 +15,7 @@ import { useSketchLifecycle } from "@/composables/editor/useSketchLifecycle";
 import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
+import { useHole } from "@/composables/editor/useHole";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -42,6 +43,7 @@ import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
 import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
+import HolePanel from "@/components/editor/HolePanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -94,6 +96,7 @@ const sketchFlow = useSketchLifecycle({
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -126,6 +129,7 @@ onMounted(async () => {
 function leaveActiveTools() {
   if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
   if (thread.threadMode.value) thread.exit();
+  if (hole.holeMode.value) hole.exit();
   if (booleanMode.booleanMode.value) booleanMode.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
@@ -145,12 +149,13 @@ function handleRibbonAction(action: RibbonAction) {
   if (action === "boolean") booleanMode.enter();
   else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
   else if (action === "thread") thread.enter();
+  else if (action === "hole") hole.enter();
   else extrude.startExtrudeFromRibbon(action);
 }
 
 // --- События вьюпорта ---
 
-function onFaceSelected(payload: { bodyId: string; faceId: string | number; brepTopo: BrepTopo }) {
+function onFaceSelected(payload: { bodyId: string; faceId: string | number; brepTopo: BrepTopo; point?: [number, number, number] }) {
   if (sketchFlow.facePickMode.value) {
     sketchFlow.handleFaceSketchStart(payload);
     return;
@@ -159,6 +164,7 @@ function onFaceSelected(payload: { bodyId: string; faceId: string | number; brep
     thread.onFaceSelected(payload);
     return;
   }
+  if (hole.onFaceSelected(payload)) return;
   if (extrude.pickExtentFace(payload)) return;
   selection.selectFace(payload.bodyId, payload.faceId, payload.brepTopo);
 }
@@ -193,7 +199,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, hole,
       exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
     });
 
@@ -221,6 +227,7 @@ function handleEscape() {
     thread.exit();
     return;
   }
+  if (hole.holeMode.value) return hole.exit();
   if (booleanMode.booleanMode.value) {
     booleanMode.exit();
     return;
@@ -255,6 +262,7 @@ const busyLabel = computed(() => {
   if (extrude.revolveLoading.value) return "Вращение…";
   if (filletChamfer.loading.value) return "Построение…";
   if (thread.loading.value) return "Нарезка резьбы…";
+  if (hole.loading.value) return "Сверление отверстий…";
   if (booleanMode.loading.value) return "Булева операция…";
   return null;
 });
@@ -271,6 +279,7 @@ const onboarding = useOnboarding({
       extrude.lastSavedSketchId.value !== null ||
       filletChamfer.filletChamferMode.value ||
       thread.threadMode.value ||
+      hole.holeMode.value ||
       booleanMode.booleanMode.value,
   ),
 });
@@ -424,6 +433,7 @@ const selectionLabel = computed(() => {
           v-else-if="thread.threadMode.value"
           :thread="thread"
         />
+        <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
         <BooleanPanel
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"

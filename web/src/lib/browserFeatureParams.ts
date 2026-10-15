@@ -1,5 +1,7 @@
 import type { TimelineEntry } from "@/types/api";
 import { editableBrowserParams, isBrowserFeature } from "./browserRebuildPlan";
+import { holeParamFields, holeParamsOf } from "./holeFeature";
+import { DEFAULT_HOLE_SPEC } from "./holeGeometry";
 
 export type FeatureParamValue = number | string;
 
@@ -30,6 +32,7 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   distance2: 1,
   pitch: 1,
   length: 10,
+  ...holeParamsOf(DEFAULT_HOLE_SPEC),
 };
 
 export function editableValues(entry: TimelineEntry): Record<string, FeatureParamValue> {
@@ -75,6 +78,7 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { key: "offset", label: "Отступ", kind: "number", suffix: "мм", min: 0 },
     ];
   }
+  if (entry.kind === "hole") return holeParamFields(values);
   return [];
 }
 

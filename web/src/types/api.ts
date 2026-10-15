@@ -46,7 +46,7 @@ export interface DocumentUpdate {
 export interface TimelineEntry {
   id: string;
   timestamp: string;
-  kind: "sketch" | "extrude" | "boolean" | "revolve" | "fillet" | "chamfer" | "thread" | "import" | "transform";
+  kind: "sketch" | "extrude" | "boolean" | "revolve" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "hole";
   label: string;
   status: "ok" | "warning" | "error" | "dirty";
   sketch_id?: string;
@@ -201,6 +201,7 @@ export interface ChamferResponse {
 }
 
 export type ThreadResponse = Schemas["ThreadResponse"];
+export type HoleResponse = Schemas["HoleResponse"];
 
 export interface ThreadCylinderResponse {
   cylindrical: boolean;

@@ -39,7 +39,7 @@ export function useDocumentModel() {
 
   function dependentFeatures(sketchId: string): TimelineEntry[] {
     return timelineEntries.value.filter(
-      (e) => (e.kind === "extrude" || e.kind === "revolve") && e.sketch_id === sketchId,
+      (e) => (e.kind === "extrude" || e.kind === "revolve" || e.kind === "hole") && e.sketch_id === sketchId,
     );
   }
 

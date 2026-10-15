@@ -1,6 +1,7 @@
 import { booleanNamed } from "./geometry/boolean";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
+import { holeNamed } from "./geometry/hole";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
 import { revolveNamed } from "./geometry/revolve";
@@ -33,6 +34,7 @@ function buildShape(data: Request) {
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));
+  if (data.kind === "hole") return publishNamed(() => holeNamed(data, namedBodyShape));
   return null;
 }
 

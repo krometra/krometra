@@ -16,6 +16,7 @@ import { useEdgeSelection } from "@/composables/viewport/useEdgeSelection";
 import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
+import { useHolePreview } from "@/composables/viewport/useHolePreview";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
 
 export type { SketchFrame } from "@/composables/viewport/types";
@@ -26,7 +27,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  faceSelected: [payload: { bodyId: string; faceId: string | number; brepTopo: import("@/types/api").BrepTopo }];
+  faceSelected: [payload: { bodyId: string; faceId: string | number; brepTopo: import("@/types/api").BrepTopo; point?: [number, number, number] }];
   selectionCleared: [];
   bodySelected: [payload: { bodyId: string }];
   bodyDeselected: [payload: { bodyId: string }];
@@ -53,6 +54,7 @@ const { context } = core;
 const planes = usePlaneHelpers(context);
 const outlines = useSketchOutlines(core.sketchGroup);
 const previews = usePreviews(context);
+const holePreview = useHolePreview(context);
 const probe = useViewportProbe(context);
 
 const faces = useFaceSelection({
@@ -102,6 +104,7 @@ onUnmounted(() => {
   previews.hideExtrude();
   previews.hideFillet();
   previews.hideThread();
+  holePreview.hideHoles();
 });
 
 function onCanvasClick(event: MouseEvent) {
@@ -224,6 +227,8 @@ defineExpose({
   hideFilletPreview: previews.hideFillet,
   showThreadPreview: previews.showThread,
   hideThreadPreview: previews.hideThread,
+  showHolePreview: holePreview.showHoles,
+  hideHolePreview: holePreview.hideHoles,
   fitAllBodies,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,

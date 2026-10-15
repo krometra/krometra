@@ -18,18 +18,27 @@ const FEATURE_RESULT =
 const EXACT_EDGES =
   "В операцию уходят ровно перечисленные рёбра: касательная цепочка интерфейса их не расширяет.";
 
+export async function applyControlFeature(
+  context: EditorControlContext,
+  run: () => Promise<void>,
+  readError: () => string | null,
+  leave: () => void,
+) {
+  const known = new Set(context.model.timelineEntries.value.map((entry) => entry.id));
+  await run();
+  const error = readError();
+  leave();
+  if (error) throw fail(error === SAVE_FAILED_MESSAGE ? "save_failed" : "operation_failed", error);
+  const created = [...context.model.timelineEntries.value].reverse().find((entry) => !known.has(entry.id));
+  if (!created) throw fail("operation_failed", "Операция не добавила запись в историю модели.");
+  return { feature: context.timelineEntry(created), mode: context.mode() };
+}
+
 export function featureOps(context: EditorControlContext): ControlOp[] {
   const { extrude, filletChamfer, booleanMode, thread } = context;
 
-  async function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
-    const known = new Set(context.model.timelineEntries.value.map((entry) => entry.id));
-    await run();
-    const error = readError();
-    leave();
-    if (error) throw fail(error === SAVE_FAILED_MESSAGE ? "save_failed" : "operation_failed", error);
-    const created = [...context.model.timelineEntries.value].reverse().find((entry) => !known.has(entry.id));
-    if (!created) throw fail("operation_failed", "Операция не добавила запись в историю модели.");
-    return { feature: context.timelineEntry(created), mode: context.mode() };
+  function applyFeature(run: () => Promise<void>, readError: () => string | null, leave: () => void) {
+    return applyControlFeature(context, run, readError, leave);
   }
 
   function requireVisibleBody(bodyId: string) {
