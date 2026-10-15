@@ -18,6 +18,7 @@ import type { MeshTolerance } from "@/lib/meshQuality";
 import type { SavedNaming } from "@/lib/browserNaming";
 import type { RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import type { SketchSeatPlacement } from "@/lib/browserSketchSeat";
+import type { BrowserSweepOrientation } from "@/lib/browserSweepPath";
 import type { MeshData, PlaneBasis, SketchEntity, SketchPlane } from "@/types/api";
 import { setBrowserKernelMemory, setBrowserKernelPhase } from "./browserKernelStatus";
 
@@ -39,6 +40,13 @@ export interface BrowserExtrudeOptions {
   upToBodyId: string | null;
   upToFaceId: string | number | null;
   upToFacePoints: Vector3[] | null;
+}
+
+export interface BrowserSweepOptions {
+  path: BrowserSketchPlacement;
+  orientation: BrowserSweepOrientation;
+  operation: BrowserExtrudeOperation;
+  targetBodyId: string | null;
 }
 
 export interface BrowserBuildResult {
@@ -219,6 +227,11 @@ export async function buildBrowserExtrude(input: BrowserSketchPlacement & Browse
 export async function buildBrowserRevolve(input: BrowserSketchPlacement & { axisOrigin: { x: number; y: number }; axis: "x" | "y"; angle: number; direction: "one_side" | "symmetric" }, featureKey: string): Promise<BrowserBuildResult> {
   const result = await request({ kind: "revolve", ...cloneBrowserWorkerInput(input), featureKey });
   return buildResult(result, "Браузерное ядро вернуло неполный результат вращения.");
+}
+
+export async function buildBrowserSweep(input: BrowserSketchPlacement & BrowserSweepOptions, featureKey: string): Promise<BrowserBuildResult> {
+  const result = await request({ kind: "sweep", ...cloneBrowserWorkerInput(input), featureKey });
+  return buildResult(result, "Браузерное ядро вернуло неполный результат протяжки.");
 }
 
 export async function buildBrowserBoolean(operation: BrowserBooleanOperation, targetBodyId: string, toolBodyId: string, featureKey: string): Promise<BrowserBuildResult> {

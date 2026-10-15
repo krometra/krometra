@@ -26,9 +26,11 @@ DIRECTIONS = {
     "shell": ("inward", "outward"),
 }
 POSITIVE = {"radius", "distance1", "distance2", "pitch", "length", "thickness"}
+ORIENTATIONS = ("corrected", "frenet")
 EDITABLE_PARAMS = {
     "extrude": {"distance", "direction", "back_distance", "offset"},
     "revolve": {"angle", "direction"},
+    "sweep": {"orientation"},
     "fillet": {"radius"},
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
@@ -61,6 +63,10 @@ def _validated_value(kind: str, key: str, value: object):
     if key == "plane":
         if value not in MIRROR_PLANES:
             _invalid("Базовая плоскость зеркала — XY, XZ или YZ.")
+        return value
+    if key == "orientation":
+        if value not in ORIENTATIONS:
+            _invalid("Ориентация профиля протяжки — corrected или frenet.")
         return value
     if not _is_number(value):
         _invalid("Параметры операции должны быть конечными числами.")

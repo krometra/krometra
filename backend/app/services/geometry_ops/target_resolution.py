@@ -19,7 +19,7 @@
 from fastapi import HTTPException, status
 
 # Операции, которые потребляют целевое тело и выдают новое вместо него.
-_CONSUMING_KINDS = {"extrude", "boolean", "fillet", "chamfer", "revolve", "browser_extrude", "browser_boolean"}
+_CONSUMING_KINDS = {"extrude", "boolean", "fillet", "chamfer", "revolve", "browser_extrude", "browser_boolean", "browser_sweep"}
 
 
 def _bad_request(error: str, description: str) -> HTTPException:

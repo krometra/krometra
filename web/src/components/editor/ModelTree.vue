@@ -35,6 +35,7 @@ const kindColor = (kind: string): string => {
     extrude: "oklch(0.70 0.13 233)",
     boolean: "oklch(0.65 0.14 300)",
     revolve: "oklch(0.68 0.16 180)",
+    sweep: "oklch(0.70 0.13 180)",
     fillet: "oklch(0.72 0.14 120)",
     chamfer: "oklch(0.72 0.15 45)",
     shell: "oklch(0.74 0.15 55)",

@@ -33,6 +33,7 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   length: 10,
   thickness: 1,
   plane: "XY",
+  orientation: "corrected",
 };
 
 const SHELL_DIRECTION_OPTIONS = [
@@ -68,6 +69,12 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { key: "angle", label: "Угол", kind: "number", suffix: "°", min: 0.1, max: 360 },
       { key: "direction", label: "Направление", kind: "select", options: [DIRECTION_OPTIONS.one_side, DIRECTION_OPTIONS.symmetric] },
     ];
+  }
+  if (entry.kind === "sweep") {
+    return [{ key: "orientation", label: "Ориентация", kind: "select", options: [
+      { label: "Без закрутки", value: "corrected" },
+      { label: "По Френе", value: "frenet" },
+    ] }];
   }
   if (entry.kind === "fillet") return [{ key: "radius", label: "Радиус", kind: "number", suffix: "мм", min: 0.01 }];
   if (entry.kind === "chamfer") {

@@ -11,6 +11,7 @@ _LABELS = {
     "extrude": "Выдавить",
     "boolean": "Boolean",
     "revolve": "Вращение",
+    "sweep": "По траектории",
     "fillet": "Скругление",
     "chamfer": "Фаска",
     "thread": "Резьба",

@@ -27,6 +27,7 @@ function timelineIcon(kind: string): string {
     extrude: "M12 3v18 M5 8l7-5 7 5 M5 8v8l7 5 7-5V8",
     boolean: "M3 3h8v8H3z M13 3h8v8h-8z M8 13h8v8H8z",
     revolve: "M12 3a9 9 0 1 1 0 18 M12 5v9l4 3",
+    sweep: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z",
     fillet: "M4 20V10a6 6 0 0 1 6-6h10",
     chamfer: "M4 20L20 4 M4 14v6h6",
     import: "M12 3v12 M7 10l5 5 5-5 M4 19h16",
@@ -52,6 +53,11 @@ function timelineDetail(entry: TimelineEntry): string {
       const p = entry.params ?? {};
       const dir = p.direction === 'symmetric' ? 'симм.' : 'одност.';
       return `${p.angle ?? '?'}° · ${p.axis ?? 'y'} · ${dir}`;
+    }
+    case "sweep": {
+      const p = entry.params ?? {};
+      const op = p.operation === 'cut' ? 'вырез' : p.operation === 'join' ? 'приклеить' : 'тело';
+      return `${op} · ${typeof p.path_sketch_id === 'string' ? names.sketchLabel(p.path_sketch_id) : '?'}`;
     }
     case "fillet": {
       const p = entry.params ?? {};

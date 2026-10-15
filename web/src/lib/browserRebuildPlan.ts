@@ -2,7 +2,7 @@ import type { TimelineEntry } from "@/types/api";
 import { mirrorPlaneOfParams } from "./mirrorPlane";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 
-export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror";
+export type RebuildKind = "extrude" | "revolve" | "sweep" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror";
 
 export interface RebuildStep {
   entryId: string;
@@ -24,11 +24,12 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
   revolve: ["angle", "direction"],
+  sweep: ["orientation"],
   fillet: ["radius"],
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
@@ -64,9 +65,15 @@ export function inputBodiesOf(entry: TimelineEntry): string[] {
   return [...new Set(ids.map(text).filter((id): id is string => id !== null))];
 }
 
-function sketchPlacement(document: RebuildDocument, entry: TimelineEntry) {
-  const sketch = document.components[entry.sketch_id ?? ""] as Record<string, unknown> | undefined;
-  if (!sketch || !Array.isArray(sketch.entities)) throw new Error(`Эскиз операции «${entry.label}» не найден.`);
+export function featureSketchIds(entry: TimelineEntry): string[] {
+  if (entry.kind === "sketch") return [];
+  const path = entry.kind === "sweep" ? [text(entry.params?.path_sketch_id)] : [];
+  return [...new Set([text(entry.sketch_id), ...path].filter((id): id is string => id !== null))];
+}
+
+function sketchPlacement(document: RebuildDocument, sketchId: string | null | undefined, label: string) {
+  const sketch = document.components[sketchId ?? ""] as Record<string, unknown> | undefined;
+  if (!sketch || !Array.isArray(sketch.entities)) throw new Error(`Эскиз операции «${label}» не найден.`);
   return {
     entities: sketch.entities,
     plane: text(sketch.plane) ?? "XY",
@@ -77,7 +84,7 @@ function sketchPlacement(document: RebuildDocument, entry: TimelineEntry) {
 
 function extrudeRequest(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>) {
   return {
-    ...sketchPlacement(document, entry),
+    ...sketchPlacement(document, entry.sketch_id, entry.label),
     distance: number(params.distance, 10),
     direction: text(params.direction) ?? "one_side",
     extentType: text(params.extent_type) ?? "distance",
@@ -125,11 +132,22 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     return {
       kind: "revolve",
       featureKey,
-      ...sketchPlacement(document, entry),
+      ...sketchPlacement(document, entry.sketch_id, entry.label),
       axisOrigin: params.axis_origin,
       axis: params.axis,
       angle: number(params.angle, 360),
       direction: text(params.direction) ?? "one_side",
+    };
+  }
+  if (entry.kind === "sweep") {
+    return {
+      kind: "sweep",
+      featureKey,
+      ...sketchPlacement(document, entry.sketch_id, entry.label),
+      path: sketchPlacement(document, text(params.path_sketch_id), entry.label),
+      orientation: text(params.orientation) ?? "corrected",
+      operation: text(params.operation) ?? "new_body",
+      targetBodyId: text(params.target_body_id),
     };
   }
   if (entry.kind === "boolean") {
@@ -185,7 +203,7 @@ export function sketchRebuildRoots(document: RebuildDocument, sketchId: string):
   const covered = new Set<string>();
   const roots: string[] = [];
   for (const entry of document.timeline) {
-    if (entry.sketch_id !== sketchId || entry.kind === "sketch" || covered.has(entry.id)) continue;
+    if (!featureSketchIds(entry).includes(sketchId) || covered.has(entry.id)) continue;
     browserRebuildPlan(document, entry.id, {}).forEach((step) => covered.add(step.entryId));
     roots.push(entry.id);
   }

@@ -31,6 +31,12 @@ describe("параметры browser-операций", () => {
     expect(editableValues(entry("mirror", { face_id: "f-x" }))).toEqual({ plane: "XY", offset: 0 });
   });
 
+  it("даёт протяжке выбор ориентации профиля", () => {
+    expect(editableValues(entry("sweep", { path_sketch_id: "s2" }))).toEqual({ orientation: "corrected" });
+    expect(featureParamFields(entry("sweep", {}), { orientation: "corrected" }).map((field) => field.options?.map((option) => option.value)))
+      .toEqual([["corrected", "frenet"]]);
+  });
+
   it("отдаёт только изменённые параметры для команды и отката", () => {
     expect(changedParams({ radius: 1, x: 2 }, { radius: 1, x: 2 })).toBeNull();
     expect(changedParams({ distance: 10, direction: "one_side" }, { distance: 12, direction: "one_side" }))

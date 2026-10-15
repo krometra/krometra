@@ -10,6 +10,7 @@ import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { shellNamed, type ShellRequest } from "./shell";
 import { seatSketchOnFace } from "./sketchSeat";
+import { sweepNamed, type SweepRequest } from "./sweep";
 import { threadNamed, type ThreadBuildRequest } from "./thread";
 import { transformNamed, type TransformRequest } from "./transform";
 import type { BodyLookup, BooleanRequest, EdgeFeatureRequest, ExtrudeRequest, RevolveRequest } from "./types";
@@ -31,6 +32,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   import: importedBody,
   extrude: (request: ExtrudeRequest, lookup) => extrudeNamed(request, lookup),
   revolve: (request: RevolveRequest) => revolveNamed(request),
+  sweep: (request: SweepRequest, lookup) => sweepNamed(request, lookup),
   boolean: (request: BooleanRequest, lookup) => booleanNamed(request, lookup),
   fillet: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   chamfer: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),

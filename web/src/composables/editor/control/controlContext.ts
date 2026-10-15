@@ -22,6 +22,7 @@ import type { MirrorApi } from "../useMirror";
 import type { ModelHistoryApi } from "../useModelHistory";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
+import type { SweepApi } from "../useSweep";
 import type { ThreadApi } from "../useThread";
 import type { ShellApi } from "../useShell";
 import type { ViewportRef } from "../types";
@@ -38,6 +39,7 @@ export interface EditorControlDeps {
   filletChamfer: FilletChamferApi;
   thread: ThreadApi;
   mirror: MirrorApi;
+  sweep: SweepApi;
   exportApi: ExportApi;
   stepImport: StepImportApi;
   history: ModelHistoryApi;
@@ -71,6 +73,7 @@ export function createControlContext(deps: EditorControlDeps) {
       shell: deps.shell.shellMode.value,
       mirror: deps.mirror.mirrorMode.value,
       boolean: deps.booleanMode.booleanMode.value,
+      sweep: deps.sweep.sweepMode.value,
     });
   }
 
@@ -91,6 +94,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.shell.loading.value) return "Идёт построение оболочки.";
     if (deps.mirror.loading.value) return "Идёт зеркальное отражение тела.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
+    if (deps.sweep.loading.value) return "Идёт протяжка по траектории.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";

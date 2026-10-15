@@ -18,6 +18,7 @@ import { useThread } from "@/composables/editor/useThread";
 import { useShell } from "@/composables/editor/useShell";
 import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorTools } from "@/composables/editor/useEditorTools";
+import { useSweep } from "@/composables/editor/useSweep";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -47,6 +48,7 @@ import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
 import ShellPanel from "@/components/editor/ShellPanel.vue";
 import MirrorPanel from "@/components/editor/MirrorPanel.vue";
+import SweepPanel from "@/components/editor/SweepPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -103,6 +105,7 @@ const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMo
 const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool]);
+const sweep = useSweep({ projectId: props.id, meshes, model });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -134,6 +137,7 @@ onMounted(async () => {
 
 function leaveActiveTools() {
   tools.leaveAll();
+  if (sweep.sweepMode.value) sweep.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
 }
@@ -149,7 +153,8 @@ function handleRibbonAction(action: RibbonAction) {
     return;
   }
   leaveActiveTools();
-  if (action === "extrude" || action === "revolve") extrude.startExtrudeFromRibbon(action);
+  if (action === "extrude" || action === "revolve") if (action === "sweep") sweep.enter();
+  else extrude.startExtrudeFromRibbon(action);
   else tools.enter(action);
 }
 
@@ -195,7 +200,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
     });
 
@@ -216,6 +221,10 @@ function handleEscape() {
   }
   if (sketch.sketchMode.value) return; // инструменты скетчера обрабатывают Esc сами
   if (tools.exitActive()) return;
+  if (sweep.sweepMode.value) {
+    sweep.exit();
+    return;
+  }
   if (extrude.lastSavedSketchId.value) {
     extrude.clearSketchContext();
     return;
@@ -244,7 +253,15 @@ if (!props.watch) useEditorHotkeys({
 const busyLabel = computed(() => {
   if (extrude.extrudeLoading.value) return "Выдавливание…";
   if (extrude.revolveLoading.value) return "Вращение…";
+<<<<<<< ours
   return tools.busyLabel.value;
+=======
+  if (filletChamfer.loading.value) return "Построение…";
+  if (thread.loading.value) return "Нарезка резьбы…";
+  if (booleanMode.loading.value) return "Булева операция…";
+  if (sweep.loading.value) return "Протяжка…";
+  return null;
+>>>>>>> theirs
 });
 
 const visibleBodyCount = meshes.totalBodies;
@@ -257,7 +274,8 @@ const onboarding = useOnboarding({
       sketch.sketchMode.value ||
       sketchFlow.facePickMode.value ||
       extrude.lastSavedSketchId.value !== null ||
-      tools.anyActive.value,
+      tools.anyActive.value ||
+      sweep.sweepMode.value,
   ),
 });
 
@@ -417,6 +435,7 @@ const selectionLabel = computed(() => {
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"
         />
+        <SweepPanel v-else-if="sweep.sweepMode.value" :sweep="sweep" />
         <PropertiesPanel
           v-else
           @edit-sketch="sketchFlow.editSketch"

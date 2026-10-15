@@ -9,7 +9,8 @@ export type EditorMode =
   | "thread"
   | "shell"
   | "mirror"
-  | "boolean";
+  | "boolean"
+  | "sweep";
 
 export interface EditorModeFlags {
   sketch: boolean;
@@ -20,6 +21,7 @@ export interface EditorModeFlags {
   shell: boolean;
   mirror: boolean;
   boolean: boolean;
+  sweep: boolean;
 }
 
 export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
@@ -31,5 +33,6 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.shell) return "shell";
   if (flags.mirror) return "mirror";
   if (flags.boolean) return "boolean";
+  if (flags.sweep) return "sweep";
   return "model";
 }

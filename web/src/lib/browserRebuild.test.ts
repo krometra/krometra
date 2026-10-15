@@ -56,6 +56,24 @@ describe("browserRebuildPlan", () => {
     expect(sketchRebuildRoots(doc, "s1")).toEqual(["e1", "e2"]);
   });
 
+  it("протяжка берёт оба эскиза и пересобирается от правки любого из них", () => {
+    const doc = document();
+    doc.components.s2 = { type: "sketch", plane: "XZ", plane_offset: 0, entities: [{ id: "p", type: "line", start: { x: 0, y: 0 }, end: { x: 0, y: 9 } }] };
+    doc.timeline.push(entry({ id: "sw", kind: "sweep", sketch_id: "s1", body_id: "b6", params: browser({
+      path_sketch_id: "s2", operation: "cut", target_body_id: "b4", feature_key: "ks",
+    }) }));
+
+    const [sweep] = browserRebuildPlan(doc, "sw", { orientation: "frenet" }).filter(isBodyStep);
+    expect(sweep).toMatchObject({ kind: "sweep", outputBodyId: "b6", inputBodyIds: ["b4"] });
+    expect(sweep.request).toMatchObject({
+      kind: "sweep", featureKey: "ks", planeOffset: 2, orientation: "frenet", operation: "cut", targetBodyId: "b4",
+      path: { plane: "XZ", planeOffset: 0, entities: [{ id: "p" }] },
+    });
+    expect(sketchRebuildRoots(doc, "s2")).toEqual(["sw"]);
+    expect(sketchRebuildRoots(doc, "s1")).toEqual(["e1", "e2"]);
+    expect(browserRebuildPlan(doc, "bo", {}).filter(isBodyStep).map((planned) => planned.entryId)).toEqual(["bo", "sw"]);
+  });
+
   it("пересобирает зеркало с новой плоскостью и цепочку после него", () => {
     const doc = document();
     doc.timeline.push(entry({ id: "m1", kind: "mirror", body_id: "b5", params: browser({ target_body_id: "b4", plane: "XY", offset: 0, face_id: null, merge: true, feature_key: "km" }) }));
