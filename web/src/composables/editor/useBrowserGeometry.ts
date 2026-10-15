@@ -82,6 +82,7 @@ interface WorkerResponse {
   cacheHits?: number;
   edgeNames?: string[];
   sections?: BrowserBodySection[];
+  measure?: import("@/lib/measure").MeasureResult;
 }
 
 export interface BrowserBodySection {

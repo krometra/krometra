@@ -111,7 +111,7 @@ export function createKernelLedger() {
 
 export type KernelLedger = ReturnType<typeof createKernelLedger>;
 
-const BOOKKEEPING_KINDS = new Set(["init", "retain", "discard", "release", "hydrate", "export", "thread-cylinder"]);
+const BOOKKEEPING_KINDS = new Set(["init", "retain", "discard", "release", "hydrate", "export", "thread-cylinder", "measure"]);
 
 export function growsKernelModel(kind: string): boolean {
   return !BOOKKEEPING_KINDS.has(kind);

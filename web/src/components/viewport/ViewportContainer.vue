@@ -17,6 +17,7 @@ import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
+import { useMeasurePicking } from "@/composables/viewport/useMeasurePicking";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -32,6 +33,7 @@ const emit = defineEmits<{
   bodyDeselected: [payload: { bodyId: string }];
   edgeSelectionChanged: [snapshot: import("@/composables/viewport/useEdgeSelection").EdgeSelectionSnapshot];
   planePicked: [payload: { plane: import("@/types/api").SketchPlane }];
+  measurePicked: [pick: import("@/lib/measure").MeasureRef | null];
 }>();
 
 const RENDERING_MODE_LABELS: Record<RenderingMode, string> = {
@@ -66,6 +68,8 @@ const edges = useEdgeSelection({
   onChanged: (snapshot) => emit("edgeSelectionChanged", snapshot),
 });
 
+const measure = useMeasurePicking({ context, onPicked: (pick) => emit("measurePicked", pick) });
+
 const bodies = useBodySelection({
   context,
   onSelected: (bodyId) => emit("bodySelected", { bodyId }),
@@ -84,6 +88,7 @@ const registry = useBodyRegistry({
     edges.forget(entry);
     faces.forget(entry);
     bodies.forget(entry.bodyId);
+    measure.forget(entry);
   },
 });
 
@@ -102,6 +107,7 @@ onUnmounted(() => {
   previews.hideExtrude();
   previews.hideFillet();
   previews.hideThread();
+  measure.dispose();
 });
 
 function onCanvasClick(event: MouseEvent) {
@@ -118,6 +124,7 @@ function onCanvasClick(event: MouseEvent) {
   if (selectionMode.value === "body") bodies.handleClick();
   else if (selectionMode.value === "face") faces.handleClick();
   else if (selectionMode.value === "edge") edges.handleClick();
+  else if (selectionMode.value === "measure") measure.handleClick();
 }
 
 function onCanvasMouseMove(event: MouseEvent) {
@@ -126,6 +133,10 @@ function onCanvasMouseMove(event: MouseEvent) {
 
   if (selectionMode.value === "edge") {
     core.setCursor(edges.handleHover() ? "pointer" : "crosshair");
+    return;
+  }
+  if (selectionMode.value === "measure") {
+    core.setCursor(measure.handleHover() ? "pointer" : "crosshair");
     return;
   }
   if (selectionMode.value !== "face" && !planes.isVisible()) return;
@@ -189,6 +200,7 @@ watch(
 watch(
   () => props.selectionMode,
   (mode) => {
+    if (mode !== "measure") measure.clearHover();
     if (mode === "edge") edges.ensureAll();
     else {
       edges.clearHover();
@@ -245,6 +257,8 @@ defineExpose({
   clearBodySelection: bodies.clear,
   clearAllBodies,
   getRenderingMode: () => renderingMode.value,
+  setMeasureFilter: measure.setFilter,
+  showMeasure: measure.show,
 });
 </script>
 
@@ -259,6 +273,9 @@ defineExpose({
     </div>
     <div v-else-if="selectionMode === 'edge'" :class="$style.selectionModeBadge">
       Выбор рёбер
+    </div>
+    <div v-else-if="selectionMode === 'measure'" :class="$style.selectionModeBadge">
+      Измерение
     </div>
   </div>
 </template>

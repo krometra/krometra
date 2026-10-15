@@ -22,6 +22,7 @@ import type { ModelHistoryApi } from "../useModelHistory";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { ThreadApi } from "../useThread";
+import type { MeasureApi } from "../useMeasure";
 import type { ViewportRef } from "../types";
 
 export interface EditorControlDeps {
@@ -41,6 +42,7 @@ export interface EditorControlDeps {
   bodyPresentation: BodyPresentationApi;
   bodyTransform: BodyTransformApi;
   leaveActiveTools: () => void;
+  measure: MeasureApi;
 }
 
 const KERNEL_WAITING: Record<string, string> = {
@@ -65,6 +67,7 @@ export function createControlContext(deps: EditorControlDeps) {
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
       boolean: deps.booleanMode.booleanMode.value,
+      measure: deps.measure.active.value,
     });
   }
 

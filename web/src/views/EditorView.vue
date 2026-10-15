@@ -15,6 +15,7 @@ import { useSketchLifecycle } from "@/composables/editor/useSketchLifecycle";
 import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
+import { useMeasure } from "@/composables/editor/useMeasure";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -42,6 +43,7 @@ import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
 import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
+import MeasurePanel from "@/components/editor/MeasurePanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -94,6 +96,7 @@ const sketchFlow = useSketchLifecycle({
 const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
@@ -126,6 +129,7 @@ onMounted(async () => {
 function leaveActiveTools() {
   if (filletChamfer.filletChamferMode.value) filletChamfer.exit();
   if (thread.threadMode.value) thread.exit();
+  if (measure.active.value) measure.exit();
   if (booleanMode.booleanMode.value) booleanMode.exit();
   if (sketchFlow.facePickMode.value) sketchFlow.cancelFacePick();
   if (extrude.lastSavedSketchId.value) extrude.clearSketchContext();
@@ -145,6 +149,7 @@ function handleRibbonAction(action: RibbonAction) {
   if (action === "boolean") booleanMode.enter();
   else if (action === "fillet" || action === "chamfer") filletChamfer.enter(action);
   else if (action === "thread") thread.enter();
+  else if (action === "measure") measure.enter();
   else extrude.startExtrudeFromRibbon(action);
 }
 
@@ -195,6 +200,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread,
       exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
+      measure,
     });
 
 // --- Горячие клавиши ---
@@ -221,6 +227,7 @@ function handleEscape() {
     thread.exit();
     return;
   }
+  if (measure.active.value) return measure.exit();
   if (booleanMode.booleanMode.value) {
     booleanMode.exit();
     return;
@@ -343,6 +350,7 @@ const selectionLabel = computed(() => {
           @body-selected="booleanMode.handleBodySelected"
           @body-deselected="booleanMode.handleBodyDeselected"
           @edge-selection-changed="filletChamfer.onEdgeSelectionChanged"
+          @measure-picked="measure.onPicked"
         />
 
         <div v-if="sketchFlow.facePickMode.value" :class="$style.facePickBanner">
@@ -428,6 +436,7 @@ const selectionLabel = computed(() => {
           v-else-if="booleanMode.booleanMode.value"
           :boolean="booleanMode"
         />
+        <MeasurePanel v-else-if="measure.active.value" :measure="measure" />
         <PropertiesPanel
           v-else
           @edit-sketch="sketchFlow.editSketch"

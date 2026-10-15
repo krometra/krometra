@@ -7,7 +7,8 @@ export type EditorMode =
   | "fillet"
   | "chamfer"
   | "thread"
-  | "boolean";
+  | "boolean"
+  | "measure";
 
 export interface EditorModeFlags {
   sketch: boolean;
@@ -16,6 +17,7 @@ export interface EditorModeFlags {
   edgeFeature: "fillet" | "chamfer" | null;
   thread: boolean;
   boolean: boolean;
+  measure: boolean;
 }
 
 export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
@@ -25,5 +27,6 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.edgeFeature) return flags.edgeFeature;
   if (flags.thread) return "thread";
   if (flags.boolean) return "boolean";
+  if (flags.measure) return "measure";
   return "model";
 }
