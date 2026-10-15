@@ -1,6 +1,7 @@
 // Ядро решателя ограничений: итеративная релаксация для 2D эскизов.
 // Чистая функция без Worker/DOM — используется воркером и юнит-тестами.
 
+import { ccwSweep } from "../arcGeometry";
 export interface SketchPoint {
   x: number;
   y: number;
@@ -80,7 +81,6 @@ export function solveSketch(
   const residual = computeResidual(constraints, workEntities);
   return { entities: workEntities, converged, residual };
 }
-
 
 
 function buildPointMap(entities: SketchEntity[]): PointMap {
@@ -510,7 +510,7 @@ function writePointsBack(entities: SketchEntity[], points: PointMap) {
           const psa = getPoint(points, { entity_id: entity.id, sub_index: 1 });
           const pea = getPoint(points, { entity_id: entity.id, sub_index: 2 });
           if (psa) entity.startAngle = Math.atan2(psa.y - cp.y, psa.x - cp.x);
-          if (pea) entity.endAngle = Math.atan2(pea.y - cp.y, pea.x - cp.x);
+          if (pea) entity.endAngle = entity.startAngle! + ccwSweep(entity.startAngle!, Math.atan2(pea.y - cp.y, pea.x - cp.x));
           if (psa && cp) {
             entity.radius = Math.sqrt((psa.x - cp.x) ** 2 + (psa.y - cp.y) ** 2);
           }

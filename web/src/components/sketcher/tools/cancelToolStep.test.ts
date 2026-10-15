@@ -3,6 +3,7 @@ import { ArcTool } from "./ArcTool";
 import { CircleTool } from "./CircleTool";
 import { LineTool } from "./LineTool";
 import { RectangleTool } from "./RectangleTool";
+import { ThreePointArcTool } from "./ThreePointArcTool";
 import { cancelToolStep } from "./cancelToolStep";
 
 const context = {
@@ -17,6 +18,7 @@ describe("cancelToolStep", () => {
     ["rectangle", () => new RectangleTool()],
     ["circle", () => new CircleTool()],
     ["arc", () => new ArcTool()],
+    ["three-point arc", () => new ThreePointArcTool()],
   ] as const) {
     it(`drops the unfinished ${name} and starts the next one at a new point`, () => {
       const tool = create();

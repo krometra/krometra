@@ -97,8 +97,6 @@ export function useSketchEntities(onChange: (payload: {
     const idx = selectedEntityIds.value.indexOf(entityId);
     if (idx >= 0) {
       selectedEntityIds.value = selectedEntityIds.value.filter((id) => id !== entityId);
-    } else if (selectedEntityIds.value.length >= 2) {
-      selectedEntityIds.value = [selectedEntityIds.value[1], entityId];
     } else {
       selectedEntityIds.value = [...selectedEntityIds.value, entityId];
     }

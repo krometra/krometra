@@ -22,6 +22,7 @@ import { LineTool } from "./tools/LineTool";
 import { RectangleTool } from "./tools/RectangleTool";
 import { CircleTool } from "./tools/CircleTool";
 import { ArcTool } from "./tools/ArcTool";
+import { ThreePointArcTool } from "./tools/ThreePointArcTool";
 import type { SketchTool, SketchToolContext } from "./tools/SketchTool";
 import { cancelToolStep } from "./tools/cancelToolStep";
 
@@ -46,6 +47,7 @@ const tools: Record<string, SketchTool> = {
   rectangle: new RectangleTool(),
   circle: new CircleTool(),
   arc: new ArcTool(),
+  arc3: new ThreePointArcTool(),
 };
 const rectangleTool = tools.rectangle as RectangleTool;
 const circleTool = tools.circle as CircleTool;
@@ -56,6 +58,7 @@ const currentTool = computed(() => tools[props.tool] ?? tools.line);
 
 const preview = ref<SketchEntity | null>(null);
 const hoveredEntityId = ref<string | null>(null);
+const toolStepHint = ref<string | null>(null);
 
 function selectTool(t: SketchToolName) {
   emit("tool-change", t);
@@ -144,6 +147,7 @@ function toolContext(): SketchToolContext {
 
 function updatePreview() {
   preview.value = aux.isAuxTool.value ? aux.previewEntity() : currentTool.value.getPreview();
+  toolStepHint.value = aux.isAuxTool.value ? null : currentTool.value.hint?.() ?? null;
 }
 
 function findEntityAt(world: SketchPoint): SketchEntity | null {
@@ -318,6 +322,7 @@ function cancelLiveDims() {
 function resetInteraction() {
   Object.values(tools).forEach((t) => t.reset());
   preview.value = null;
+  toolStepHint.value = currentTool.value.hint?.() ?? null;
   snapping.clearSnap();
   liveDimensions.close();
   edgeDrag.cancel();
@@ -409,7 +414,7 @@ defineExpose({
       :can-undo="sketch.sketchStore.canUndo.value"
       :can-redo="sketch.sketchStore.canRedo.value"
       :snap-enabled="snapping.snapEnabled.value"
-      :aux-hint="auxHint"
+      :aux-hint="auxHint ?? toolStepHint"
       @select-tool="selectTool"
       @undo="sketch.sketchStore.undo()"
       @redo="sketch.sketchStore.redo()"

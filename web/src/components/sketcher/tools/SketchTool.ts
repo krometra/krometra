@@ -23,6 +23,7 @@ export interface SketchTool {
   reset(): void;
   /** Whether the tool is actively drawing (mid-operation) */
   isActive(): boolean;
+  hint?(): string;
   /** Auto-detect constraints after entity creation */
   detectConstraints?(
     ctx: SketchToolContext,
