@@ -45,6 +45,7 @@ import ThreadPanel from "@/components/editor/ThreadPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
+import MeshExportDialog from "@/components/editor/MeshExportDialog.vue";
 import AxisTriad from "@/components/editor/AxisTriad.vue";
 import LegacyProjectNotice from "@/components/editor/LegacyProjectNotice.vue";
 import WatchModeBanner from "@/components/editor/WatchModeBanner.vue";
@@ -168,7 +169,7 @@ function onSelectionCleared() {
   selection.clearSelection();
 }
 
-const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation });
+const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation, exportApi });
 
 // --- Undo / Redo ---
 
@@ -306,8 +307,8 @@ const selectionLabel = computed(() => {
       :export-error="exportApi.error.value"
       :import-loading="stepImport.loading.value"
       @reload="status.handleReload"
-      @export-stl="exportApi.downloadStl"
       @export-step="exportApi.downloadStep"
+      @export-mesh="exportApi.openMeshExport"
       @import-step="stepImport.pickFile"
     />
 
@@ -451,6 +452,7 @@ const selectionLabel = computed(() => {
     />
 
     <ShortcutsDialog v-model:open="showShortcuts" />
+    <MeshExportDialog :export-api="exportApi" />
     <LegacyProjectNotice v-if="meshes.legacyProject.value" />
 
     <TreeContextMenu

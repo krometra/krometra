@@ -1,11 +1,14 @@
 import { isBrowserBody } from "./browserShapeHydration";
 import type { ComponentEntry } from "./useDocumentModel";
 
-export type ExportFormat = "stl" | "step";
+export type ExportFormat = "stl" | "step" | "3mf";
+
+export type MeshFormat = Exclude<ExportFormat, "step">;
 
 export const EXPORT_MIME: Record<ExportFormat, string> = {
   step: "application/step",
   stl: "model/stl",
+  "3mf": "model/3mf",
 };
 
 const SERVER_KERNEL_BODIES = "Проект содержит тела серверного ядра — их экспорт больше не поддерживается.";
@@ -28,7 +31,14 @@ export function requestedExportBodyIds(bodies: ComponentEntry[], requested: stri
   return ids;
 }
 
-export function exportFilename(projectName: string, format: ExportFormat, bodyLabels: string[] | null): string {
-  const base = bodyLabels ? `${projectName}-${bodyLabels.join("+")}` : projectName;
+function safeFilename(base: string, format: ExportFormat): string {
   return `${base.replace(UNSAFE_FILENAME_CHARS, "_")}.${format}`;
+}
+
+export function exportFilename(projectName: string, format: ExportFormat, bodyLabels: string[] | null): string {
+  return safeFilename(bodyLabels ? `${projectName}-${bodyLabels.join("+")}` : projectName, format);
+}
+
+export function bodiesFilename(bodyLabels: string[], format: ExportFormat): string {
+  return safeFilename(bodyLabels.join("+"), format);
 }

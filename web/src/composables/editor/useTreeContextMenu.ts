@@ -7,6 +7,7 @@ import type { DocumentEdit } from "@/core/commands/DocumentEditCommand";
 import type { CtxItem, TreeItemKind } from "./types";
 import type { BodyPresentationApi } from "./useBodyPresentation";
 import type { useDocumentModel } from "./useDocumentModel";
+import type { ExportApi } from "./useExport";
 import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
 import type { ModelHistoryApi } from "./useModelHistory";
 import type { SketchLifecycleApi } from "./useSketchLifecycle";
@@ -22,8 +23,9 @@ export function useTreeContextMenu(deps: {
   extrude: ExtrudeRevolveApi;
   history: ModelHistoryApi;
   bodyPresentation: BodyPresentationApi;
+  exportApi: ExportApi;
 }) {
-  const { tree, model, sketchFlow, extrude, history, bodyPresentation } = deps;
+  const { tree, model, sketchFlow, extrude, history, bodyPresentation, exportApi } = deps;
   const selection = useSelection();
   const names = useDisplayNames();
   const menu = ref<{ x: number; y: number; kind: TreeItemKind; id: string } | null>(null);
@@ -67,6 +69,9 @@ export function useTreeContextMenu(deps: {
     return [
       { label: body?.visible !== false ? "Скрыть" : "Показать", action: () => toggleVisibility(id) },
       { label: "Переименовать", action: () => tree.value?.startRename(id, names.bodyLabel(id)) },
+      { label: "Экспорт STEP", action: () => exportApi.download({ format: "step", bodyIds: [id] }) },
+      { label: "Экспорт STL…", action: () => exportApi.openMeshExport("stl", [id]) },
+      { label: "Экспорт 3MF…", action: () => exportApi.openMeshExport("3mf", [id]) },
       { label: "Удалить с историей", danger: true, action: () => remove(label, (document) => deleteBody(document, id, names.entryLabel)) },
     ];
   }

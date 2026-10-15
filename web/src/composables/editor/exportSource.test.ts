@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exportBodyIdsOf, exportFilename, requestedExportBodyIds } from "./exportSource";
+import { bodiesFilename, exportBodyIdsOf, exportFilename, requestedExportBodyIds } from "./exportSource";
 import type { ComponentEntry } from "./useDocumentModel";
 
 const browser = (id: string, visible = true): ComponentEntry => ({ id, visible, source: { kind: "browser_extrude" } });
@@ -53,5 +53,16 @@ describe("exportFilename", () => {
 
   it("убирает символы, недопустимые в имени файла", () => {
     expect(exportFilename("a/b:c", "stl", ['Тело "1"', "x\\y"])).toBe("a_b_c-Тело _1_+x_y.stl");
+  });
+});
+
+describe("bodiesFilename", () => {
+  it("экспорт тела из дерева называется по имени тела", () => {
+    expect(bodiesFilename(["Крышка"], "3mf")).toBe("Крышка.3mf");
+    expect(bodiesFilename(["Крышка", "Банка"], "stl")).toBe("Крышка+Банка.stl");
+  });
+
+  it("убирает символы, недопустимые в имени файла", () => {
+    expect(bodiesFilename(['Тело "1"/a'], "step")).toBe("Тело _1_a.step");
   });
 });

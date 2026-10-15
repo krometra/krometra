@@ -5,8 +5,8 @@ import { importStepBodies, type ImportStepRequest } from "./geometry/importStep"
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
 import { revolveNamed } from "./geometry/revolve";
 import { runRebuildRequest, type RebuildRequest } from "./geometry/rebuild";
+import { estimateTriangles, exportBodies, type ExportEstimateRequest } from "./geometry/exportFile";
 import {
-  exportBodies,
   hydrateShape,
   namedBodyShape,
   publishNamed,
@@ -20,7 +20,7 @@ import { sectionBodies, type SectionRequest } from "./geometry/section";
 import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
-type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest;
+type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -85,6 +85,10 @@ worker.onmessage = async ({ data }: MessageEvent<Request>) => {
     if (data.kind === "export") {
       const file = await exportBodies(data);
       reply({ id: data.id, ok: true, file }, [file]);
+      return;
+    }
+    if (data.kind === "export-estimate") {
+      reply({ id: data.id, ok: true, triangles: estimateTriangles(data) });
       return;
     }
     reply({ id: data.id, ok: true, ...(await manageShape(data as ShapeRequest)) });

@@ -37,7 +37,7 @@ type ControlErrorCode =
 
 Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `viewport.project`, `viewport.capture`, `export`.
 
-`export { format: "step" | "stl", bodyIds? }` отдаёт файл как `{ mime, filename, dataBase64 }` тем же путём, что кнопка «Экспорт» (`useExport.buildFile` → ядро). Без `bodyIds` — все видимые тела одним файлом, с `bodyIds` — ровно названные тела, и их имена попадают в имя файла: отдельный STL на каждое тело получают вызовом на каждое тело. Пока редактор занят операцией, `export` отвечает `busy`, хотя модель не меняет.
+`export { format: "step" | "stl" | "3mf", bodyIds?, quality?, tolerance?, angleDeg? }` отдаёт файл как `{ mime, filename, dataBase64 }` тем же путём, что кнопка «Экспорт» (`useExport.buildFile` → ядро). Без `bodyIds` — все видимые тела одним файлом, с `bodyIds` — ровно названные тела, и их имена попадают в имя файла: отдельный STL на каждое тело получают вызовом на каждое тело. Качество сетки STL и 3MF — пресет `quality` (`draft` | `normal` | `high`, по умолчанию `normal`, прежние 0.01 мм и 0.5 рад) либо свои `tolerance` (мм) и `angleDeg` поверх него. Пока редактор занят операцией, `export` отвечает `busy`, хотя модель не меняет.
 
 Вид и поведение выбора без изменения документа: `camera.set`, `viewport.setHelpers`, `selection.setEdgeChain`.
 
@@ -67,7 +67,7 @@ composables/editor/
     ├── controlReadOps.ts          state, topology, mesh.stats, scene.get, selection.get
     ├── controlViewportOps.ts      камера, проекция, снимок, касательная цепочка выбора рёбер
     ├── controlSketchOps.ts        эскиз: чтение и создание
-    ├── controlExportOps.ts        export: файл STEP/STL через useExport
+    ├── controlExportOps.ts        export: файл STEP/STL/3MF через useExport
     └── controlFeatureOps.ts       операции модели и undo/redo
 
 composables/viewport/

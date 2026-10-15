@@ -24,6 +24,7 @@ describe("цель экспорта на диске", () => {
     assert.deepEqual(await resolveTarget("/out/part.stl", "stl"), { file: "/out/part.stl" });
     assert.deepEqual(await resolveTarget("/out/part.stp", "step"), { file: "/out/part.stp" });
     assert.deepEqual(await resolveTarget("/out/PART.STEP", "step"), { file: "/out/PART.STEP" });
+    assert.deepEqual(await resolveTarget("/out/part.3mf", "3mf"), { file: "/out/part.3mf" });
   });
 
   test("путь со слэшем в конце, без расширения или существующий каталог - каталог", async () => {
@@ -99,6 +100,18 @@ describe("экспорт модели в файл", () => {
     assert.ok((await readFile(written.path)).equals(expectedBytes("stl", [BODY_ID])));
   });
 
+  test("3MF с качеством сетки: quality, tolerance и angle_deg уходят в канал", async () => {
+    const file = path.join(root, "print", "part.3mf");
+    const result = await exportTo({ format: "3mf", path: file, quality: "high", angle_deg: 10 });
+    assert.notEqual(result.isError, true, textOf(result));
+    assert.equal(jsonOf(result).mime, "model/3mf");
+    assert.ok((await readFile(file)).equals(expectedBytes("3mf")));
+    const { lastExport } = jsonOf(await request("stub.stats")).result;
+    assert.deepEqual(lastExport, { format: "3mf", quality: "high", angleDeg: 10 });
+    await exportTo({ format: "stl", path: `${root}/fine/`, tolerance: 0.005 });
+    assert.deepEqual(jsonOf(await request("stub.stats")).result.lastExport, { format: "stl", tolerance: 0.005 });
+  });
+
   test("существующий файл не перезаписывается без overwrite, а отказ приходит до вызова канала", async () => {
     const file = path.join(root, "keep.stl");
     await exportTo({ format: "stl", path: file });
@@ -148,6 +161,10 @@ describe("экспорт модели в файл", () => {
       [{ format: "stl", path: path.join(root, "part.step") }, /не подходит формату stl/],
       [{ format: "stl", path: root, body_ids: [] }, /body_ids: непустой массив id/],
       [{ format: "stl", path: root, body_ids: "body-1" }, /body_ids: непустой массив id/],
+      [{ format: "stl", path: root, quality: "ultra" }, /quality: допустимо draft \| normal \| high/],
+      [{ format: "stl", path: root, tolerance: -1 }, /tolerance: положительное число/],
+      [{ format: "3mf", path: root, angle_deg: "10" }, /angle_deg: положительное число/],
+      [{ format: "3mf", path: path.join(root, "part.stl") }, /не подходит формату 3mf: ожидается \.3mf/],
     ];
     for (const [args, message] of cases) {
       const result = await exportTo(args);

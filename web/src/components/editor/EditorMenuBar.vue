@@ -7,6 +7,7 @@ import CsButton from "@/components/ui/CsButton.vue";
 import ExportMenu from "@/components/editor/ExportMenu.vue";
 import ImportStepButton from "@/components/editor/ImportStepButton.vue";
 import type { DocStatus } from "@/composables/editor/useDocumentStatus";
+import type { MeshFormat } from "@/composables/editor/exportSource";
 
 defineProps<{
   projectName: string;
@@ -20,8 +21,8 @@ defineProps<{
 
 const emit = defineEmits<{
   reload: [];
-  "export-stl": [];
   "export-step": [];
+  "export-mesh": [format: MeshFormat];
   "import-step": [];
 }>();
 
@@ -49,8 +50,8 @@ const avatarInitial = computed(() => {
       <ExportMenu
         :loading="exportLoading"
         :error="exportError"
-        @export-stl="emit('export-stl')"
         @export-step="emit('export-step')"
+        @export-mesh="(format) => emit('export-mesh', format)"
       />
       <div :class="$style.avatar" :title="auth.user.value?.display_name ?? ''">{{ avatarInitial }}</div>
     </div>

@@ -2,6 +2,7 @@
 import { watch } from "vue";
 import CsButton from "@/components/ui/CsButton.vue";
 import CsMenu from "@/components/ui/CsMenu.vue";
+import type { MeshFormat } from "@/composables/editor/exportSource";
 import { toast } from "@/composables/useToast";
 
 const props = defineProps<{
@@ -10,25 +11,20 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "export-stl": [];
   "export-step": [];
+  "export-mesh": [format: MeshFormat];
 }>();
 
+function whenIdle(run: () => void) {
+  return () => {
+    if (!props.loading) run();
+  };
+}
+
 const menuItems = [
-  {
-    id: "step",
-    label: "STEP (.step)",
-    action: () => {
-      if (!props.loading) emit("export-step");
-    },
-  },
-  {
-    id: "stl",
-    label: "STL (.stl)",
-    action: () => {
-      if (!props.loading) emit("export-stl");
-    },
-  },
+  { id: "step", label: "STEP (.step)", action: whenIdle(() => emit("export-step")) },
+  { id: "stl", label: "STL (.stl)…", action: whenIdle(() => emit("export-mesh", "stl")) },
+  { id: "3mf", label: "3MF (.3mf)…", action: whenIdle(() => emit("export-mesh", "3mf")) },
 ];
 
 watch(

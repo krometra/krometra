@@ -54,7 +54,7 @@ export function boxTopology() {
   return { bodyId: BODY_ID, faces, edges: boxEdges() };
 }
 
-const EXPORT_MIME = { stl: "model/stl", step: "application/step" };
+const EXPORT_MIME = { stl: "model/stl", step: "application/step", "3mf": "model/3mf" };
 const BINARY_TAIL = [0, 255, 128, 13, 10, 26];
 
 export function stubExportFile(format, bodyIds) {

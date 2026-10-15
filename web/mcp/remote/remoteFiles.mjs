@@ -1,7 +1,7 @@
 import { errorHint } from "../channel.mjs";
-import { EXPORT_FORMATS } from "../export.mjs";
+import { EXPORT_FORMATS, EXPORT_QUALITY_PROPERTIES, exportParams } from "../export.mjs";
 import { ToolError } from "../errors.mjs";
-import { choice, optionalIdList, prose, text } from "../toolKit.mjs";
+import { prose, text } from "../toolKit.mjs";
 
 const UPLOAD_PLACEHOLDER = "upload";
 
@@ -11,10 +11,11 @@ export function createRemoteFileTools({ editor, session, files, uploads, publicU
       def: {
         name: "cad_export",
         description: prose(
-          "Экспортировать модель открытого проекта в STL или STEP. Файл собирает вкладка редактора, сервер кладёт его",
+          "Экспортировать модель открытого проекта в STL, STEP или 3MF. Файл собирает вкладка редактора, сервер кладёт его",
           `во временное хранилище и возвращает ссылку url на ${ttlMinutes} минут: скачай её командой из поля download`,
           "(ключ доступа не нужен, ссылка одноразово случайная). Без body_ids в файл идут все видимые тела;",
           "с body_ids - ровно названные тела. Отдельный STL на каждое тело получают отдельными вызовами.",
+          "Точность сетки STL и 3MF задают quality либо tolerance и angle_deg.",
           "Модель не меняет.",
         ),
         inputSchema: {
@@ -22,15 +23,14 @@ export function createRemoteFileTools({ editor, session, files, uploads, publicU
           properties: {
             format: { type: "string", enum: EXPORT_FORMATS, description: "Формат файла." },
             body_ids: { type: "array", items: { type: "string" }, description: "id тел из cad_state. По умолчанию - все видимые." },
+            ...EXPORT_QUALITY_PROPERTIES,
           },
           required: ["format"],
         },
         annotations: { readOnlyHint: true, openWorldHint: false },
       },
       handler: async (args) => {
-        const format = choice(args, "format", EXPORT_FORMATS);
-        const bodyIds = optionalIdList(args, "body_ids");
-        const exported = await editor.query("export", bodyIds ? { format, bodyIds } : { format });
+        const exported = await editor.query("export", exportParams(args));
         const bytes = Buffer.from(exported.dataBase64, "base64");
         const token = files.put({ ownerId: await session.userId(), filename: exported.filename, mime: exported.mime, bytes });
         const url = `${publicUrl}/mcp/files/${token}`;
