@@ -23,6 +23,7 @@ export const EDITOR_SHORTCUTS: Shortcut[] = [
   { keys: "Shift + F", description: "Фаска на рёбрах", group: "Построение" },
   { keys: "Ctrl + Z", description: "Отменить", group: "История" },
   { keys: "Ctrl + Y", description: "Повторить", group: "История" },
+  { keys: "Delete", description: "Удалить выбранную операцию", group: "История" },
   { keys: "Esc", description: "Отменить режим, снять выделение", group: "Навигация" },
   { keys: "?", description: "Список горячих клавиш", group: "Навигация" },
   { keys: "ЛКМ", description: "Выбрать грань / ребро", group: "Вьюпорт" },
@@ -41,6 +42,7 @@ export function useEditorHotkeys(handlers: {
   onFilletChamfer: () => void;
   onChamfer: () => void;
   onToggleHelp: () => void;
+  onDelete: () => void;
 }) {
   const toolKeys: Record<string, () => void> = {
     s: handlers.onSketch,
@@ -82,6 +84,13 @@ export function useEditorHotkeys(handlers: {
       return;
     }
     if (isTypingTarget(e) || e.altKey) return;
+
+    if (e.key === "Delete" || e.key === "Backspace") {
+      if (!handlers.canRunTool()) return;
+      e.preventDefault();
+      handlers.onDelete();
+      return;
+    }
 
     if (e.key === "?" || (e.shiftKey && e.key === "/")) {
       e.preventDefault();

@@ -18,6 +18,7 @@ from .browser_naming import validated_browser_naming
 from .browser_sketch_seat import apply_sketch_planes, feature_sketch_owner, seated_sketches, validated_sketch_planes
 from .browser_storage import browser_body_objects, persist_replaced_bodies
 from .limits import MAX_PARAMS_BYTES, MAX_REBUILD_BODIES
+from .timeline_state import MAX_ERROR_LENGTH, is_suppressed, output_body, synced_liveness, with_regen_statuses
 
 DIRECTIONS = {"extrude": ("one_side", "symmetric", "two_sided"), "revolve": ("one_side", "symmetric")}
 POSITIVE = {"radius", "distance1", "distance2", "pitch", "length"}
@@ -108,10 +109,6 @@ def _validated_uploads(bodies: list[RebuiltBody]) -> list[tuple[RebuiltBody, dic
     ]
 
 
-def output_body(entry: dict) -> str | None:
-    return entry.get("result_body_id") if entry.get("kind") == "boolean" else entry.get("body_id")
-
-
 def input_bodies(entry: dict) -> set[str]:
     params = entry.get("params") or {}
     if entry.get("kind") == "boolean":
@@ -126,15 +123,42 @@ def dependency_bodies(entry: dict, components: dict) -> set[str]:
     return input_bodies(entry) | ({owner} if owner else set())
 
 
-def affected_bodies(timeline: list, start: int, components: dict) -> set[str]:
-    affected: set[str] = set()
-    for offset, entry in enumerate(timeline[start:]):
-        if offset > 0 and not dependency_bodies(entry, components) & affected:
+def regen_chain(timeline: list, components: dict, roots: set[str], seeds: set[str]) -> list[dict]:
+    dirty = set(seeds)
+    chain = []
+    for entry in timeline:
+        if entry.get("id") not in roots and not dependency_bodies(entry, components) & dirty:
             continue
         if (entry.get("params") or {}).get("engine") != "browser_wasm" or not output_body(entry):
             _error("rebuild_unsupported", "От изменённой операции зависит операция, которую браузерное ядро не пересобирает.")
-        affected.add(output_body(entry))
-    return affected
+        chain.append(entry)
+        dirty.add(output_body(entry))
+    return chain
+
+
+def built_bodies(chain: list[dict], failed: dict[str, str]) -> set[str]:
+    return {output_body(entry) for entry in chain if not is_suppressed(entry) and entry.get("id") not in failed}
+
+
+def affected_bodies(timeline: list, start: int, components: dict) -> set[str]:
+    return built_bodies(regen_chain(timeline, components, {timeline[start].get("id")}, set()), {})
+
+
+def sketch_entry_ids(timeline: list, sketch_ids: set[str]) -> dict[str, str]:
+    entries = {entry.get("sketch_id"): entry.get("id") for entry in timeline if entry.get("kind") == "sketch"}
+    return {entries.get(sketch_id, sketch_id): sketch_id for sketch_id in sketch_ids}
+
+
+def validated_failures(failed: object, allowed: set[str]) -> dict[str, str]:
+    if not isinstance(failed, dict) or not all(isinstance(key, str) and isinstance(value, str) for key, value in failed.items()):
+        _invalid("Некорректный список операций, которые не построились.")
+    if not set(failed) <= allowed:
+        _error(
+            "rebuild_failures_mismatch",
+            "Ошибки пересборки не совпадают с зависимыми операциями. Обновите страницу и повторите.",
+            status.HTTP_409_CONFLICT,
+        )
+    return {key: value[:MAX_ERROR_LENGTH] for key, value in failed.items()}
 
 
 def _changed_entry(timeline: list, entry_id: str) -> int:
@@ -156,6 +180,7 @@ async def save_browser_rebuild(
     document_version: int,
     db: AsyncSession,
     storage: AsyncStorageClient,
+    failed: object = None,
 ) -> dict:
     if not is_component_id(entry_id):
         _error("entry_not_found", "Операция не найдена в истории.", status.HTTP_404_NOT_FOUND)
@@ -164,16 +189,22 @@ async def save_browser_rebuild(
     doc = await get_document(db, project_id, user_id)
     if doc.version != document_version:
         _error("version_conflict", "Документ изменился во время пересборки в браузере.", status.HTTP_409_CONFLICT)
-    timeline = [dict(entry) for entry in doc.timeline or []]
+    before = [dict(entry) for entry in doc.timeline or []]
+    timeline = list(before)
     index = _changed_entry(timeline, entry_id)
     changed = timeline[index]
     new_params = validated_rebuild_params(changed.get("kind"), params)
     components = dict(doc.components or {})
-    affected = affected_bodies(timeline, index, components)
+    chain = regen_chain(timeline, components, {entry_id}, set())
+    seated = seated_sketches(components, {output_body(entry) for entry in chain})
+    seat_entries = sketch_entry_ids(timeline, seated)
+    regenerated = {entry.get("id") for entry in chain if not is_suppressed(entry)} | set(seat_entries)
+    failures = validated_failures({} if failed is None else failed, (regenerated - {entry_id}) | seated)
     uploaded = {body.body_id for body in bodies}
-    if len(uploaded) != len(bodies) or uploaded != affected:
+    if len(uploaded) != len(bodies) or uploaded != built_bodies(chain, failures):
         _error("rebuild_bodies_mismatch", "Пересобранные тела не совпадают с зависимыми операциями.", status.HTTP_409_CONFLICT)
-    planes = validated_sketch_planes(sketch_planes, seated_sketches(components, affected))
+    failed_sketches = {sketch_id for entry, sketch_id in seat_entries.items() if entry in failures or sketch_id in failures}
+    planes = validated_sketch_planes(sketch_planes, seated - failed_sketches)
 
     if not all(is_browser_body(components.get(body_id)) for body_id in uploaded):
         _error("target_not_browser", "Браузерное ядро может изменять только browser-тела.")
@@ -184,6 +215,8 @@ async def save_browser_rebuild(
 
     timeline[index] = {**changed, "params": {**(changed.get("params") or {}), **new_params}}
     apply_sketch_planes(components, timeline, planes)
+    timeline = with_regen_statuses(timeline, regenerated, failures)
+    components = synced_liveness(components, before, timeline)
     output = output_body(changed)
     source = components[output].get("source") or {}
     components[output] = {**components[output], "source": {**source, **{k: v for k, v in new_params.items() if k in source}}}

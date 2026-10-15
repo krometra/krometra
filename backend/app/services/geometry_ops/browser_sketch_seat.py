@@ -69,13 +69,23 @@ def _validated_plane(plane: object) -> dict:
     }
 
 
+def _sketches_mismatch():
+    _error(
+        "rebuild_sketches_mismatch",
+        "Плоскости эскизов не совпадают с эскизами на пересобранных телах. Обновите страницу и повторите.",
+        status.HTTP_409_CONFLICT,
+    )
+
+
 def validated_sketch_planes(planes: dict, expected: set[str]) -> dict[str, dict]:
     if set(planes) != expected:
-        _error(
-            "rebuild_sketches_mismatch",
-            "Плоскости эскизов не совпадают с эскизами на пересобранных телах. Обновите страницу и повторите.",
-            status.HTTP_409_CONFLICT,
-        )
+        _sketches_mismatch()
+    return {sketch_id: _validated_plane(plane) for sketch_id, plane in planes.items()}
+
+
+def validated_partial_sketch_planes(planes: dict, allowed: set[str]) -> dict[str, dict]:
+    if not set(planes) <= allowed:
+        _sketches_mismatch()
     return {sketch_id: _validated_plane(plane) for sketch_id, plane in planes.items()}
 
 

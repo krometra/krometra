@@ -80,7 +80,7 @@ function fakeBackend() {
 }
 
 const step = (entryId: string, outputBodyId: string, inputBodyIds: string[], request: Record<string, unknown> = {}): RebuildStep => ({
-  entryId, kind: "fillet", outputBodyId, inputBodyIds, request,
+  entryId, label: entryId, kind: "fillet", outputBodyId, inputBodyIds, fallbackBodyId: inputBodyIds[0] ?? null, request,
 });
 
 describe("runRebuild", () => {

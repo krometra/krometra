@@ -2,6 +2,7 @@ import type { Command } from "./Command";
 import type { Document, MeshData } from "@/types/api";
 import type { BrowserRebuiltBody, BrowserSeatedSketch } from "@/composables/editor/useBrowserGeometry";
 import { useApi } from "@/composables/useApi";
+import type { RebuildFailure } from "@/lib/browserRebuildEngine";
 import { browserRebuildPlan } from "@/lib/browserRebuildPlan";
 
 interface RebuildResponse {
@@ -15,16 +16,8 @@ function sketchPlanesPayload(sketchPlanes: BrowserSeatedSketch[]) {
   ]));
 }
 
-export function browserRebuildForm(
-  entryId: string,
-  params: Record<string, unknown>,
-  version: number,
-  bodies: BrowserRebuiltBody[],
-  sketchPlanes: BrowserSeatedSketch[],
-): FormData {
+export function rebuiltBodiesForm(version: number, bodies: BrowserRebuiltBody[], sketchPlanes: BrowserSeatedSketch[]): FormData {
   const form = new FormData();
-  form.set("entry_id", entryId);
-  form.set("params", JSON.stringify(params));
   form.set("document_version", String(version));
   form.set("bodies", JSON.stringify(bodies.map((body) => body.bodyId)));
   form.set("sketch_planes", JSON.stringify(sketchPlanesPayload(sketchPlanes)));
@@ -33,6 +26,21 @@ export function browserRebuildForm(
     form.set(`mesh:${body.bodyId}`, JSON.stringify(body.mesh));
     form.set(`naming:${body.bodyId}`, JSON.stringify(body.naming));
   }
+  return form;
+}
+
+export function browserRebuildForm(
+  entryId: string,
+  params: Record<string, unknown>,
+  version: number,
+  bodies: BrowserRebuiltBody[],
+  sketchPlanes: BrowserSeatedSketch[],
+  failures: RebuildFailure[],
+): FormData {
+  const form = rebuiltBodiesForm(version, bodies, sketchPlanes);
+  form.set("entry_id", entryId);
+  form.set("params", JSON.stringify(params));
+  form.set("failed", JSON.stringify(Object.fromEntries(failures.map((failure) => [failure.entryId, failure.message]))));
   return form;
 }
 
@@ -52,11 +60,11 @@ export class BrowserRebuildCommand implements Command {
     const document = await api.get<Document>(`/projects/${this.projectId}/document`);
     const steps = browserRebuildPlan(document, this.entryId, params);
     const { discardBrowserShape, rebuildBrowserHistory, retainBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
-    const { bodies, sketchPlanes } = await rebuildBrowserHistory(steps);
+    const { bodies, sketchPlanes, failures } = await rebuildBrowserHistory(steps);
     try {
       const saved = await api.multipartPost<RebuildResponse>(
         `/projects/${this.projectId}/geometry/browser-rebuild`,
-        browserRebuildForm(this.entryId, params, document.version, bodies, sketchPlanes),
+        browserRebuildForm(this.entryId, params, document.version, bodies, sketchPlanes, failures),
       );
       await Promise.all(bodies.map((body) => retainBrowserShape(body.shapeHandle, body.bodyId)));
       saved.bodies.forEach((body) => this.onMeshUpdated(body.body_id, body.mesh));

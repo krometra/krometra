@@ -1,21 +1,45 @@
 import type { TimelineEntry } from "@/types/api";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
+import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
 
 export type RebuildKind = "extrude" | "revolve" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform";
 
 export interface RebuildStep {
   entryId: string;
+  label: string;
   kind: RebuildKind;
   outputBodyId: string;
   inputBodyIds: string[];
+  fallbackBodyId: string | null;
   request: Record<string, unknown>;
   sketchId?: string;
+  required?: boolean;
 }
 
-export type RebuildPlanStep = RebuildStep | SketchSeatStep;
+export interface AliasStep {
+  kind: "alias";
+  entryId: string;
+  bodyId: string;
+  fallbackBodyId: string | null;
+}
+
+export interface FailStep {
+  kind: "fail";
+  entryId: string;
+  outputBodyId: string;
+  fallbackBodyId: string | null;
+  message: string;
+}
+
+export type RebuildPlanStep = RebuildStep | SketchSeatStep | AliasStep | FailStep;
+
+export interface RegenSeeds {
+  roots: string[];
+  bodies: string[];
+}
 
 export function isBodyStep(step: RebuildPlanStep): step is RebuildStep {
-  return step.kind !== "sketch_plane";
+  return REBUILD_KINDS.has(step.kind);
 }
 
 export interface RebuildDocument {
@@ -133,36 +157,81 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
   return { kind: "chamfer", featureKey, bodyId, edgeNames, distance1: number(params.distance1, 1), distance2: number(params.distance2, 1) };
 }
 
+function bodyComponents(document: RebuildDocument): Set<string> {
+  return new Set(Object.entries(document.components)
+    .filter(([, component]) => (component as { type?: unknown } | null)?.type === "body")
+    .map(([id]) => id));
+}
+
+function dependencyBodies(document: RebuildDocument, entry: TimelineEntry): string[] {
+  const owner = sketchOwnerBody(document, entry);
+  return owner ? [...inputBodiesOf(entry), owner] : inputBodiesOf(entry);
+}
+
+function bodyStep(document: RebuildDocument, entry: TimelineEntry, output: string, params: Record<string, unknown>): RebuildStep | FailStep {
+  const fallbackBodyId = fallbackBodyOf(entry);
+  try {
+    const request = requestOf(document, entry, params);
+    return { entryId: entry.id, label: entry.label, kind: entry.kind as RebuildKind, outputBodyId: output, inputBodyIds: inputBodiesOf(entry), fallbackBodyId, request };
+  } catch (error) {
+    return { kind: "fail", entryId: entry.id, outputBodyId: output, fallbackBodyId, message: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+function missingBodyAlias(bodyId: string): AliasStep {
+  return { kind: "alias", entryId: "", bodyId, fallbackBodyId: null };
+}
+
+export function browserRegenPlan(
+  document: RebuildDocument,
+  seeds: RegenSeeds,
+  override: { entryId: string; params: Record<string, unknown> } | null = null,
+): RebuildPlanStep[] {
+  const roots = new Set(seeds.roots);
+  const known = bodyComponents(document);
+  const dirty = new Set<string>();
+  const seated = new Set<string>();
+  const steps: RebuildPlanStep[] = [];
+  const markDirty = (bodyId: string) => {
+    dirty.add(bodyId);
+    for (const seat of sketchSeatSteps(document, bodyId)) {
+      seated.add(seat.sketchId);
+      steps.push(seat);
+    }
+  };
+  seeds.bodies.filter((bodyId) => !known.has(bodyId)).forEach((bodyId) => steps.push(missingBodyAlias(bodyId)));
+  seeds.bodies.forEach(markDirty);
+  for (const entry of document.timeline) {
+    const dependencies = dependencyBodies(document, entry);
+    if (!roots.has(entry.id) && !dependencies.some((id) => dirty.has(id))) continue;
+    const output = outputBodyOf(entry);
+    if (!isBrowserFeature(entry) || !output) {
+      throw new Error(`Операция «${entry.label}» зависит от изменённой, но не поддерживает пересборку в браузере.`);
+    }
+    if (isSuppressed(entry)) {
+      steps.push({ kind: "alias", entryId: entry.id, bodyId: output, fallbackBodyId: fallbackBodyOf(entry) });
+    } else {
+      const params = override?.entryId === entry.id ? { ...entry.params, ...override.params } : entry.params ?? {};
+      const step = bodyStep(document, entry, output, params);
+      steps.push(step.kind !== "fail" && entry.sketch_id && seated.has(entry.sketch_id) ? { ...step, sketchId: entry.sketch_id } : step);
+    }
+    markDirty(output);
+  }
+  return steps;
+}
+
 export function browserRebuildPlan(
   document: RebuildDocument,
   entryId: string,
   newParams: Record<string, unknown>,
 ): RebuildPlanStep[] {
-  const start = document.timeline.findIndex((entry) => entry.id === entryId);
-  if (start < 0) throw new Error("Операция не найдена в истории.");
-  const changed = document.timeline[start];
+  const changed = document.timeline.find((entry) => entry.id === entryId);
+  if (!changed) throw new Error("Операция не найдена в истории.");
   if (!isBrowserFeature(changed)) throw new Error("Пересобрать можно только операцию браузерного ядра.");
-  const affected = new Set<string>();
-  const seated = new Set<string>();
-  const steps: RebuildPlanStep[] = [];
-  document.timeline.slice(start).forEach((entry, offset) => {
-    const inputs = inputBodiesOf(entry);
-    const output = outputBodyOf(entry);
-    const owner = sketchOwnerBody(document, entry);
-    if (offset > 0 && !inputs.some((id) => affected.has(id)) && !(owner && affected.has(owner))) return;
-    if (!isBrowserFeature(entry) || !output) {
-      throw new Error(`Операция «${entry.label}» зависит от изменённой, но не поддерживает пересборку в браузере.`);
-    }
-    const params = offset === 0 ? { ...entry.params, ...newParams } : entry.params ?? {};
-    const step: RebuildStep = { entryId: entry.id, kind: entry.kind as RebuildKind, outputBodyId: output, inputBodyIds: inputs, request: requestOf(document, entry, params) };
-    steps.push(entry.sketch_id && seated.has(entry.sketch_id) ? { ...step, sketchId: entry.sketch_id } : step);
-    affected.add(output);
-    for (const seat of sketchSeatSteps(document, output)) {
-      seated.add(seat.sketchId);
-      steps.push(seat);
-    }
-  });
-  return steps;
+  const steps = browserRegenPlan(document, { roots: [entryId], bodies: [] }, { entryId, params: newParams });
+  const failed = steps.find((step): step is FailStep => step.kind === "fail" && step.entryId === entryId);
+  if (failed) throw new Error(failed.message);
+  return steps.map((step) => (isBodyStep(step) && step.entryId === entryId ? { ...step, required: true } : step));
 }
 
 export function sketchRebuildRoots(document: RebuildDocument, sketchId: string): string[] {

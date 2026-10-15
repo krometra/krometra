@@ -17,6 +17,7 @@ from app.services.geometry_ops.browser_rebuild import (
     save_browser_rebuild,
     validated_rebuild_body_ids,
 )
+from app.services.geometry_ops.browser_regen import save_browser_regen
 from app.services.geometry_ops.browser_naming import (
     load_browser_naming,
     validated_browser_naming,
@@ -178,15 +179,11 @@ async def browser_rebuild_endpoint(
     storage: AsyncStorageClient = Depends(get_storage),
 ):
     form = await request.form()
-    try:
-        document_version = int(str(form.get("document_version")))
-    except ValueError:
-        raise HTTPException(status_code=400, detail={
-            "error": "invalid_rebuild_params", "error_description": "Не передана версия документа.",
-        })
+    document_version = _form_version(form)
     body_ids = parse_rebuild_json(str(form.get("bodies", "")), list, "Некорректный список пересобранных тел.")
     params = parse_rebuild_json(str(form.get("params", "")), dict, "Некорректные параметры операции.")
     sketch_planes = parse_rebuild_json(str(form.get("sketch_planes", "{}")), dict, "Некорректные плоскости эскизов.")
+    failed = parse_rebuild_json(str(form.get("failed", "{}")), dict, "Некорректный список операций, которые не построились.")
     return await save_browser_rebuild(
         project_id=project_id,
         user_id=current_user.id,
@@ -197,8 +194,47 @@ async def browser_rebuild_endpoint(
         document_version=document_version,
         db=db,
         storage=storage,
+        failed=failed,
     )
 
+
+def _form_version(form) -> int:
+    try:
+        return int(str(form.get("document_version")))
+    except ValueError:
+        raise HTTPException(status_code=400, detail={
+            "error": "invalid_rebuild_params", "error_description": "Не передана версия документа.",
+        })
+
+
+async def browser_regen_endpoint(
+    project_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+    storage: AsyncStorageClient = Depends(get_storage),
+):
+    form = await request.form()
+    body_ids = parse_rebuild_json(str(form.get("bodies", "")), list, "Некорректный список пересобранных тел.")
+    return await save_browser_regen(
+        project_id=project_id,
+        user_id=current_user.id,
+        document=parse_rebuild_json(str(form.get("document", "")), dict, "Некорректный документ после правки истории."),
+        seeds=parse_rebuild_json(str(form.get("seeds", "")), dict, "Некорректные корни пересборки."),
+        bodies=await _rebuilt_bodies(form, body_ids),
+        sketch_planes=parse_rebuild_json(str(form.get("sketch_planes", "{}")), dict, "Некорректные плоскости эскизов."),
+        document_version=_form_version(form),
+        db=db,
+        storage=storage,
+    )
+
+
+router.add_api_route(
+    "/{project_id}/geometry/browser-regen",
+    browser_regen_endpoint,
+    methods=["POST"],
+    route_class_override=BrowserRebuildRoute,
+)
 
 router.add_api_route(
     "/{project_id}/geometry/browser-rebuild",

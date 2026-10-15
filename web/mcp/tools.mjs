@@ -258,6 +258,7 @@ export const INSTRUCTIONS = prose(
   "id рёбер и граней для операций бери из cad_snapshot с подписями, из cad_request topology или face.find,",
   "торец только что выдавленного тела - из capFaceIds ответа extrude.",
   "Тело на высоте: эскиз на смещённой плоскости sketch.create { plane, offset }.",
-  "Ошибку отменяет history.undo; лишнее убирают body.delete, timeline.delete, sketch.delete.",
+  "Ошибку отменяет history.undo; лишнее убирают body.delete, timeline.delete, sketch.delete;",
+  "timeline.suppress и timeline.rollback выключают операции, не удаляя их.",
   "Файлы: cad_export (STL, STEP) и cad_import (STEP); проверка внутренностей - cad_section.",
 );

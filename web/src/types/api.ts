@@ -58,6 +58,9 @@ export interface TimelineEntry {
   entity_count?: number;
   operation?: string;
   params?: Record<string, unknown>;
+  suppressed?: boolean;
+  rolled_back?: boolean;
+  error_message?: string;
 }
 
 // Revolve types

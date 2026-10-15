@@ -15,6 +15,7 @@ import {
 import type { FilletMergePlan } from "@/lib/browserFilletRun";
 import { importSizeError } from "@/lib/browserImport";
 import type { SavedNaming } from "@/lib/browserNaming";
+import type { RebuildFailure } from "@/lib/browserRebuildEngine";
 import type { RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import type { SketchSeatPlacement } from "@/lib/browserSketchSeat";
 import type { MeshData, PlaneBasis, SketchEntity, SketchPlane } from "@/types/api";
@@ -59,6 +60,7 @@ export interface BrowserSeatedSketch extends SketchSeatPlacement {
 export interface BrowserRebuildResult {
   bodies: BrowserRebuiltBody[];
   sketchPlanes: BrowserSeatedSketch[];
+  failures: RebuildFailure[];
 }
 
 export type BrowserEdgeFeature =
@@ -79,6 +81,7 @@ interface WorkerResponse {
   bodies?: BrowserRebuiltBody[];
   imported?: BrowserBuildResult[];
   sketchPlanes?: BrowserSeatedSketch[];
+  failures?: RebuildFailure[];
   cacheHits?: number;
   edgeNames?: string[];
   sections?: BrowserBodySection[];
@@ -243,7 +246,7 @@ export async function buildBrowserFilletMerge(plan: FilletMergePlan, radius: num
 export async function rebuildBrowserHistory(steps: RebuildPlanStep[]): Promise<BrowserRebuildResult> {
   const result = await request({ kind: "rebuild", steps: cloneBrowserWorkerInput(steps) });
   if (!result.bodies || !result.sketchPlanes) throw new Error("Браузерное ядро не вернуло пересобранные тела.");
-  return { bodies: result.bodies, sketchPlanes: result.sketchPlanes };
+  return { bodies: result.bodies, sketchPlanes: result.sketchPlanes, failures: result.failures ?? [] };
 }
 
 export async function importBrowserStep(file: ArrayBuffer): Promise<BrowserBuildResult[]> {

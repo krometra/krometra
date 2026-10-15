@@ -66,7 +66,7 @@ def browser_upload_request(max_files: int, max_fields: int) -> type[Request]:
 BrowserUploadRoute = body_limited_route(MAX_UPLOAD_BYTES, browser_upload_request(1, MAX_UPLOAD_FIELDS))
 BrowserRebuildRoute = body_limited_route(
     MAX_REBUILD_UPLOAD_BYTES,
-    browser_upload_request(MAX_REBUILD_BODIES, 5 + 2 * MAX_REBUILD_BODIES),
+    browser_upload_request(MAX_REBUILD_BODIES, 8 + 2 * MAX_REBUILD_BODIES),
 )
 BrowserImportRoute = body_limited_route(
     MAX_REBUILD_UPLOAD_BYTES,

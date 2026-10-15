@@ -1,6 +1,7 @@
 import { useDocument } from "@/composables/shared/useDocument";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import type { DocumentEdit } from "@/core/commands/DocumentEditCommand";
+import type { TimelineEdit } from "@/core/commands/TimelineEditCommand";
 import { timelineChange, type TimelineChange } from "@/lib/timelineChange";
 import type { TimelineEntry } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
@@ -40,7 +41,14 @@ export function useModelHistory(deps: { projectId: string; meshes: BodyMeshesApi
     return refresh(before);
   }
 
-  return { step, edit, canUndo: undoRedo.canUndo, canRedo: undoRedo.canRedo };
+  async function editTimeline(label: string, change: TimelineEdit): Promise<TimelineChange> {
+    const before = timeline();
+    const { TimelineEditCommand } = await import("@/core/commands/TimelineEditCommand");
+    await undoRedo.execute(new TimelineEditCommand(deps.projectId, label, change));
+    return refresh(before);
+  }
+
+  return { step, edit, editTimeline, canUndo: undoRedo.canUndo, canRedo: undoRedo.canRedo };
 }
 
 export type ModelHistoryApi = ReturnType<typeof useModelHistory>;

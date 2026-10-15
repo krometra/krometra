@@ -43,7 +43,9 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `fillet`, `chamfer`, `boolean`, `thread`, `history.undo`, `history.redo`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `fillet`, `chamfer`, `boolean`, `thread`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
+
+Правка истории (`controlTimelineOps.ts`) идёт тем же путём, что контекстное меню дерева и шкалы: `useModelHistory.editTimeline` → `TimelineEditCommand` → пересборка зависимых браузерным ядром (`browserRegenPlan`) и сохранение одним `browser-regen`. Зависимая операция, которая без удалённой или подавленной не строится, не роняет правку: она остаётся в истории со `status: "error"` и текстом в `error`, остальная модель достраивается. В `state.timeline` у записи есть `suppressed`, `rolledBack` и `error`. Каждая правка отменяется одним `history.undo`.
 
 Параметры и вид результата — в `capabilities`.
 
@@ -68,7 +70,9 @@ composables/editor/
     ├── controlViewportOps.ts      камера, проекция, снимок, касательная цепочка выбора рёбер
     ├── controlSketchOps.ts        эскиз: чтение и создание
     ├── controlExportOps.ts        export: файл STEP/STL через useExport
-    └── controlFeatureOps.ts       операции модели и undo/redo
+    ├── controlFeatureOps.ts       операции модели
+    ├── controlHistoryOps.ts       undo/redo
+    └── controlTimelineOps.ts      удаление, подавление и откат по истории
 
 composables/viewport/
 ├── sceneProbe.ts                  проекция точек и обход сцены в JSON
