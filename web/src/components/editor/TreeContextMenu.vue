@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import type { CtxItem } from "@/composables/editor/types";
+import { clampMenuPosition } from "@/lib/menuPosition";
 
-defineProps<{
+const props = defineProps<{
   x: number;
   y: number;
   items: CtxItem[];
@@ -14,7 +15,14 @@ function onWindowClick() {
   emit("close");
 }
 
-onMounted(() => window.addEventListener("click", onWindowClick));
+const root = ref<HTMLElement | null>(null);
+const position = ref({ left: props.x, top: props.y });
+
+onMounted(() => {
+  window.addEventListener("click", onWindowClick);
+  const box = root.value?.getBoundingClientRect();
+  if (box) position.value = clampMenuPosition(props.x, props.y, box, { width: window.innerWidth, height: window.innerHeight });
+});
 onUnmounted(() => window.removeEventListener("click", onWindowClick));
 
 function onItemClick(item: CtxItem) {
@@ -25,9 +33,10 @@ function onItemClick(item: CtxItem) {
 
 <template>
   <div
+    ref="root"
     role="menu"
     :class="$style.ctxMenu"
-    :style="{ left: x + 'px', top: y + 'px' }"
+    :style="{ left: position.left + 'px', top: position.top + 'px' }"
     @contextmenu.prevent
   >
     <div
@@ -54,6 +63,8 @@ function onItemClick(item: CtxItem) {
   border: 1px solid var(--cs-border-strong);
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
 }
 
 .ctxItem {
