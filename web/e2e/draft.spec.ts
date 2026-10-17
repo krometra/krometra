@@ -71,6 +71,7 @@ test("уклон: грани кликом от плоскости XY, правк
   expect((await cad.control<{ mode: string }>("state")).mode).toBe("draft");
   await expect(page.getByTestId("draft-apply")).toBeDisabled();
   await expect(page.getByTestId("draft-neutral-status")).toContainText("XY");
+  await cad.idle();
 
   await clickModelPoint(cad, [SIDE / 2, 0, HEIGHT / 2]);
   await expect(page.getByTestId("draft-face-row")).toHaveCount(1);
