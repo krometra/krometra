@@ -29,11 +29,13 @@ DIRECTIONS = {
 }
 POSITIVE = {"radius", "distance1", "distance2", "pitch", "length", "thickness", "diameter", "depth", "cbore_diameter", "cbore_depth", "csink_diameter", "csink_angle"}
 ORIENTATIONS = ("corrected", "frenet")
+TRANSITIONS = ("smooth", "ruled")
 CHOICES = {"hole_type": ("simple", "counterbore", "countersink"), "extent": ("distance", "through_all"), "bottom": ("flat", "cone")}
 EDITABLE_PARAMS = {
     "extrude": {"distance", "direction", "back_distance", "offset"},
     "revolve": {"angle", "direction"},
     "sweep": {"orientation"},
+    "loft": {"transition"},
     "fillet": {"radius"},
     "chamfer": {"distance1", "distance2"},
     "thread": {"pitch", "length", "offset"},
@@ -72,6 +74,10 @@ def _validated_value(kind: str, key: str, value: object):
     if key == "orientation":
         if value not in ORIENTATIONS:
             _invalid("Ориентация профиля протяжки — corrected или frenet.")
+        return value
+    if key == "transition":
+        if value not in TRANSITIONS:
+            _invalid("Переход лофта - smooth или ruled.")
         return value
     if key in CHOICES:
         if value not in CHOICES[key]:

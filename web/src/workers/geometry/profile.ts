@@ -27,7 +27,7 @@ function sketchContour(contour: BrowserContour, plane: Plane, center: Point) {
   return sketcher.close();
 }
 
-function sketchProfile(profile: BrowserProfile, plane: Plane, center: Point): ProfileSketch {
+export function sketchProfile(profile: BrowserProfile, plane: Plane, center: Point): ProfileSketch {
   if (isBrowserCircle(profile)) return sketchCircle(profile.radius, { plane });
   if (isBrowserRectangle(profile)) {
     return sketchRectangle(

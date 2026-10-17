@@ -3,6 +3,7 @@ import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
 import { holeNamed } from "./geometry/hole";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
+import { loftNamed, type LoftRequest } from "./geometry/loft";
 import { mirrorNamed, type MirrorRequest } from "./geometry/mirror";
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
 import { patternNamed, type PatternRequest } from "./geometry/pattern";
@@ -27,7 +28,7 @@ import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
 type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest
-  | MeasureRequest | PatternRequest;
+  | MeasureRequest | PatternRequest | LoftRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -38,6 +39,7 @@ function buildShape(data: Request) {
   if (data.kind === "extrude") return publishNamed(() => extrudeNamed(data, namedBodyShape));
   if (data.kind === "revolve") return publishNamed(() => revolveNamed(data));
   if (data.kind === "sweep") return publishNamed(() => sweepNamed(data, namedBodyShape));
+  if (data.kind === "loft") return publishNamed(() => loftNamed(data, namedBodyShape));
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));

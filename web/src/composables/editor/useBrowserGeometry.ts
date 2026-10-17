@@ -51,6 +51,13 @@ export interface BrowserSweepOptions {
   targetBodyId: string | null;
 }
 
+export interface BrowserLoftOptions {
+  sections: BrowserSketchPlacement[];
+  ruled: boolean;
+  operation: BrowserExtrudeOperation;
+  targetBodyId: string | null;
+}
+
 export interface BrowserBuildResult {
   step: ArrayBuffer;
   mesh: MeshData;
@@ -237,6 +244,11 @@ export async function buildBrowserRevolve(input: BrowserSketchPlacement & { axis
 export async function buildBrowserSweep(input: BrowserSketchPlacement & BrowserSweepOptions, featureKey: string): Promise<BrowserBuildResult> {
   const result = await request({ kind: "sweep", ...cloneBrowserWorkerInput(input), featureKey });
   return buildResult(result, "Браузерное ядро вернуло неполный результат протяжки.");
+}
+
+export async function buildBrowserLoft(input: BrowserLoftOptions, featureKey: string): Promise<BrowserBuildResult> {
+  const result = await request({ kind: "loft", ...cloneBrowserWorkerInput(input), featureKey });
+  return buildResult(result, "Браузерное ядро вернуло неполный результат лофта.");
 }
 
 export async function buildBrowserBoolean(operation: BrowserBooleanOperation, targetBodyId: string, toolBodyId: string, featureKey: string): Promise<BrowserBuildResult> {

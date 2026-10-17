@@ -43,7 +43,7 @@ function spineWire(spine: BrowserSweepSpine): Wire {
   }
 }
 
-function isValidSolid(shape: Shape3D): boolean {
+export function isValidSolid(shape: Shape3D): boolean {
   const analyzer = new (getOC().BRepCheck_Analyzer)(shape.wrapped, true, false, false);
   try {
     return analyzer.IsValid();

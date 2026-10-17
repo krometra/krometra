@@ -19,6 +19,7 @@ import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorTools } from "@/composables/editor/useEditorTools";
 import { useSelectionLabel } from "@/composables/editor/useSelectionLabel";
 import { useSweep } from "@/composables/editor/useSweep";
+import { useLoft } from "@/composables/editor/useLoft";
 import { useHole } from "@/composables/editor/useHole";
 import { useMeasure } from "@/composables/editor/useMeasure";
 import { usePattern } from "@/composables/editor/usePattern";
@@ -55,6 +56,7 @@ import ThreadPanel from "@/components/editor/ThreadPanel.vue";
 import ShellPanel from "@/components/editor/ShellPanel.vue";
 import MirrorPanel from "@/components/editor/MirrorPanel.vue";
 import SweepPanel from "@/components/editor/SweepPanel.vue";
+import LoftPanel from "@/components/editor/LoftPanel.vue";
 import HolePanel from "@/components/editor/HolePanel.vue";
 import MeasurePanel from "@/components/editor/MeasurePanel.vue";
 import PatternPanel from "@/components/editor/PatternPanel.vue";
@@ -115,11 +117,12 @@ const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMo
 const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const sweep = useSweep({ projectId: props.id, meshes, model });
+const loft = useLoft({ projectId: props.id, viewportRef, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([
-  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool, measure.tool, pattern.tool,
+  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -214,7 +217,7 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, hole, pattern,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, loft, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
       measure,
     });
@@ -423,14 +426,8 @@ const selectionLabel = useSelectionLabel();
           v-else-if="extrude.lastSavedSketchId.value"
           :extrude="extrude"
         />
-        <FilletChamferPanel
-          v-else-if="filletChamfer.filletChamferMode.value"
-          :fillet="filletChamfer"
-        />
-        <ThreadPanel
-          v-else-if="thread.threadMode.value"
-          :thread="thread"
-        />
+        <FilletChamferPanel v-else-if="filletChamfer.filletChamferMode.value" :fillet="filletChamfer" />
+        <ThreadPanel v-else-if="thread.threadMode.value" :thread="thread" />
         <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
         <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
         <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
@@ -440,6 +437,7 @@ const selectionLabel = useSelectionLabel();
           :boolean="booleanMode"
         />
         <SweepPanel v-else-if="sweep.sweepMode.value" :sweep="sweep" />
+        <LoftPanel v-else-if="loft.loftMode.value" :loft="loft" />
         <MeasurePanel v-else-if="measure.active.value" :measure="measure" />
         <PropertiesPanel
           v-else
