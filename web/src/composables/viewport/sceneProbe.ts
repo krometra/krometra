@@ -61,6 +61,50 @@ export function visibleSceneBodyIds(scene: THREE.Object3D): string[] {
   return [...ids];
 }
 
+export interface BodyMaterialSnapshot {
+  bodyId: string;
+  visible: boolean;
+  color: string;
+  vertexColors: boolean;
+  colorAttribute: { count: number; positionCount: number; darkest: number } | null;
+  castShadow: boolean;
+  receiveShadow: boolean;
+  transparent: boolean;
+  opacity: number;
+  helpers: number;
+}
+
+function darkestVertexColor(attribute: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): number {
+  let darkest = Infinity;
+  for (let i = 0; i < attribute.count; i++) darkest = Math.min(darkest, attribute.getX(i) + attribute.getY(i) + attribute.getZ(i));
+  return Number.isFinite(darkest) ? darkest : 0;
+}
+
+export function bodyMaterialSnapshots(scene: THREE.Object3D): BodyMaterialSnapshot[] {
+  const out: BodyMaterialSnapshot[] = [];
+  scene.traverse((object) => {
+    const bodyId: unknown = object.userData.bodyId;
+    if (!(object instanceof THREE.Mesh) || typeof bodyId !== "string") return;
+    const material = object.material as THREE.MeshStandardMaterial;
+    const colors = object.geometry.getAttribute("color");
+    out.push({
+      bodyId,
+      visible: object.visible,
+      color: material.color?.getHexString() ?? "",
+      vertexColors: material.vertexColors,
+      colorAttribute: colors
+        ? { count: colors.count, positionCount: object.geometry.getAttribute("position").count, darkest: darkestVertexColor(colors) }
+        : null,
+      castShadow: object.castShadow,
+      receiveShadow: object.receiveShadow,
+      transparent: material.transparent,
+      opacity: material.opacity,
+      helpers: object.children.length,
+    });
+  });
+  return out;
+}
+
 export function shownSketchOutlineIds(scene: THREE.Object3D): string[] {
   const ids: string[] = [];
   scene.traverseVisible((object) => {

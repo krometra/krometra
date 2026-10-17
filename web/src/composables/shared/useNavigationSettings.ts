@@ -34,6 +34,6 @@ export const useNavigationSettings = createSharedComposable(() => {
     settings: readonly(settings),
     current: (): NavigationSettings => settings.value,
     setPreset: (preset: NavigationPresetId) => update({ preset }),
-    setTrackpadScrollZooms: (trackpadScrollZooms: boolean) => update({ trackpadScrollZooms }),
+    setTrackpadPan: (trackpadPan: boolean) => update({ trackpadPan }),
   };
 });

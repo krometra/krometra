@@ -103,14 +103,14 @@ export function viewportOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "viewport.navigation",
       description:
-        "Пресет навигации мышью и поведение трекпада - меню с мышкой у кнопок вида. krometra: ЛКМ вращение, СКМ зум, ПКМ панорама; fusion: СКМ панорама, Shift+СКМ вращение; solidworks: СКМ вращение, Ctrl+СКМ панорама, Shift+СКМ зум; kompas: СКМ вращение, Shift+СКМ панорама, Ctrl+СКМ зум; onshape: ПКМ вращение, Ctrl+ПКМ и СКМ панорама. Колесо во всех пресетах зумит к курсору. Трекпад: щипок - зум, два пальца - панорама, Shift + два пальца - вращение; trackpadScrollZooms = true - два пальца зумят. Настройка браузера, хранится в localStorage, документ не меняет. Без параметров только читает. Возвращает { preset, trackpadScrollZooms }.",
+        "Пресет навигации мышью и поведение трекпада - меню с мышкой у кнопок вида. krometra: ЛКМ вращение, СКМ зум, ПКМ панорама; fusion: СКМ панорама, Shift+СКМ вращение; solidworks: СКМ вращение, Ctrl+СКМ панорама, Shift+СКМ зум; kompas: СКМ вращение, Shift+СКМ панорама, Ctrl+СКМ зум; onshape: ПКМ вращение, Ctrl+ПКМ и СКМ панорама. Колесо во всех пресетах зумит к курсору. Колесо и двухпальцевый скролл по умолчанию зумят: мышь с плавной прокруткой на macOS неотличима от трекпада. trackpadPan = true - на трекпаде два пальца панорамируют, Shift + два пальца вращают, щипок зумит. Настройка браузера, хранится в localStorage, документ не меняет. Без параметров только читает. Возвращает { preset, trackpadPan }.",
       params: {
         preset: param.optional(param.oneOf(NAVIGATION_PRESETS.map((preset) => preset.id), "Пресет мыши.")),
-        trackpadScrollZooms: param.optional(param.boolean("true - двухпальцевый скролл трекпада зумит, false - панорамирует.")),
+        trackpadPan: param.optional(param.boolean("true - двухпальцевый скролл трекпада панорамирует, false - зумит (по умолчанию).")),
       },
-      run: ({ preset, trackpadScrollZooms }) => {
+      run: ({ preset, trackpadPan }) => {
         if (preset) navigation.setPreset(preset);
-        if (trackpadScrollZooms !== undefined) navigation.setTrackpadScrollZooms(trackpadScrollZooms);
+        if (trackpadPan !== undefined) navigation.setTrackpadPan(trackpadPan);
         return { ...navigation.current() };
       },
     }),

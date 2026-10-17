@@ -7,6 +7,7 @@ import {
   shownSketchOutlineIds,
   threadPreviewSnapshot,
   visibleSceneBodyIds,
+  bodyMaterialSnapshots,
   type CameraView,
   type CanvasRect,
 } from "./sceneProbe";
@@ -35,6 +36,8 @@ export function useViewportProbe(context: SceneContext) {
       threadPreview: threadPreviewSnapshot(scene),
       mirrorPreview: mirrorPreviewSnapshot(scene),
       section,
+      bodyMaterials: bodyMaterialSnapshots(scene),
+      contextLost: context.renderer().getContext().isContextLost(),
     };
   }
 

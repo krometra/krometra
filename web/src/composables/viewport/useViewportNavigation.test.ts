@@ -41,7 +41,7 @@ function wheel(fields: Partial<WheelEvent>) {
   });
 }
 
-function setup(settings: NavigationSettings = { preset: "krometra", trackpadScrollZooms: false }) {
+function setup(settings: NavigationSettings = { preset: "krometra", trackpadPan: true }) {
   const canvas = new FakeCanvas();
   const container = new EventTarget();
   const camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 1000);
@@ -64,7 +64,7 @@ function setup(settings: NavigationSettings = { preset: "krometra", trackpadScro
 
 describe("useViewportNavigation", () => {
   it("нажатие кнопки настраивает OrbitControls под выбранный пресет", () => {
-    const { container, controls, settings } = setup({ preset: "solidworks", trackpadScrollZooms: false });
+    const { container, controls, settings } = setup({ preset: "solidworks", trackpadPan: true });
     container.dispatchEvent(domEvent("pointerdown", { pointerType: "mouse", button: 1, shiftKey: false, ctrlKey: false, metaKey: false }));
     expect(controls.mouseButtons.MIDDLE).toBe(THREE.MOUSE.ROTATE);
     container.dispatchEvent(domEvent("pointerdown", { pointerType: "mouse", button: 1, shiftKey: false, ctrlKey: true, metaKey: false }));
@@ -125,7 +125,7 @@ describe("useViewportNavigation", () => {
   });
 
   it("опция «скролл = зум» возвращает трекпаду зум", () => {
-    const { container, settle, distance } = setup({ preset: "krometra", trackpadScrollZooms: true });
+    const { container, settle, distance } = setup({ preset: "krometra", trackpadPan: false });
     const before = distance();
     container.dispatchEvent(wheel({ deltaX: 2, deltaY: -20 }));
     settle();

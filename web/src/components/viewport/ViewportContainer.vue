@@ -208,13 +208,10 @@ function idleCursor(): string {
   return selectionMode.value === "edge" || selectionMode.value === "body" ? "crosshair" : "";
 }
 
-function fitAllBodies() {
+function visibleBodiesSphere(): THREE.Sphere | null {
   const visibleEntries = entries.filter((e) => e.visible);
   const sketchGroups = outlines.groups();
-  if (visibleEntries.length === 0 && sketchGroups.size === 0) {
-    core.resetView();
-    return;
-  }
+  if (visibleEntries.length === 0 && sketchGroups.size === 0) return null;
 
   // Кадр задают тела; контуры эскизов учитываются, только когда тел нет —
   // иначе далёкий эскиз отдалил бы камеру от модели
@@ -223,10 +220,17 @@ function fitAllBodies() {
   if (visibleEntries.length === 0) {
     for (const group of sketchGroups.values()) box.expandByObject(group);
   }
+  return box.getBoundingSphere(new THREE.Sphere());
+}
 
-  const sphere = new THREE.Sphere();
-  box.getBoundingSphere(sphere);
-  core.fitCameraToSphere(sphere);
+function fitAllBodies() {
+  const sphere = visibleBodiesSphere();
+  if (sphere) core.fitCameraToSphere(sphere);
+  else core.resetView();
+}
+
+function showView(direction: THREE.Vector3, up: THREE.Vector3) {
+  core.animateToView(direction, up, visibleBodiesSphere());
 }
 
 function clearAllBodies() {
@@ -316,6 +320,7 @@ defineExpose({
   showPressPullPreview: pressPullPreview.show,
   hidePressPullPreview: pressPullPreview.hide,
   fitAllBodies,
+  showView,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,
   getSelectedBodyIds: bodies.getSelected,

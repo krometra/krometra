@@ -7,6 +7,7 @@ import { ISO_VIEW } from "@/composables/useViewCube";
 import { coverCrop } from "@/lib/projectThumbnail";
 import { isFinitePoint, isUsableCamera, isUsableRadius, viewDirection, type Point3 } from "@/lib/cameraGuard";
 import { interpolatePose, type CameraPose } from "@/lib/lookAtView";
+import { fitDistance, framedView } from "@/lib/viewFraming";
 import { useSceneLighting } from "./useSceneLighting";
 
 /**
@@ -227,23 +228,11 @@ export function useSceneCore(entries: MeshEntry[]) {
     if (renderer) renderer.domElement.style.cursor = cursor;
   }
 
-  function fitCameraToSphere(sphere: THREE.Sphere) {
-    if (!camera || !controls || !scene) return;
-    if (!isUsableRadius(sphere.radius) || !isFinitePoint(point(sphere.center))) {
-      resetView();
-      return;
-    }
-
-    const distance = (sphere.radius / Math.sin((camera.fov * Math.PI) / 360)) * 1.4;
-    const direction = new THREE.Vector3(...viewDirection(point(camera.position), point(controls.target), point(ISO_VIEW.position)));
-
-    controls.target.copy(sphere.center);
-    camera.position.copy(sphere.center).addScaledVector(direction, distance);
+  function applyDepthRange(distance: number) {
+    if (!camera || !scene) return;
     camera.near = Math.max(distance / 100, 0.01);
     camera.far = distance * 100;
     camera.updateProjectionMatrix();
-    controls.update();
-
     // Дальность тумана фиксируется при создании сцены (сетка 20 единиц), а
     // дистанция камеры растёт с размером модели: без пересчёта тело крупнее
     // исходного fog.far растворялось в цвете фона и становилось невидимым.
@@ -251,6 +240,36 @@ export function useSceneCore(entries: MeshEntry[]) {
       scene.fog.near = distance * 2;
       scene.fog.far = distance * 6;
     }
+  }
+
+  function fitCameraToSphere(sphere: THREE.Sphere) {
+    if (!camera || !controls || !scene) return;
+    if (!isUsableRadius(sphere.radius) || !isFinitePoint(point(sphere.center))) {
+      resetView();
+      return;
+    }
+
+    const distance = fitDistance(sphere.radius, camera.fov);
+    const direction = new THREE.Vector3(...viewDirection(point(camera.position), point(controls.target), point(ISO_VIEW.position)));
+
+    controls.target.copy(sphere.center);
+    camera.position.copy(sphere.center).addScaledVector(direction, distance);
+    applyDepthRange(distance);
+    controls.update();
+  }
+
+  /** Стандартный вид куба: поворот к направлению и вписывание тел, без них - вокруг текущей цели. */
+  function animateToView(direction: THREE.Vector3, up: THREE.Vector3, sphere: THREE.Sphere | null) {
+    if (!camera || !controls) return;
+    const view = framedView(
+      point(direction),
+      sphere ? { center: point(sphere.center), radius: sphere.radius } : null,
+      { target: point(controls.target), distance: camera.position.distanceTo(controls.target) },
+      camera.fov,
+    );
+    if (!view) return;
+    applyDepthRange(view.distance);
+    animateCameraTo(new THREE.Vector3(...view.position), new THREE.Vector3(...view.target), up);
   }
 
   function resetView() {
@@ -371,6 +390,7 @@ export function useSceneCore(entries: MeshEntry[]) {
     resetView,
     setCameraView,
     animateCameraTo,
+    animateToView,
     stopCameraAnimation,
     orbitControls: () => controls,
     getCameraState,

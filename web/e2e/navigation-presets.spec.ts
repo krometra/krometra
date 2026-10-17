@@ -16,7 +16,7 @@ type Modifier = "Shift" | "Control";
 
 interface Navigation {
   preset: string;
-  trackpadScrollZooms: boolean;
+  trackpadPan: boolean;
 }
 
 function sub(a: number[], b: number[]) {
@@ -107,7 +107,7 @@ test("пресеты навигации: кнопки мыши, зум к кур
   const sketch = await cad.control<{ sketchId: string }>("sketch.create", { plane: "XY", entities: [rect(-20, -20, 20, 20)] });
   await cad.control<Feature>("extrude", { sketchId: sketch.sketchId, distance: 20 });
 
-  expect(await setNavigation(cad, {}), "по умолчанию - привычная раскладка Крометры").toEqual({ preset: "krometra", trackpadScrollZooms: false });
+  expect(await setNavigation(cad, {}), "по умолчанию - привычная раскладка Крометры").toEqual({ preset: "krometra", trackpadPan: false });
 
   let move = await measure(cad, () => drag(cad, "left"));
   expectRotated(move.before, move.after, "Крометра, ЛКМ");
@@ -158,18 +158,19 @@ test("пресеты навигации: кнопки мыши, зум к кур
 
   await setNavigation(cad, { preset: "krometra" });
   move = await measure(cad, () => wheel(cad, 30, 20));
+  expect(Math.abs(distance(move.after) - distance(move.before)), "по умолчанию двухпальцевый скролл зумит, как колесо").toBeGreaterThan(0.5);
+
+  await page.getByTestId("navigation-menu").click();
+  await page.getByTestId("navigation-trackpad-pan").click();
+  expect((await setNavigation(cad, {})).trackpadPan, "чекбокс включает панораму двумя пальцами").toBe(true);
+  move = await measure(cad, () => wheel(cad, 30, 20));
   expectPanned(move.before, move.after, "трекпад, два пальца");
   move = await measure(cad, () => wheel(cad, 0, -40, ["Control"]));
   expect(distance(move.after), "щипок трекпада (wheel с ctrlKey) приближает").toBeLessThan(distance(move.before));
   move = await measure(cad, () => wheel(cad, 40, 10, ["Shift"]));
   expectRotated(move.before, move.after, "трекпад, Shift + два пальца");
 
-  await page.getByTestId("navigation-menu").click();
-  await page.getByTestId("navigation-trackpad-zoom").click();
-  expect((await setNavigation(cad, {})).trackpadScrollZooms, "чекбокс включает старое поведение трекпада").toBe(true);
-  move = await measure(cad, () => wheel(cad, 30, 20));
-  expect(Math.abs(distance(move.after) - distance(move.before)), "трекпад со «скролл = зум» зумит").toBeGreaterThan(0.5);
-  await setNavigation(cad, { trackpadScrollZooms: false });
+  await setNavigation(cad, { trackpadPan: false });
 
   const cube = page.getByTestId("view-cube");
   const cubeBox = (await cube.boundingBox())!;

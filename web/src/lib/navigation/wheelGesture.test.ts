@@ -12,8 +12,8 @@ function wheel(sample: Partial<WheelSample>): WheelSample {
   return { deltaX: 0, deltaY: 0, deltaMode: 0, ctrlKey: false, shiftKey: false, timeStamp: 0, ...sample };
 }
 
-const OFF = { trackpadScrollZooms: false };
-const ON = { trackpadScrollZooms: true };
+const OFF = { trackpadPan: true };
+const ON = { trackpadPan: false };
 
 describe("мышь или трекпад", () => {
   it("строчный и страничный режимы бывают только у колеса мыши", () => {

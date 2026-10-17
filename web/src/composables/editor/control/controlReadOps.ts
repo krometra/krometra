@@ -112,10 +112,10 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
     defineOp({
       op: "scene.get",
       description:
-        "Что реально находится в 3D-сцене (обход сцены, а не документ). Возвращает { visibleBodyIds, visibleBodyCount, sketchOutlineIds, threadPreview, mirrorPreview, section }. sketchOutlineIds — эскизы, контуры которых сейчас видны (скрытый эскиз и спрятанные контуры сюда не попадают). threadPreview — призрак резьбы до применения: { starts, pitch, depth, external, threads, bbox: { min, max } } либо null. mirrorPreview — призрак зеркального отражения в панели «Зеркало»: { sourceBodyId, bbox: { min, max } } либо null. section — секущая плоскость режима «Сечение» вьюпорта { normal, constant } (остаются точки, где normal·p + constant >= 0) либо null.",
+        "Что реально находится в 3D-сцене (обход сцены, а не документ). Возвращает { visibleBodyIds, visibleBodyCount, sketchOutlineIds, threadPreview, mirrorPreview, section, bodyMaterials, contextLost }. sketchOutlineIds — эскизы, контуры которых сейчас видны (скрытый эскиз и спрятанные контуры сюда не попадают). threadPreview — призрак резьбы до применения: { starts, pitch, depth, external, threads, bbox: { min, max } } либо null. mirrorPreview — призрак зеркального отражения в панели «Зеркало»: { sourceBodyId, bbox: { min, max } } либо null. section — секущая плоскость режима «Сечение» вьюпорта { normal, constant } (остаются точки, где normal·p + constant >= 0) либо null. bodyMaterials — диагностика отрисовки тел: [{ bodyId, visible, color, vertexColors, colorAttribute: { count, positionCount, darkest } | null, castShadow, receiveShadow, transparent, opacity, helpers }]; contextLost — потерян ли WebGL-контекст.",
       run: () => {
         const scene = context.viewport().inspectScene();
-        if (!scene) return { visibleBodyIds: [], visibleBodyCount: 0, sketchOutlineIds: [], threadPreview: null, mirrorPreview: null, section: null };
+        if (!scene) return { visibleBodyIds: [], visibleBodyCount: 0, sketchOutlineIds: [], threadPreview: null, mirrorPreview: null, section: null, bodyMaterials: [], contextLost: false };
         return { ...scene, visibleBodyCount: scene.visibleBodyIds.length };
       },
     }),

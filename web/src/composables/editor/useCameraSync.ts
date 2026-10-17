@@ -30,10 +30,9 @@ export function useCameraSync(viewportRef: ViewportRef) {
   });
 
   function handleViewChange(view: { position: Vec3; target: Vec3; up: Vec3 }) {
-    const pos = new THREE.Vector3(view.position.x, view.position.y, view.position.z);
-    const tgt = new THREE.Vector3(view.target.x, view.target.y, view.target.z);
+    const direction = new THREE.Vector3(view.position.x - view.target.x, view.position.y - view.target.y, view.position.z - view.target.z);
     const up = new THREE.Vector3(view.up.x, view.up.y, view.up.z);
-    viewportRef.value?.animateCameraTo(pos, tgt, up);
+    viewportRef.value?.showView(direction, up);
   }
 
   function handleViewIso() {

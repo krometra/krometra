@@ -22,7 +22,7 @@ export type WheelEventLike = Pick<WheelEvent, "deltaX" | "deltaY" | "deltaMode" 
 };
 
 export interface WheelOptions {
-  trackpadScrollZooms: boolean;
+  trackpadPan: boolean;
 }
 
 const LINE_PX = 16;
@@ -83,7 +83,7 @@ export function wheelGesture(sample: WheelSample, device: WheelDevice, options: 
   const dy = pixels(sample.deltaY, sample.deltaMode);
   if (sample.ctrlKey) return { kind: "zoom", delta: dy * PINCH_GAIN, stepped: false };
   if (device === "mouse") return { kind: "zoom", delta: dy || dx, stepped: true };
-  if (options.trackpadScrollZooms) return { kind: "zoom", delta: dy, stepped: false };
+  if (!options.trackpadPan) return { kind: "zoom", delta: dy, stepped: false };
   if (sample.shiftKey) return { kind: "rotate", dx: -dx, dy: -dy };
   return { kind: "pan", dx: -dx, dy: -dy };
 }

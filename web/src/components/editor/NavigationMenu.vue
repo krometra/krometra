@@ -54,14 +54,14 @@ onClickOutside(root, () => (open.value = false));
       <div :class="$style.title">Трекпад</div>
       <ul :class="$style.hints">
         <li>Щипок - зум к курсору</li>
-        <li>{{ navigation.settings.value.trackpadScrollZooms ? "Два пальца - зум" : "Два пальца - панорама" }}</li>
-        <li v-if="!navigation.settings.value.trackpadScrollZooms">Shift + два пальца - вращение</li>
+        <li>{{ navigation.settings.value.trackpadPan ? "Два пальца - панорама" : "Колесо и два пальца - зум" }}</li>
+        <li v-if="navigation.settings.value.trackpadPan">Shift + два пальца - вращение</li>
       </ul>
       <CsCheckbox
-        label="Трекпад: скролл = зум"
-        :model-value="navigation.settings.value.trackpadScrollZooms"
-        data-testid="navigation-trackpad-zoom"
-        @update:model-value="navigation.setTrackpadScrollZooms"
+        label="Трекпад: два пальца - панорама"
+        :model-value="navigation.settings.value.trackpadPan"
+        data-testid="navigation-trackpad-pan"
+        @update:model-value="navigation.setTrackpadPan"
       />
     </div>
   </div>

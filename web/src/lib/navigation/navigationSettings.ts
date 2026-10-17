@@ -2,11 +2,11 @@ import { DEFAULT_PRESET, isNavigationPresetId, type NavigationPresetId } from ".
 
 export interface NavigationSettings {
   preset: NavigationPresetId;
-  trackpadScrollZooms: boolean;
+  trackpadPan: boolean;
 }
 
 export function defaultNavigationSettings(): NavigationSettings {
-  return { preset: DEFAULT_PRESET, trackpadScrollZooms: false };
+  return { preset: DEFAULT_PRESET, trackpadPan: false };
 }
 
 export function parseNavigationSettings(raw: string | null): NavigationSettings {
@@ -22,6 +22,6 @@ export function parseNavigationSettings(raw: string | null): NavigationSettings 
   const record = parsed as Record<string, unknown>;
   return {
     preset: isNavigationPresetId(record.preset) ? record.preset : fallback.preset,
-    trackpadScrollZooms: typeof record.trackpadScrollZooms === "boolean" ? record.trackpadScrollZooms : fallback.trackpadScrollZooms,
+    trackpadPan: typeof record.trackpadPan === "boolean" ? record.trackpadPan : fallback.trackpadPan,
   };
 }

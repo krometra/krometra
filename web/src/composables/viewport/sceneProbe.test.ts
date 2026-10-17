@@ -7,6 +7,7 @@ import {
   threadPreviewSnapshot,
   visibleSceneBodyIds,
   type CanvasRect,
+  bodyMaterialSnapshots,
 } from "./sceneProbe";
 
 const RECT: CanvasRect = { left: 100, top: 50, width: 800, height: 600 };
@@ -182,5 +183,33 @@ describe("mirrorPreviewSnapshot", () => {
 
     expect(mirrorPreviewSnapshot(scene)).toEqual({ sourceBodyId: "a", bbox: { min: [-10, 0, 0], max: [0, 4, 2] } });
     expect(visibleSceneBodyIds(scene)).toEqual(["a"]);
+  });
+});
+
+describe("bodyMaterialSnapshots", () => {
+  it("сообщает цвет материала, цвета вершин и самый тёмный цвет вершины тела", () => {
+    const scene = new THREE.Scene();
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const count = geometry.getAttribute("position").count;
+    geometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(count * 3).fill(0.5), 3));
+    const material = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.userData.bodyId = "body-a";
+    mesh.castShadow = true;
+    scene.add(mesh);
+    expect(bodyMaterialSnapshots(scene)).toEqual([
+      {
+        bodyId: "body-a",
+        visible: true,
+        color: "ffffff",
+        vertexColors: true,
+        colorAttribute: { count, positionCount: count, darkest: 1.5 },
+        castShadow: true,
+        receiveShadow: false,
+        transparent: false,
+        opacity: 1,
+        helpers: 0,
+      },
+    ]);
   });
 });
