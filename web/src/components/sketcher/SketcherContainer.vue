@@ -462,7 +462,7 @@ function onSketchKeyDown(e: KeyboardEvent) {
   }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-  if (CONSTRUCTION_KEYS.has(e.key.toLowerCase())) {
+  if (e.code === "KeyX" || CONSTRUCTION_KEYS.has(e.key.toLowerCase())) {
     e.preventDefault();
     construction.toggleSelectionOrMode();
     return;

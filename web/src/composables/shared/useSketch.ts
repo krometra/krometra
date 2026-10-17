@@ -185,7 +185,12 @@ export const useSketch = createSharedComposable(() => {
     if (!solver.value) solver.value = new ConstraintSolver();
     isSolving.value = true;
     try {
-      const result = await solver.value.solve(entities.value, constraints.value);
+      const solvedEntities = entities.value;
+      const solvedConstraints = constraints.value;
+      const result = await solver.value.solve(solvedEntities, solvedConstraints);
+      // Пока решатель считал, эскиз успели поправить (X сразу после Ctrl+Z):
+      // устаревший результат затёр бы эту правку.
+      if (entities.value !== solvedEntities || constraints.value !== solvedConstraints) return;
       // Результат решателя — следствие уже записанной правки, а не отдельный
       // шаг: он обновляет и текущее состояние истории, чтобы Ctrl+Z вернулся
       // к решённой геометрии, а не к состоянию «до досчёта».

@@ -102,7 +102,7 @@ test("Вспомогательная (X/Ч): отрезок, прямоугол�
   await clickAt(cad, [-5, -4]);
   await clickAt(cad, [-10, -1]);
 
-  await page.keyboard.press("ч");
+  await page.evaluate(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "ч", code: "Semicolon", bubbles: true })));
   await expect(constructionToggle(page)).toHaveAttribute("aria-pressed", "false");
 
   const drawn = await newEntities(cad, regular);
