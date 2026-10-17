@@ -6,7 +6,7 @@ import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browser
 import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
 import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
 
-export type RebuildKind = "extrude" | "revolve" | "sweep" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern";
+export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern";
 
 export interface RebuildStep {
   entryId: string;
@@ -51,12 +51,13 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "loft", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
   revolve: ["angle", "direction"],
   sweep: ["orientation"],
+  loft: ["transition"],
   fillet: ["radius"],
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
@@ -104,10 +105,19 @@ export function inputBodiesOf(entry: TimelineEntry): string[] {
   return [...new Set(ids.map(text).filter((id): id is string => id !== null))];
 }
 
+function extraSketchIds(entry: TimelineEntry): unknown[] {
+  if (entry.kind === "sweep") return [entry.params?.path_sketch_id];
+  if (entry.kind === "loft") return loftSketchIds(entry.params ?? {});
+  return [];
+}
+
 export function featureSketchIds(entry: TimelineEntry): string[] {
   if (entry.kind === "sketch") return [];
-  const path = entry.kind === "sweep" ? [text(entry.params?.path_sketch_id)] : [];
-  return [...new Set([text(entry.sketch_id), ...path].filter((id): id is string => id !== null))];
+  return [...new Set([entry.sketch_id, ...extraSketchIds(entry)].map(text).filter((id): id is string => id !== null))];
+}
+
+function loftSketchIds(params: Record<string, unknown>): string[] {
+  return Array.isArray(params.profile_sketch_ids) ? params.profile_sketch_ids.map(text).filter((id): id is string => id !== null) : [];
 }
 
 function sketchPlacement(document: RebuildDocument, sketchId: string | null | undefined, label: string) {
@@ -197,6 +207,16 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
       ...sketchPlacement(document, entry.sketch_id, entry.label),
       path: sketchPlacement(document, text(params.path_sketch_id), entry.label),
       orientation: text(params.orientation) ?? "corrected",
+      operation: text(params.operation) ?? "new_body",
+      targetBodyId: text(params.target_body_id),
+    };
+  }
+  if (entry.kind === "loft") {
+    return {
+      kind: "loft",
+      featureKey,
+      sections: loftSketchIds(params).map((sketchId) => sketchPlacement(document, sketchId, entry.label)),
+      ruled: params.transition === "ruled",
       operation: text(params.operation) ?? "new_body",
       targetBodyId: text(params.target_body_id),
     };

@@ -6,6 +6,7 @@ const idle: EditorModeFlags = {
   planePick: false,
   sweepPanel: null,
   sweep: false,
+  loft: false,
   edgeFeature: null,
   thread: false,
   shell: false,
@@ -35,6 +36,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, pattern: true })).toBe("pattern");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
     expect(resolveEditorMode({ ...idle, sweep: true })).toBe("sweep");
+    expect(resolveEditorMode({ ...idle, loft: true })).toBe("loft");
     expect(resolveEditorMode({ ...idle, measure: true })).toBe("measure");
   });
 

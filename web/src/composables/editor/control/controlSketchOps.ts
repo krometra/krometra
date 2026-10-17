@@ -196,7 +196,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.finish",
       description:
-        "Сохраняет открытый эскиз и выходит из режима эскиза — кнопка «ОК»; зависимые операции перестраиваются. Возвращает { sketchId, entityCount, mode }. sketchId подходит для extrude, revolve и sweep.",
+        "Сохраняет открытый эскиз и выходит из режима эскиза — кнопка «ОК»; зависимые операции перестраиваются. Возвращает { sketchId, entityCount, mode }. sketchId подходит для extrude, revolve, sweep и loft.",
       mutates: true,
       run: finish,
     }),

@@ -26,6 +26,7 @@ import type { PatternApi } from "../usePattern";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { SweepApi } from "../useSweep";
+import type { LoftApi } from "../useLoft";
 import type { ThreadApi } from "../useThread";
 import type { ShellApi } from "../useShell";
 import type { MeasureApi } from "../useMeasure";
@@ -44,6 +45,7 @@ export interface EditorControlDeps {
   thread: ThreadApi;
   mirror: MirrorApi;
   sweep: SweepApi;
+  loft: LoftApi;
   hole: HoleApi;
   pattern: PatternApi;
   exportApi: ExportApi;
@@ -83,6 +85,7 @@ export function createControlContext(deps: EditorControlDeps) {
       pattern: deps.pattern.patternMode.value,
       boolean: deps.booleanMode.booleanMode.value,
       sweep: deps.sweep.sweepMode.value,
+      loft: deps.loft.loftMode.value,
       measure: deps.measure.active.value,
     });
   }
@@ -106,6 +109,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.hole.loading.value) return "Идёт сверление отверстий.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
     if (deps.sweep.loading.value) return "Идёт протяжка по траектории.";
+    if (deps.loft.loading.value) return "Идёт построение лофта.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
     if (deps.pattern.loading.value) return "Идёт построение массива.";

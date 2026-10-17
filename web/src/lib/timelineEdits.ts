@@ -1,6 +1,6 @@
 import type { TimelineEntry } from "@/types/api";
 import { HistoryEditError, removeEntries, type ModelDocument } from "./bodyHistory";
-import { outputBodiesOf, outputBodyOf, type RegenSeeds } from "./browserRebuildPlan";
+import { featureSketchIds, outputBodiesOf, outputBodyOf, type RegenSeeds } from "./browserRebuildPlan";
 import { fallbackBodyOf, isRolledBack, rollbackIndex } from "./timelineFlags";
 
 export interface TimelineEditResult {
@@ -52,7 +52,7 @@ function entryOf(document: ModelDocument, entryId: string): TimelineEntry {
 }
 
 function sketchUsers(document: ModelDocument, sketchId: string): TimelineEntry[] {
-  return document.timeline.filter((entry) => entry.kind !== "sketch" && entry.sketch_id === sketchId);
+  return document.timeline.filter((entry) => featureSketchIds(entry).includes(sketchId));
 }
 
 export function sketchDependents(document: ModelDocument, entryId: string): TimelineEntry[] {

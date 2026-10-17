@@ -36,6 +36,7 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   thickness: 1,
   plane: "XY",
   orientation: "corrected",
+  transition: "smooth",
   ...holeParamsOf(DEFAULT_HOLE_SPEC),
   count: 2,
   spacing: 10,
@@ -94,6 +95,12 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
     return [{ key: "orientation", label: "Ориентация", kind: "select", options: [
       { label: "Без закрутки", value: "corrected" },
       { label: "По Френе", value: "frenet" },
+    ] }];
+  }
+  if (entry.kind === "loft") {
+    return [{ key: "transition", label: "Переход", kind: "select", options: [
+      { label: "Гладкий", value: "smooth" },
+      { label: "Линейный", value: "ruled" },
     ] }];
   }
   if (entry.kind === "fillet") return [{ key: "radius", label: "Радиус", kind: "number", suffix: "мм", min: 0.01 }];

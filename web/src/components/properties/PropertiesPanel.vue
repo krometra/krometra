@@ -10,6 +10,7 @@ import { transformParams } from "@/lib/bodyTransform";
 import { mirrorParams } from "@/lib/mirrorPlane";
 import { holeSummaryRows } from "@/lib/holeFeature";
 import { patternParamRows } from "@/lib/bodyPatternParams";
+import { loftParamRows } from "@/lib/loftFeature";
 import type { MeshData, TimelineEntry } from "@/types/api";
 
 const emit = defineEmits<{
@@ -49,7 +50,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "sweep", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "sweep", "loft", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -86,6 +87,8 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
         { label: "Путь", value: typeof p.path_sketch_id === "string" ? names.sketchLabel(p.path_sketch_id) : "—" },
         { label: "Ориентация", value: p.orientation === "frenet" ? "По Френе" : "Без закрутки" },
       ];
+    case "loft":
+      return loftParamRows(p, names.sketchLabel);
     case "fillet":
       return [
         { label: "Радиус", value: `${p.radius ?? "?"} мм` },

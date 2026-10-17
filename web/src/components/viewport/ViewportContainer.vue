@@ -18,6 +18,7 @@ import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
 import { useMirrorPreview } from "@/composables/viewport/useMirrorPreview";
 import { useHolePreview } from "@/composables/viewport/useHolePreview";
+import { useMeshGhost } from "@/composables/viewport/useMeshGhost";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
 import { useSectionView } from "@/composables/viewport/useSectionView";
 import { useCameraLookAt } from "@/composables/viewport/useCameraLookAt";
@@ -64,6 +65,7 @@ const outlines = useSketchOutlines(core.sketchGroup);
 const previews = usePreviews(context);
 const mirrorPreview = useMirrorPreview(context);
 const holePreview = useHolePreview(context);
+const meshGhost = useMeshGhost(context);
 const probe = useViewportProbe(context);
 const section = useSectionView(context);
 const lookAt = useCameraLookAt(context, core.animateCameraTo);
@@ -123,6 +125,7 @@ onUnmounted(() => {
   previews.hideFillet();
   previews.hideThread();
   holePreview.hideHoles();
+  meshGhost.hide();
   measure.dispose();
 });
 
@@ -270,6 +273,8 @@ defineExpose({
   hideMirrorPreview: mirrorPreview.hide,
   showHolePreview: holePreview.showHoles,
   hideHolePreview: holePreview.hideHoles,
+  showMeshGhost: meshGhost.show,
+  hideMeshGhost: meshGhost.hide,
   fitAllBodies,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,

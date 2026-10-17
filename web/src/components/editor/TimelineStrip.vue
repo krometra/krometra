@@ -5,6 +5,7 @@ import { useTimelineMarkerDrag } from "@/composables/editor/useTimelineMarkerDra
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
 import { holeDetail } from "@/lib/holeFeature";
+import { LOFT_ICON, loftSummary } from "@/lib/loftFeature";
 import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
 import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { entryStateHint, timelineSlots } from "@/lib/timelineMarker";
@@ -44,6 +45,7 @@ function timelineIcon(kind: string): string {
     boolean: "M3 3h8v8H3z M13 3h8v8h-8z M8 13h8v8H8z",
     revolve: "M12 3a9 9 0 1 1 0 18 M12 5v9l4 3",
     sweep: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z",
+    loft: LOFT_ICON,
     fillet: "M4 20V10a6 6 0 0 1 6-6h10",
     chamfer: "M4 20L20 4 M4 14v6h6",
     hole: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
@@ -77,6 +79,8 @@ function timelineDetail(entry: TimelineEntry): string {
       const op = p.operation === 'cut' ? 'вырез' : p.operation === 'join' ? 'приклеить' : 'тело';
       return `${op} · ${typeof p.path_sketch_id === 'string' ? names.sketchLabel(p.path_sketch_id) : '?'}`;
     }
+    case "loft":
+      return loftSummary(entry.params ?? {});
     case "fillet": {
       const p = entry.params ?? {};
       const edges = Array.isArray(p.edge_ids) ? p.edge_ids.length : 0;
