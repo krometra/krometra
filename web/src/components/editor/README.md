@@ -37,6 +37,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useViewInspect           вид по нормали и меню ПКМ грани/базовой плоскости; внутри useSectionMode — сечение вьюпорта
 │   ├── useEditorHotkeys         подписка на клавиатуру (логика Esc-цепочки — в EditorView)
 │   ├── useTimelineEdits         удаление, подавление, маркер отката (TimelineEditCommand, отмена одним Ctrl+Z)
+│   ├── useHistoryLock           замок истории, пока открыт эскиз (правила - lib/timelineGuards.ts)
 │   ├── useEditorControl         канал управления window.cadControl: публикация, ready, сборка операций
 │   └── control/                 операции канала по доменам: чтение, вьюпорт, эскиз, операции модели
 └── components/editor/           разметка + CSS Modules

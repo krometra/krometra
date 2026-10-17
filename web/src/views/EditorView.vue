@@ -426,6 +426,7 @@ const selectionLabel = useSelectionLabel();
       :entries="model.timelineEntries.value"
       :selected-id="selection.selectedFeatureId.value"
       :marker="timelineEdits.marker.value"
+      :lock-reason="timelineEdits.lockReason.value"
       @select="selection.selectFeature($event)"
       @rollback="timelineEdits.rollTo"
       @context-menu="(e, id) => contextMenu.open(e, 'feature', id)"

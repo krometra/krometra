@@ -7,6 +7,7 @@ import { apiErrorMessage, toast } from "@/composables/useToast";
 import { deleteSketch as deleteSketchEntry } from "@/lib/bodyHistory";
 import { browserFaceBoundary, browserFacePlane } from "@/lib/browserFacePlane";
 import { faceBoundaryEntities } from "@/lib/faceBoundary";
+import { isOpenSketch, sketchDeleteBlock } from "@/lib/timelineGuards";
 import { workPlaneOf } from "@/lib/workPlaneDocument";
 import { FACE_EDGE_ID_PREFIX } from "@/sketcher/sketchOrigin";
 import type SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
@@ -16,6 +17,7 @@ import type { useDocumentModel } from "./useDocumentModel";
 import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
 import type { ModelHistoryApi } from "./useModelHistory";
 import type { SelectionMode, ViewportRef } from "./types";
+import { useHistoryLock } from "./useHistoryLock";
 import { rebuildSketchDependents } from "./sketchRebuild";
 
 export function useSketchLifecycle(deps: {
@@ -33,6 +35,7 @@ export function useSketchLifecycle(deps: {
   const sketch = useSketch();
   const names = useDisplayNames();
   const undoRedo = useUndoRedo();
+  const lock = useHistoryLock();
 
   // --- Sketch start: pick a base plane or a body face in the viewport ---
   const facePickMode = ref(false);
@@ -178,11 +181,17 @@ export function useSketchLifecycle(deps: {
 
   async function removeSketch(sketchId: string) {
     const label = `Удалить ${names.sketchLabel(sketchId)}`;
+    if (isOpenSketch(lock.state.value, sketchId)) sketch.exitSketch();
     if (extrude.lastSavedSketchId.value === sketchId) extrude.clearSketchContext();
     return history.edit(label, (document) => deleteSketchEntry(document, sketchId, names.entryLabel));
   }
 
   async function deleteSketch(sketchId: string) {
+    const blocked = sketchDeleteBlock(lock.state.value, sketchId);
+    if (blocked) {
+      toast(blocked, "warning");
+      return;
+    }
     try {
       await removeSketch(sketchId);
       toast("Эскиз удалён", "success");

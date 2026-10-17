@@ -4,6 +4,7 @@ import { markerIndexAt, steppedMarker } from "@/lib/timelineMarker";
 export function useTimelineMarkerDrag(deps: {
   marker: Ref<number>;
   count: Ref<number>;
+  locked: Ref<boolean>;
   nodes: () => HTMLElement[];
   onDrop: (index: number) => void;
 }) {
@@ -19,6 +20,7 @@ export function useTimelineMarkerDrag(deps: {
   }
 
   function start(event: PointerEvent) {
+    if (deps.locked.value) return;
     (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
     preview.value = deps.marker.value;
   }
@@ -34,6 +36,7 @@ export function useTimelineMarkerDrag(deps: {
   }
 
   function step(delta: number) {
+    if (deps.locked.value) return;
     const target = steppedMarker(deps.marker.value, delta, deps.count.value);
     if (target !== deps.marker.value) deps.onDrop(target);
   }
