@@ -1,4 +1,5 @@
 import { signedPointLineDistance, unitNormal } from "../dimensionMeasure";
+import { sketchAxisOf } from "../sketchOrigin";
 import {
   LEARNING_RATE,
   anchorSegment,
@@ -61,6 +62,10 @@ function isRound(entity: SketchEntity | undefined): entity is SketchEntity {
   return entity?.type === "circle" || entity?.type === "arc";
 }
 
+function isLinear(entity: SketchEntity | undefined, ref: ConstraintRef): boolean {
+  return entity ? entity.type === "line" || entity.type === "infline" : sketchAxisOf(ref.entity_id) !== null;
+}
+
 function onLine(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap, point: SketchPoint): number {
   const line = anchorSegment(points, constraint.anchors[1]);
   const n = line ? unitNormal(line) : null;
@@ -95,8 +100,8 @@ export function applyPointOnCurve(constraint: SketchConstraint, entities: Sketch
   if (constraint.anchors.length < 2) return 0;
   const point = getPoint(points, constraint.anchors[0]);
   const curve = getEntity(entities, constraint.anchors[1].entity_id);
-  if (!point || !curve) return 0;
-  if (curve.type === "line") return onLine(constraint, entities, points, point);
+  if (!point) return 0;
+  if (isLinear(curve, constraint.anchors[1])) return onLine(constraint, entities, points, point);
   if (isRound(curve)) return onRound(constraint, entities, points, point, curve);
   return 0;
 }
@@ -126,8 +131,8 @@ function pointOnCurveResidual(constraint: SketchConstraint, entities: SketchEnti
   const [ref, curveRef] = constraint.anchors;
   const point = ref ? getPoint(points, ref) : null;
   const curve = curveRef ? getEntity(entities, curveRef.entity_id) : undefined;
-  if (!point || !curve || isOwnRoundPoint(ref, curveRef)) return 0;
-  if (curve.type === "line") return distanceToLine(point, anchorSegment(points, curveRef));
+  if (!point || !curveRef || isOwnRoundPoint(ref, curveRef)) return 0;
+  if (isLinear(curve, curveRef)) return distanceToLine(point, anchorSegment(points, curveRef));
   if (!isRound(curve) || !curve.center) return 0;
   return Math.abs(Math.hypot(point.x - curve.center.x, point.y - curve.center.y) - (curve.radius ?? 0));
 }

@@ -1,5 +1,6 @@
 import { ccwSweep } from "../arcGeometry";
-import { SKETCH_ORIGIN, SKETCH_ORIGIN_ID } from "../sketchOrigin";
+import { SKETCH_AXIS_IDS, SKETCH_ORIGIN, SKETCH_ORIGIN_ID, isFixedReference } from "../sketchOrigin";
+import { LINE_MIDPOINT, REFERENCE_SPAN, axisSegment } from "../sketchPoints";
 import type { ConstraintRef, SketchConstraint, SketchEntity, SketchPoint } from "./types";
 
 export type PointMap = Map<string, SketchPoint>;
@@ -22,14 +23,31 @@ function onCircle(center: SketchPoint, radius: number, angle: number): SketchPoi
   return { x: center.x + radius * Math.cos(angle), y: center.y + radius * Math.sin(angle) };
 }
 
+export const midpoint = (a: SketchPoint, b: SketchPoint): SketchPoint => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+
+function inflineSegment(point: SketchPoint, angle: number): Segment {
+  return { start: point, end: { x: point.x + Math.cos(angle) * REFERENCE_SPAN, y: point.y + Math.sin(angle) * REFERENCE_SPAN } };
+}
+
+function setSegment(map: PointMap, entityId: string, segment: Segment) {
+  setPoint(map, entityId, 0, segment.start);
+  setPoint(map, entityId, 1, segment.end);
+}
+
 export function buildPointMap(entities: SketchEntity[]): PointMap {
   const map: PointMap = new Map();
   map.set(ORIGIN_KEY, { ...SKETCH_ORIGIN });
+  setSegment(map, SKETCH_AXIS_IDS.x, axisSegment("x"));
+  setSegment(map, SKETCH_AXIS_IDS.y, axisSegment("y"));
   for (const entity of entities) {
     switch (entity.type) {
       case "line":
         setPoint(map, entity.id, 0, entity.start!);
         setPoint(map, entity.id, 1, entity.end!);
+        setPoint(map, entity.id, LINE_MIDPOINT, midpoint(entity.start!, entity.end!));
+        break;
+      case "infline":
+        setSegment(map, entity.id, inflineSegment(entity.point!, entity.angle!));
         break;
       case "circle":
         setPoint(map, entity.id, 0, entity.center!);
@@ -66,7 +84,13 @@ function fixedKeys(constraints: SketchConstraint[], entities: SketchEntity[]): S
   return keys;
 }
 
-function coincidentGroups(points: PointMap, constraints: SketchConstraint[]): string[][] {
+function isLineMidpoint(ref: ConstraintRef, entities: SketchEntity[]): boolean {
+  return ref.sub_index === LINE_MIDPOINT && getEntity(entities, ref.entity_id)?.type === "line";
+}
+
+const entityIdOf = (k: string) => k.slice(0, k.lastIndexOf(":"));
+
+function coincidentGroups(points: PointMap, constraints: SketchConstraint[], entities: SketchEntity[]): string[][] {
   const parent = new Map<string, string>();
   const find = (k: string): string => {
     let root = k;
@@ -75,7 +99,10 @@ function coincidentGroups(points: PointMap, constraints: SketchConstraint[]): st
     return root;
   };
   for (const constraint of constraints.filter(isPointToPoint)) {
-    const keys = constraint.anchors.map((ref) => key(ref.entity_id, ref.sub_index)).filter((k) => points.has(k));
+    const keys = constraint.anchors
+      .filter((ref) => !isLineMidpoint(ref, entities))
+      .map((ref) => key(ref.entity_id, ref.sub_index))
+      .filter((k) => points.has(k));
     for (const k of keys.slice(1)) {
       const [ra, rb] = [find(keys[0]), find(k)];
       if (ra !== rb) parent.set(rb, ra);
@@ -87,7 +114,7 @@ function coincidentGroups(points: PointMap, constraints: SketchConstraint[]): st
 }
 
 function carryRoundPoints(points: PointMap, entities: SketchEntity[], centerKey: string, shared: Set<string>, dx: number, dy: number) {
-  const [entityId, sub] = [centerKey.slice(0, centerKey.lastIndexOf(":")), centerKey.slice(centerKey.lastIndexOf(":") + 1)];
+  const [entityId, sub] = [entityIdOf(centerKey), centerKey.slice(centerKey.lastIndexOf(":") + 1)];
   const entity = sub === "0" ? getEntity(entities, entityId) : undefined;
   if (!entity) return;
   const rest = roundPoints(points, entity).slice(1);
@@ -97,11 +124,11 @@ function carryRoundPoints(points: PointMap, entities: SketchEntity[], centerKey:
 }
 
 export function shareCoincidentPoints(points: PointMap, constraints: SketchConstraint[], entities: SketchEntity[]) {
-  const groups = coincidentGroups(points, constraints);
+  const groups = coincidentGroups(points, constraints, entities);
   const shared = new Set(groups.flat());
   const fixed = fixedKeys(constraints, entities);
   for (const members of groups) {
-    const anchor = members.find((k) => k === ORIGIN_KEY) ?? members.find((k) => fixed.has(k));
+    const anchor = members.find((k) => k === ORIGIN_KEY) ?? members.find((k) => fixed.has(k) || isFixedReference(entityIdOf(k)));
     const target = anchor ? { ...points.get(anchor)! } : centroid(members.map((k) => points.get(k)!));
     for (const k of members) {
       const original = points.get(k)!;
@@ -234,6 +261,16 @@ export function writePointsBack(entities: SketchEntity[], points: PointMap) {
         copyPoint(points, entity.id, 0, entity.corner1);
         copyPoint(points, entity.id, 1, entity.corner2);
         break;
+      case "infline":
+        writeInfline(entity, points);
+        break;
     }
   }
+}
+
+function writeInfline(entity: SketchEntity, points: PointMap) {
+  const segment = anchorSegment(points, { entity_id: entity.id, sub_index: 0 });
+  if (!segment || !entity.point) return;
+  copyPoint(points, entity.id, 0, entity.point);
+  entity.angle = Math.atan2(segment.end.y - segment.start.y, segment.end.x - segment.start.x);
 }

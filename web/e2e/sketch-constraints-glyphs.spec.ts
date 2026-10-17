@@ -81,6 +81,7 @@ function distanceToLine(p: Point, line: Entity): number {
 }
 
 const lineMid = (line: Entity): [number, number] => [(line.start!.x + line.end!.x) / 2, (line.start!.y + line.end!.y) / 2];
+const onLine = (line: Entity): [number, number] => [line.start!.x + (line.end!.x - line.start!.x) * 0.3, line.start!.y + (line.end!.y - line.start!.y) * 0.3];
 
 test("новые ограничения с панели и значки: ховер, выбор, Delete и Ctrl+Z", async ({ page }) => {
   test.setTimeout(4 * 60_000);
@@ -97,12 +98,12 @@ test("новые ограничения с панели и значки: хов�
   await zoomTo(cad, 4);
   await sketchButton(page, "Выбор").click();
 
-  await clickAt(cad, lineMid(byId(await sketchState(cad), "a")));
+  await clickAt(cad, onLine(byId(await sketchState(cad), "a")));
   await expect(sketchButton(page, "Сер")).toBeDisabled();
   await expect(sketchButton(page, "Сер")).toHaveAttribute("title", /недоступно: только для точки и отрезка, выбрано 1/);
   await expect(sketchButton(page, "Фикс")).toBeEnabled();
 
-  await clickAt(cad, lineMid(byId(await sketchState(cad), "b")));
+  await clickAt(cad, onLine(byId(await sketchState(cad), "b")));
   await expect(page.getByText("Выбрано: 2")).toBeVisible();
   await sketchButton(page, "Колл").click();
   await expect.poll(async () => ofType(await sketchState(cad), "collinear")).toHaveLength(1);
@@ -118,7 +119,7 @@ test("новые ограничения с панели и значки: хов�
   const placed = await sketchState(cad);
   const circle = byId(placed, "c");
   await clickAt(cad, [circle.center!.x + circle.radius!, circle.center!.y]);
-  await clickAt(cad, lineMid(byId(placed, "a")));
+  await clickAt(cad, onLine(byId(placed, "a")));
   await sketchButton(page, "Сер").click();
   await expect
     .poll(async () => {
@@ -160,7 +161,7 @@ test("новые ограничения с панели и значки: хов�
   await page.keyboard.press("Escape");
   await expect(selectedBar(page)).toBeHidden();
 
-  await clickAt(cad, lineMid(byId(await sketchState(cad), "a")));
+  await clickAt(cad, onLine(byId(await sketchState(cad), "a")));
   await sketchButton(page, "Фикс").click();
   await expect
     .poll(async () => ofType(await sketchState(cad), "fix").map((c) => c.anchors))

@@ -10,6 +10,7 @@ import {
   dimensionResidual,
 } from "./dimensionConstraints";
 import {
+  alignedPair,
   applyCoincident,
   applyEqual,
   applyHorizontal,
@@ -19,7 +20,8 @@ import {
 } from "./geometricConstraints";
 import { collectPins, restorePins } from "./fixConstraint";
 import { applyCollinear, applyMidpoint, applyPointOnCurve, incidenceResidual } from "./incidenceConstraints";
-import { CONVERGENCE_THRESHOLD, buildPointMap, constraintSegments, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
+import { createMidpointCarry } from "./midpointCarry";
+import { CONVERGENCE_THRESHOLD, buildPointMap, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
 import type { SketchConstraint, SketchEntity, SolverOutput } from "./types";
 
 export type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity, SketchPoint, SolverOutput } from "./types";
@@ -35,12 +37,13 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
   const points = buildPointMap(workEntities);
   shareCoincidentPoints(points, constraints, workEntities);
   const pins = collectPins(constraints, workEntities, points);
+  const run = createMidpointCarry(workEntities, points);
 
   let converged = false;
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
     let maxDisplacement = 0;
     for (const constraint of constraints) {
-      maxDisplacement = Math.max(maxDisplacement, applyConstraint(constraint, workEntities, points));
+      maxDisplacement = Math.max(maxDisplacement, run(constraint, () => applyConstraint(constraint, workEntities, points)));
       pinOrigin(points);
       restorePins(pins);
     }
@@ -80,7 +83,7 @@ function applyConstraint(constraint: SketchConstraint, entities: SketchEntity[],
 }
 
 function alignmentResidual(constraint: SketchConstraint, points: PointMap): number {
-  const [segment] = constraintSegments(points, constraint, 1) ?? [];
+  const segment = alignedPair(constraint, points);
   if (!segment) return 0;
   return constraint.type === "horizontal"
     ? Math.abs(segment.start.y - segment.end.y)

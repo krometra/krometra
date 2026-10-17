@@ -49,7 +49,7 @@ function verticalSides(state: SketchSnapshot) {
     .sort((a, b) => a.start!.x - b.start!.x);
 }
 
-const midpoint = (e: SketchSnapshot["entities"][number]): [number, number] => [(e.start!.x + e.end!.x) / 2, (e.start!.y + e.end!.y) / 2];
+const offMidpoint = (e: SketchSnapshot["entities"][number]): [number, number] => [e.start!.x + (e.end!.x - e.start!.x) * 0.3, e.start!.y + (e.end!.y - e.start!.y) * 0.3];
 
 async function gapBetween(cad: CadEditor, leftId: string, rightId: string): Promise<number> {
   const state = await sketchState(cad);
@@ -80,9 +80,9 @@ test("Размер (D): расстояние между сторонами дв�
   await page.keyboard.press("d");
   await expect(sketchUi(page).getByText("Размер: выберите отрезок, окружность, дугу или точку")).toBeVisible();
 
-  await clickAt(cad, midpoint(aRight));
+  await clickAt(cad, offMidpoint(aRight));
   await expect(sketchUi(page).getByText(/^Длина 20/)).toBeVisible();
-  await clickAt(cad, midpoint(bLeft));
+  await clickAt(cad, offMidpoint(bLeft));
 
   await expect(dimensionInput(page)).toBeVisible();
   await expect(dimensionInput(page).getByText("Расстояние между отрезками")).toBeVisible();
@@ -100,7 +100,9 @@ test("Размер (D): расстояние между сторонами дв�
   const placed = await sketchState(cad);
   const right = placed.entities.find((e) => e.id === aRight.id)!;
   const left = placed.entities.find((e) => e.id === bLeft.id)!;
-  const [labelX, labelY] = [(right.start!.x + left.start!.x) / 2, midpoint(right)[1]];
+  const overlapLow = Math.max(Math.min(right.start!.y, right.end!.y), Math.min(left.start!.y, left.end!.y));
+  const overlapHigh = Math.min(Math.max(right.start!.y, right.end!.y), Math.max(left.start!.y, left.end!.y));
+  const [labelX, labelY] = [(right.start!.x + left.start!.x) / 2, (overlapLow + overlapHigh) / 2];
   const [sx, sy] = await cad.sketchPoint([labelX, labelY]);
   await page.mouse.move(sx, sy);
   await page.waitForTimeout(130);

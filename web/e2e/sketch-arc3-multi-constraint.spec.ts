@@ -48,9 +48,9 @@ async function clickAt(cad: CadEditor, point: [number, number]) {
 }
 
 const lineLength = (e: SketchSnapshot["entities"][number]) => Math.hypot(e.end!.x - e.start!.x, e.end!.y - e.start!.y);
-const midpoint = (e: SketchSnapshot["entities"][number]): [number, number] => [
-  (e.start!.x + e.end!.x) / 2,
-  (e.start!.y + e.end!.y) / 2,
+const offMidpoint = (e: SketchSnapshot["entities"][number]): [number, number] => [
+  e.start!.x + (e.end!.x - e.start!.x) * 0.3,
+  e.start!.y + (e.end!.y - e.start!.y) * 0.3,
 ];
 
 test("дуга по трём точкам: подсказка на прямой, Esc отменяет шаг, профиль выдавливается", async ({ page }) => {
@@ -130,7 +130,7 @@ test("ограничение на три отрезка: цепочка раве
   async function selectAll() {
     await sketchButton(page, "Выбор").click();
     const current = (await sketchState(cad)).entities.filter((e) => e.type === "line");
-    for (const line of current) await clickAt(cad, midpoint(line));
+    for (const line of current) await clickAt(cad, offMidpoint(line));
     await expect(page.getByText("Выбрано: 3")).toBeVisible();
   }
 

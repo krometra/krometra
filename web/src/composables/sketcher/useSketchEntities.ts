@@ -2,6 +2,7 @@ import { ref, watch } from "vue";
 import type { SketchConstraint, SketchEntity } from "@/types/api";
 import { useSketch } from "@/composables/shared/useSketch";
 import { setConstructionFlag, toggledConstructionFlag } from "@/sketcher/construction";
+import { useSketchSelection } from "./useSketchSelection";
 
 /**
  * Владелец сущностей и ограничений эскиза: локальное состояние канвы плюс
@@ -15,7 +16,7 @@ export function useSketchEntities(onChange: (payload: {
 
   const entities = ref<SketchEntity[]>([]);
   const constraints = ref<SketchConstraint[]>([]);
-  const selectedEntityIds = ref<string[]>([]);
+  const selection = useSketchSelection(entities);
 
   let entityCounter = 1;
   let constraintCounter = 1;
@@ -94,34 +95,22 @@ export function useSketchEntities(onChange: (payload: {
   }
 
   function removeSelected() {
-    if (selectedEntityIds.value.length === 0) return;
-    const ids = new Set(selectedEntityIds.value);
+    const ids = new Set(selection.entityIds.value);
+    selection.clear();
+    if (ids.size === 0) return;
     entities.value = entities.value.filter((e) => !ids.has(e.id));
     constraints.value = constraints.value.filter(
       (c) => !c.anchors.some((a) => ids.has(a.entity_id))
     );
-    selectedEntityIds.value = [];
     emitChanged();
   }
 
   function toggleConstructionOfSelected() {
-    const flag = toggledConstructionFlag(entities.value, selectedEntityIds.value);
+    const ids = selection.entityIds.value;
+    const flag = toggledConstructionFlag(entities.value, ids);
     if (flag === null) return;
-    entities.value = setConstructionFlag(entities.value, selectedEntityIds.value, flag);
+    entities.value = setConstructionFlag(entities.value, ids, flag);
     emitChanged();
-  }
-
-  function toggleSelection(entityId: string) {
-    const idx = selectedEntityIds.value.indexOf(entityId);
-    if (idx >= 0) {
-      selectedEntityIds.value = selectedEntityIds.value.filter((id) => id !== entityId);
-    } else {
-      selectedEntityIds.value = [...selectedEntityIds.value, entityId];
-    }
-  }
-
-  function clearSelection() {
-    selectedEntityIds.value = [];
   }
 
   function load(data: { entities?: SketchEntity[]; constraints?: SketchConstraint[] }) {
@@ -129,14 +118,14 @@ export function useSketchEntities(onChange: (payload: {
     constraints.value = data.constraints ?? [];
     entityCounter = entities.value.length + 1;
     constraintCounter = constraints.value.length + 1;
-    selectedEntityIds.value = [];
+    selection.clear();
   }
 
   return {
     sketchStore,
     entities,
     constraints,
-    selectedEntityIds,
+    selection,
     nextEntityId,
     nextConstraintId,
     emitChanged,
@@ -147,8 +136,7 @@ export function useSketchEntities(onChange: (payload: {
     removeConstraint,
     removeSelected,
     toggleConstructionOfSelected,
-    toggleSelection,
-    clearSelection,
+    clearSelection: selection.clear,
     load,
   };
 }

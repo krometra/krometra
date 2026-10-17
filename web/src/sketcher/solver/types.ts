@@ -5,7 +5,9 @@ export interface SketchPoint {
 
 export interface SketchEntity {
   id: string;
-  type: "line" | "rectangle" | "circle" | "arc";
+  type: "line" | "rectangle" | "circle" | "arc" | "infline";
+  point?: SketchPoint;
+  angle?: number;
   start?: SketchPoint;
   end?: SketchPoint;
   center?: SketchPoint;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SketchConstraint, SketchEntity } from "@/types/api";
-import { SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
+import { SKETCH_AXIS_IDS, SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
 import { INVALID } from "./params";
 import { buildSketchConstraint, constraintAnchorsParam, updatedConstraintValue } from "./sketchConstraints";
 import { ControlError } from "./protocol";
@@ -28,6 +28,13 @@ describe("constraintAnchorsParam", () => {
     expect(anchors.read([{ entityId: "l1" }, { entityId: "origin", point: 0 }])).toEqual([
       { entityId: "l1", point: 0, whole: true },
       { entityId: SKETCH_ORIGIN_ID, point: 0 },
+    ]);
+  });
+
+  it("axis-x и axis-y — оси эскиза", () => {
+    expect(anchors.read([{ entityId: "axis-x" }, { entityId: "axis-y" }])).toEqual([
+      { entityId: SKETCH_AXIS_IDS.x, point: 0, whole: true },
+      { entityId: SKETCH_AXIS_IDS.y, point: 0, whole: true },
     ]);
   });
 
@@ -85,7 +92,38 @@ describe("buildSketchConstraint", () => {
     expect(errorOf(() => buildSketchConstraint({ type: "length", anchors: [{ entityId: "l1", point: 0 }] }, entities, "k")).message).toMatch(/задайте value/);
     expect(errorOf(() => buildSketchConstraint({ type: "length", anchors: [{ entityId: "l1", point: 0 }], value: -1 }, entities, "k")).message).toMatch(/больше нуля/);
     expect(errorOf(() => buildSketchConstraint({ type: "vertical", anchors: [{ entityId: "l1", point: 0 }], value: 1 }, entities, "k")).message).toMatch(/не задаётся/);
-    expect(errorOf(() => buildSketchConstraint({ type: "distance", anchors: [{ entityId: "l1", point: 2 }, { entityId: "l2", point: 0 }], value: 1 }, entities, "k")).code).toBe("invalid_params");
+    expect(errorOf(() => buildSketchConstraint({ type: "distance", anchors: [{ entityId: "l1", point: 3 }, { entityId: "l2", point: 0 }], value: 1 }, entities, "k")).code).toBe("invalid_params");
+  });
+});
+
+describe("buildSketchConstraint: точки, оси и вспомогательная геометрия", () => {
+  const withAux: SketchEntity[] = [
+    ...entities,
+    { id: "i", type: "infline", point: { x: 0, y: 5 }, angle: 0 },
+    { id: "face-edge-2-3", type: "line", start: { x: -40, y: -10 }, end: { x: 40, y: -10 }, construction: true },
+  ];
+
+  it("середина отрезка — точка с номером 2", () => {
+    const c = buildSketchConstraint({ type: "coincident", anchors: [{ entityId: "l1", point: 2 }, { entityId: SKETCH_ORIGIN_ID, point: 0 }] }, withAux, "k");
+    expect(c.anchors).toEqual([{ entity_id: "l1", sub_index: 2 }, { entity_id: SKETCH_ORIGIN_ID, sub_index: 0 }]);
+    expect(errorOf(() => buildSketchConstraint({ type: "length", anchors: [{ entityId: "l1", point: 2 }], value: 3 }, withAux, "k")).code).toBe("invalid_params");
+  });
+
+  it("горизонталь двух точек — альтернативная сигнатура", () => {
+    const c = buildSketchConstraint({ type: "horizontal", anchors: [{ entityId: "l1", point: 1 }, { entityId: "c", point: 0 }] }, withAux, "k");
+    expect(c.anchors).toEqual([{ entity_id: "l1", sub_index: 1 }, { entity_id: "c", sub_index: 0 }]);
+  });
+
+  it("оси, бесконечная прямая и ребро грани работают как отрезки", () => {
+    const toAxis = buildSketchConstraint(
+      { type: "point_line_distance", anchors: [{ entityId: "c", point: 0 }, { entityId: SKETCH_AXIS_IDS.x, point: 0 }], value: 12 },
+      withAux,
+      "k",
+    );
+    expect(toAxis.anchors[1]).toEqual({ entity_id: SKETCH_AXIS_IDS.x, sub_index: 0 });
+    const parallel = buildSketchConstraint({ type: "parallel", anchors: [{ entityId: "i", point: 0 }, { entityId: "face-edge-2-3", point: 0 }] }, withAux, "k");
+    expect(parallel.anchors.map((a) => a.entity_id)).toEqual(["i", "face-edge-2-3"]);
+    expect(errorOf(() => buildSketchConstraint({ type: "equal", anchors: [{ entityId: "i", point: 0 }, { entityId: "l1", point: 0 }] }, withAux, "k")).code).toBe("invalid_params");
   });
 });
 

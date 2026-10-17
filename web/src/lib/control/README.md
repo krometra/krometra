@@ -35,7 +35,7 @@ type ControlErrorCode =
 
 ## Операции
 
-Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `sketch.regions`, `viewport.project`, `viewport.capture`, `export`, `measure`, `plane.list`.
+Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.getSelection`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `sketch.regions`, `viewport.project`, `viewport.capture`, `export`, `measure`, `plane.list`.
 
 `sketch.regions { sketchId }` делит сохранённый эскиз на регионы: замкнутые области, на которые его режут пересекающиеся отрезки, дуги и окружности, с отверстиями (`lib/sketchRegions.ts`). У региона `key`, площадь, точка внутри и число отверстий. Ключи передаются в `extrude` и `revolve` параметром `profileRegions`: строится только объединение выбранных регионов (смежные сливаются в одну грань), без параметра берётся весь эскиз, как раньше. Ключ — хеш набора рёбер-источников региона со стороной каждого (`id сущности` + по какую сторону от её направления лежит регион), поэтому он переживает правку размеров, пока пересечения те же; пропавший после правки регион роняет пересборку операции с понятной ошибкой.
 
@@ -43,11 +43,13 @@ type ControlErrorCode =
 
 `export { format: "step" | "stl" | "3mf", bodyIds?, quality?, tolerance?, angleDeg? }` отдаёт файл как `{ mime, filename, dataBase64 }` тем же путём, что кнопка «Экспорт» (`useExport.buildFile` → ядро). Без `bodyIds` — все видимые тела одним файлом, с `bodyIds` — ровно названные тела, и их имена попадают в имя файла: отдельный STL на каждое тело получают вызовом на каждое тело. Качество сетки STL и 3MF — пресет `quality` (`draft` | `normal` | `high`, по умолчанию `normal`, прежние 0.01 мм и 0.5 рад) либо свои `tolerance` (мм) и `angleDeg` поверх него. Пока редактор занят операцией, `export` отвечает `busy`, хотя модель не меняет.
 
-Вид и поведение выбора без изменения документа: `camera.set`, `camera.lookAt`, `viewport.setHelpers`, `viewport.navigation`, `selection.setEdgeChain`.
+Вид и поведение выбора без изменения документа: `camera.set`, `camera.lookAt`, `viewport.setHelpers`, `viewport.navigation`, `selection.setEdgeChain`, `sketch.select`.
+
+`sketch.select { items, append? }` выделяет в открытом эскизе то же, что клики инструментом «Выбор»: объект целиком (`{ entityId }`, в том числе вспомогательную прямую и ребро грани `face-edge-*`), его точку (`{ entityId, point }`: у отрезка 0 и 1 концы, 2 середина; у окружности 0 центр; у дуги 0 центр, 1 и 2 концы), начало координат (`origin`) и оси (`axis-x`, `axis-y`). Модель выделения — `sketcher/sketchSelection.ts`. `sketch.constrainSelection { type, value? }` ставит на выделение ограничение, как кнопка панели: номера точек берутся из выделения, `distance` выбирает тип размера так же, как инструмент «Размер».
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.deleteConstraint`, `sketch.setConstruction`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `loft`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `draft`, `pressPull`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `plane.create`, `plane.update`, `plane.delete`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.deleteConstraint`, `sketch.setConstruction`, `sketch.constrainSelection`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `loft`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `draft`, `pressPull`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `plane.create`, `plane.update`, `plane.delete`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
 
 Правка истории (`controlTimelineOps.ts`) идёт тем же путём, что контекстное меню дерева и шкалы: `useModelHistory.editTimeline` → `TimelineEditCommand` → пересборка зависимых браузерным ядром (`browserRegenPlan`) и сохранение одним `browser-regen`. Зависимая операция, которая без удалённой или подавленной не строится, не роняет правку: она остаётся в истории со `status: "error"` и текстом в `error`, остальная модель достраивается. В `state.timeline` у записи есть `suppressed`, `rolledBack` и `error`. Каждая правка отменяется одним `history.undo`.
 

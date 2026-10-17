@@ -4,7 +4,7 @@ import { asConstruction, toggledConstructionFlag } from "@/sketcher/construction
 
 export function useConstructionMode(deps: {
   entities: Ref<SketchEntity[]>;
-  selectedEntityIds: Ref<string[]>;
+  selectedEntityIds: Readonly<Ref<string[]>>;
   toggleSelected: () => void;
   onModeChange: () => void;
 }) {

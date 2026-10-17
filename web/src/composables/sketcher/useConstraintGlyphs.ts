@@ -6,7 +6,7 @@ import { constraintEntityIds, constraintGlyphs, findConstraintGlyphAt } from "@/
 interface GlyphSketch {
   constraints: Ref<SketchConstraint[]>;
   entities: Ref<SketchEntity[]>;
-  selectedEntityIds: Ref<string[]>;
+  selection: { count: Readonly<Ref<number>> };
   clearSelection: () => void;
   removeConstraint: (id: string) => void;
 }
@@ -56,8 +56,8 @@ export function useConstraintGlyphs(deps: {
   watch(focus.selectedId, (id) => {
     if (id !== null) sketch.clearSelection();
   });
-  watch(sketch.selectedEntityIds, (ids) => {
-    if (ids.length > 0) focus.select(null);
+  watch(sketch.selection.count, (count) => {
+    if (count > 0) focus.select(null);
   });
 
   return {

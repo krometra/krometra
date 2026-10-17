@@ -1,9 +1,11 @@
+import { isFixedReference } from "../sketchOrigin";
 import { getEntity, getPoint, movingPoints, shiftPoints, type PointMap } from "./pointMap";
 import type { ConstraintRef, SketchConstraint, SketchEntity, SketchPoint } from "./types";
 
 export const WHOLE_ENTITY = -1;
 
-const POINT_COUNT: Record<SketchEntity["type"], number> = { line: 2, circle: 2, arc: 3, rectangle: 4 };
+const POINT_COUNT: Record<SketchEntity["type"], number> = { line: 2, circle: 2, arc: 3, rectangle: 4, infline: 2 };
+const REFERENCE_POINT_COUNT = 2;
 
 interface PointPin {
   anchor: SketchPoint;
@@ -44,12 +46,29 @@ function pinAnchor(ref: ConstraintRef, entities: SketchEntity[], points: PointMa
   if (point) pins.points.push(pinPoint(point, movingPoints(points, entities, ref)));
 }
 
+function pinReference(entityId: string, entities: SketchEntity[], points: PointMap, pins: Pins) {
+  const entity = getEntity(entities, entityId);
+  if (entity) {
+    pinWhole(entity, points, pins);
+    return;
+  }
+  for (let i = 0; i < REFERENCE_POINT_COUNT; i++) {
+    const point = getPoint(points, { entity_id: entityId, sub_index: i });
+    if (point) pins.points.push(pinPoint(point, [point]));
+  }
+}
+
+function referencedFixedIds(constraints: SketchConstraint[]): Set<string> {
+  return new Set(constraints.flatMap((c) => c.anchors.map((a) => a.entity_id)).filter(isFixedReference));
+}
+
 export function collectPins(constraints: SketchConstraint[], entities: SketchEntity[], points: PointMap): Pins {
   const pins: Pins = { points: [], radii: [] };
   for (const constraint of constraints) {
     if (constraint.type !== "fix") continue;
     for (const ref of constraint.anchors) pinAnchor(ref, entities, points, pins);
   }
+  for (const entityId of referencedFixedIds(constraints)) pinReference(entityId, entities, points, pins);
   return pins;
 }
 

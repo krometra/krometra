@@ -13,7 +13,7 @@ import type { DimensionType } from "./dimensionKinds";
 
 export type DimensionTarget =
   | { kind: "point"; ref: ConstraintRef; at: SketchPoint; label?: string }
-  | { kind: "line"; ref: ConstraintRef; segment: Seg }
+  | { kind: "line"; ref: ConstraintRef; segment: Seg; infinite?: boolean }
   | { kind: "circle" | "arc"; ref: ConstraintRef; center: SketchPoint; radius: number };
 
 export type PointTarget = Extract<DimensionTarget, { kind: "point" }>;
@@ -91,15 +91,17 @@ export function angleDraft(a: LineTarget, b: LineTarget, cursor: SketchPoint): D
 function lineLineDimension(a: LineTarget, b: LineTarget, cursor: SketchPoint): DimensionResolution {
   if (a.ref.entity_id === b.ref.entity_id) return invalid("это тот же отрезок");
   if (!areParallel(a.segment, b.segment)) return ready(angleDraft(a, b, cursor), "cursor");
-  const distance = signedLineDistance(a.segment, b.segment);
+  const [base, other] = a.infinite && !b.infinite ? [b, a] : [a, b];
+  const distance = signedLineDistance(base.segment, other.segment);
   if (distance === null) return invalid("отрезок нулевой длины");
-  return ready({ type: "line_distance", anchors: [lineRef(a.ref), lineRef(b.ref)], value: Math.abs(distance) }, "immediate");
+  return ready({ type: "line_distance", anchors: [lineRef(base.ref), lineRef(other.ref)], value: Math.abs(distance) }, "immediate");
 }
 
 function pointLineDimension(point: PointTarget, line: LineTarget): DimensionResolution {
   if (point.ref.entity_id === line.ref.entity_id) return invalid("точка лежит на этом же отрезке");
   const distance = signedPointLineDistance(point.at, line.segment);
   if (distance === null) return invalid("отрезок нулевой длины");
+  if (Math.abs(distance) < POINT_EPS) return invalid("точка лежит на прямой");
   return ready({ type: "point_line_distance", anchors: [point.ref, lineRef(line.ref)], value: Math.abs(distance) }, "immediate");
 }
 
@@ -127,7 +129,7 @@ function pointPointDimension(a: PointTarget, b: PointTarget, cursor: SketchPoint
 function singleDimension(target: DimensionTarget): DimensionResolution {
   switch (target.kind) {
     case "line":
-      return ready(lengthDraft(target), "cursor");
+      return target.infinite ? { status: "incomplete", hint: "Выберите второй объект: точку или отрезок" } : ready(lengthDraft(target), "cursor");
     case "circle":
       return ready(diameterDraft(target), "immediate");
     case "arc":

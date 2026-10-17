@@ -23,6 +23,7 @@ import { shellOps } from "./control/controlShellOps";
 import { draftOps } from "./control/controlDraftOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { sketchConstraintOps } from "./control/controlSketchConstraintOps";
+import { sketchSelectionOps } from "./control/controlSketchSelectionOps";
 import { viewportOps } from "./control/controlViewportOps";
 import { workPlaneOps } from "./control/controlWorkPlaneOps";
 
@@ -44,6 +45,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...viewportOps(context),
     ...sketchOps(context),
     ...sketchConstraintOps(context),
+    ...sketchSelectionOps(context),
     ...regionOps(context),
     ...featureOps(context),
     ...shellOps(context),

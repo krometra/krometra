@@ -12,6 +12,8 @@ import {
   drawSnapMarker,
 } from "@/sketcher/renderEntities";
 import { drawConstraints } from "@/sketcher/renderConstraints";
+import { drawSelectionMarks } from "@/sketcher/renderSelection";
+import type { SelectionMarks } from "@/sketcher/selectionMarks";
 import { drawAutoConstraintHint } from "@/sketcher/renderAutoConstraints";
 
 const props = defineProps<{
@@ -24,6 +26,7 @@ const props = defineProps<{
   selectedEntityIds?: string[];
   snapPoint?: SketchPoint | null;
   snapLabel?: string | null;
+  marks?: SelectionMarks;
   autoHint?: { at: SketchPoint; symbols: string[] } | null;
 }>();
 
@@ -59,6 +62,7 @@ function render() {
     drawEntity(ctx, view, entity, entity.id === props.hoveredEntityId);
   }
 
+  if (props.marks) drawSelectionMarks(ctx, view, props.marks);
   if (props.preview) drawEntity(ctx, view, props.preview, false, true);
   if (props.constraints?.length) {
     drawConstraints(ctx, view, props.constraints, props.entities, {
@@ -117,6 +121,7 @@ watch(
     props.selectedEntityIds,
     props.snapPoint,
     props.snapLabel,
+    props.marks,
     props.autoHint,
   ],
   render,

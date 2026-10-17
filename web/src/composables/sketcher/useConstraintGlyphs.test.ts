@@ -14,7 +14,7 @@ function setup() {
   const deps = {
     constraints,
     entities: ref<SketchEntity[]>([line("a", 0), line("b", 40), line("c", 80)]),
-    selectedEntityIds: ref<string[]>([]),
+    selection: { count: ref(0) },
     clearSelection: vi.fn(),
     removeConstraint: vi.fn((id: string) => {
       constraints.value = constraints.value.filter((c) => c.id !== id);
@@ -65,7 +65,7 @@ describe("useConstraintGlyphs", () => {
   it("выбор объекта снимает выбор ограничения", async () => {
     const { glyphs, deps } = setup();
     glyphs.click(20, 94);
-    deps.selectedEntityIds.value = ["a"];
+    deps.selection.count.value = 1;
     await nextTick();
     expect(glyphs.selectedId.value).toBeNull();
   });

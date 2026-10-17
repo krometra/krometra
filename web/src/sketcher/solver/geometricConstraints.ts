@@ -27,24 +27,32 @@ function rotateEnd(segment: Segment, angle: number, length: number) {
   segment.end.y = segment.start.y + length * Math.sin(angle);
 }
 
-export function applyHorizontal(constraint: SketchConstraint, points: PointMap): number {
+export function alignedPair(constraint: SketchConstraint, points: PointMap): Segment | null {
+  if (constraint.anchors.length >= 2) {
+    const start = getPoint(points, constraint.anchors[0]);
+    const end = getPoint(points, constraint.anchors[1]);
+    return start && end ? { start, end } : null;
+  }
   const [segment] = constraintSegments(points, constraint, 1) ?? [];
-  if (!segment) return 0;
-  const dy = Math.abs(segment.start.y - segment.end.y);
-  const avg = (segment.start.y + segment.end.y) / 2;
-  segment.start.y = avg;
-  segment.end.y = avg;
-  return dy;
+  return segment ?? null;
+}
+
+function alignAxis(constraint: SketchConstraint, points: PointMap, axis: "x" | "y"): number {
+  const pair = alignedPair(constraint, points);
+  if (!pair) return 0;
+  const delta = Math.abs(pair.start[axis] - pair.end[axis]);
+  const avg = (pair.start[axis] + pair.end[axis]) / 2;
+  pair.start[axis] = avg;
+  pair.end[axis] = avg;
+  return delta;
+}
+
+export function applyHorizontal(constraint: SketchConstraint, points: PointMap): number {
+  return alignAxis(constraint, points, "y");
 }
 
 export function applyVertical(constraint: SketchConstraint, points: PointMap): number {
-  const [segment] = constraintSegments(points, constraint, 1) ?? [];
-  if (!segment) return 0;
-  const dx = Math.abs(segment.start.x - segment.end.x);
-  const avg = (segment.start.x + segment.end.x) / 2;
-  segment.start.x = avg;
-  segment.end.x = avg;
-  return dx;
+  return alignAxis(constraint, points, "x");
 }
 
 export function applyCoincident(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap): number {
