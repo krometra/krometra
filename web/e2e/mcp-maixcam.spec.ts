@@ -89,7 +89,7 @@ test.describe("MCP: плата MaixCAM на живом редакторе", () =
       expect(stats.bbox.max[0], "USB-C выступает за торец").toBeCloseTo(Math.max(PCB.length, ...TOP.map((part) => part.x[1])), 3);
       const state = await cad.state();
       expect(state.bodies.find((body) => body.id === bodyId)?.visible).toBe(true);
-      expect(state.bodies.find((body) => body.id === pcb.bodyId)?.visible, "исходное тело скрыто после join").toBe(false);
+      expect(state.bodies.some((body) => body.id === pcb.bodyId), "исходное тело поглощено join и не числится живым").toBe(false);
       return bodyId;
     });
 
