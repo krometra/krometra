@@ -41,27 +41,14 @@ import { apiErrorMessage, toast } from "@/composables/useToast";
 import ViewportContainer from "@/components/viewport/ViewportContainer.vue";
 import ViewCube from "@/components/viewport/ViewCube.vue";
 import SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
-import PropertiesPanel from "@/components/properties/PropertiesPanel.vue";
 import EditorMenuBar from "@/components/editor/EditorMenuBar.vue";
+import EditorOperationPanels from "@/components/editor/EditorOperationPanels.vue";
 import EditorRibbon from "@/components/editor/EditorRibbon.vue";
 import ModelTree from "@/components/editor/ModelTree.vue";
 import TreeContextMenu from "@/components/editor/TreeContextMenu.vue";
 import TimelineStrip from "@/components/editor/TimelineStrip.vue";
 import SketchDeleteDialog from "@/components/editor/SketchDeleteDialog.vue";
 import EditorStatusBar from "@/components/editor/EditorStatusBar.vue";
-import SketchPropsPanel from "@/components/editor/SketchPropsPanel.vue";
-import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
-import BooleanPanel from "@/components/editor/BooleanPanel.vue";
-import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
-import ThreadPanel from "@/components/editor/ThreadPanel.vue";
-import ShellPanel from "@/components/editor/ShellPanel.vue";
-import DraftPanel from "@/components/editor/DraftPanel.vue";
-import MirrorPanel from "@/components/editor/MirrorPanel.vue";
-import SweepPanel from "@/components/editor/SweepPanel.vue";
-import LoftPanel from "@/components/editor/LoftPanel.vue";
-import HolePanel from "@/components/editor/HolePanel.vue";
-import MeasurePanel from "@/components/editor/MeasurePanel.vue";
-import PatternPanel from "@/components/editor/PatternPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -420,31 +407,10 @@ const selectionLabel = useSelectionLabel();
       </div>
 
       <aside :class="$style.props" :inert="watchInert">
-        <SketchPropsPanel
-          v-if="sketch.sketchMode.value"
-          @ok="sketchFlow.handleSketchOk"
-          @cancel="sketchFlow.handleSketchCancel"
-        />
-        <ExtrudeRevolvePanel
-          v-else-if="extrude.lastSavedSketchId.value"
-          :extrude="extrude"
-        />
-        <FilletChamferPanel v-else-if="filletChamfer.filletChamferMode.value" :fillet="filletChamfer" />
-        <ThreadPanel v-else-if="thread.threadMode.value" :thread="thread" />
-        <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
-        <DraftPanel v-else-if="draft.draftMode.value" :draft="draft" />
-        <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
-        <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
-        <PatternPanel v-else-if="pattern.patternMode.value" :pattern="pattern" />
-        <BooleanPanel
-          v-else-if="booleanMode.booleanMode.value"
-          :boolean="booleanMode"
-        />
-        <SweepPanel v-else-if="sweep.sweepMode.value" :sweep="sweep" />
-        <LoftPanel v-else-if="loft.loftMode.value" :loft="loft" />
-        <MeasurePanel v-else-if="measure.active.value" :measure="measure" />
-        <PropertiesPanel
-          v-else
+        <EditorOperationPanels
+          :panels="{ extrude, booleanMode, filletChamfer, thread, shell, draft, mirror, sweep, loft, hole, measure, pattern }"
+          @sketch-ok="sketchFlow.handleSketchOk"
+          @sketch-cancel="sketchFlow.handleSketchCancel"
           @edit-sketch="sketchFlow.editSketch"
           @rebuilt="meshes.refreshMesh($event.bodyId, $event.mesh)"
         />

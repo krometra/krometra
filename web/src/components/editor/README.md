@@ -45,6 +45,7 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── EditorStatusBar          нижний статус-бар
     ├── ParametersModal          модалка Параметров (состояние формы — внутри)
     ├── PropsPanelShell          каркас правой панели (head/body/foot-слоты)
+    ├── EditorOperationPanels    переключатель правой панели: эскиз, панель активной операции или свойства
     ├── SketchPropsPanel         панель режима эскиза; выбор и ховер ограничений в списке общие со значками холста (shared/useSketchConstraintFocus)
     ├── ExtrudeRevolvePanel      панель выдавливания/вращения (prop: ExtrudeRevolveApi)
     ├── ProfileRegionsField      строка «Профиль» панели: весь эскиз или выбранные регионы, сброс
