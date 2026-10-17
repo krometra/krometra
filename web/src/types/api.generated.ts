@@ -716,6 +716,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_api_admin_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Users */
+        get: operations["users_api_admin_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Projects */
+        get: operations["projects_api_admin_projects_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update User Role */
+        patch: operations["update_user_role_api_admin_users__user_id__patch"];
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -740,6 +808,202 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminApiKeyStats */
+        AdminApiKeyStats: {
+            /** Keys */
+            keys: number;
+            /** Users */
+            users: number;
+            /** Active Users */
+            active_users: number;
+        };
+        /** AdminDailyPoint */
+        AdminDailyPoint: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Registrations */
+            registrations: number;
+            /** Projects */
+            projects: number;
+            /** Active Users */
+            active_users: number;
+            /** Operations */
+            operations: number;
+        };
+        /** AdminKindCount */
+        AdminKindCount: {
+            /** Kind */
+            kind: string;
+            /** Count */
+            count: number;
+        };
+        /** AdminOperationStat */
+        AdminOperationStat: {
+            /** Kind */
+            kind: string;
+            /** Count */
+            count: number;
+            /** Projects */
+            projects: number;
+            /** Period Count */
+            period_count: number;
+        };
+        /** AdminOverview */
+        AdminOverview: {
+            /** Period Days */
+            period_days: number;
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            users: components["schemas"]["AdminUserStats"];
+            projects: components["schemas"]["AdminProjectStats"];
+            api_keys: components["schemas"]["AdminApiKeyStats"];
+            /** Operations */
+            operations: components["schemas"]["AdminOperationStat"][];
+            /** Series */
+            series: components["schemas"]["AdminDailyPoint"][];
+        };
+        /** AdminProjectPage */
+        AdminProjectPage: {
+            /** Items */
+            items: components["schemas"]["AdminProjectRow"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** AdminProjectRow */
+        AdminProjectRow: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Owner Id */
+            owner_id: string;
+            /** Owner Email */
+            owner_email: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Storage Bytes */
+            storage_bytes: number;
+            /** Document Version */
+            document_version?: number | null;
+            /** Operations */
+            operations: number;
+            /** Sketches */
+            sketches: number;
+            /** Bodies */
+            bodies: number;
+            /** Top Operations */
+            top_operations: components["schemas"]["AdminKindCount"][];
+        };
+        /** AdminProjectStats */
+        AdminProjectStats: {
+            /** Total */
+            total: number;
+            /** New */
+            new: number;
+            /** Storage Bytes */
+            storage_bytes: number;
+            /** With Bodies */
+            with_bodies: number;
+            /** Empty */
+            empty: number;
+            /** Operations Total */
+            operations_total: number;
+            /** Avg Operations */
+            avg_operations: number;
+        };
+        /** AdminUserPage */
+        AdminUserPage: {
+            /** Items */
+            items: components["schemas"]["AdminUserRow"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** AdminUserRole */
+        AdminUserRole: {
+            /** Id */
+            id: string;
+            /** Email */
+            email: string;
+            /** Is Admin */
+            is_admin: boolean;
+        };
+        /** AdminUserRoleUpdate */
+        AdminUserRoleUpdate: {
+            /** Is Admin */
+            is_admin: boolean;
+        };
+        /** AdminUserRow */
+        AdminUserRow: {
+            /** Id */
+            id: string;
+            /** Email */
+            email: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Is Admin */
+            is_admin: boolean;
+            /** Auth Methods */
+            auth_methods: string[];
+            /** Projects */
+            projects: number;
+            /** Storage Bytes */
+            storage_bytes: number;
+            /** Operations */
+            operations: number;
+            /** Last Activity At */
+            last_activity_at?: string | null;
+            /** Last Seen At */
+            last_seen_at?: string | null;
+            /** Api Keys */
+            api_keys: number;
+        };
+        /** AdminUserStats */
+        AdminUserStats: {
+            /** Total */
+            total: number;
+            /** New */
+            new: number;
+            /** Admins */
+            admins: number;
+            /** Active 1D */
+            active_1d: number;
+            /** Active 7D */
+            active_7d: number;
+            /** Active 30D */
+            active_30d: number;
+        };
         /** ApiKeyCreate */
         ApiKeyCreate: {
             /** Name */
@@ -1769,6 +2033,11 @@ export interface components {
             display_name: string;
             /** Avatar Url */
             avatar_url?: string | null;
+            /**
+             * Is Admin
+             * @default false
+             */
+            is_admin: boolean;
             /**
              * Created At
              * Format: date-time
@@ -3218,6 +3487,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExtrudeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_admin_overview_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    users_api_admin_users_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                sort?: "email" | "display_name" | "created_at" | "is_admin" | "projects" | "storage_bytes" | "operations" | "last_activity_at" | "last_seen_at";
+                order?: "asc" | "desc";
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    projects_api_admin_projects_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                sort?: "name" | "owner_email" | "created_at" | "updated_at" | "storage_bytes" | "operations" | "bodies" | "sketches" | "document_version";
+                order?: "asc" | "desc";
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProjectPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_role_api_admin_users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserRoleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRole"];
                 };
             };
             /** @description Validation Error */

@@ -137,7 +137,7 @@ class TestLoginRoute:
         from app.services import auth_service
 
         async def ok_user(db, email, password):
-            return SimpleNamespace(id="u1", email=email)
+            return SimpleNamespace(id="u1", email=email, is_admin=False)
 
         monkeypatch.setattr(auth_service, "_check_credentials", ok_user)
         app.dependency_overrides[deps.get_db] = _collecting_db

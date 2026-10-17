@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     MAX_STORAGE_BYTES_PER_USER: int = 1024 * 1024 * 1024
     MAX_API_KEYS_PER_USER: int = 10
 
+    # Admins
+    ADMIN_EMAILS: str = ""
+
     # CORS
     CORS_ORIGINS: str = "http://localhost:5173"
 
@@ -56,6 +59,10 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     APP_NAME: str = "Крометра"
     APP_VERSION: str = "0.1.0"
+
+    @property
+    def admin_emails(self) -> frozenset[str]:
+        return frozenset(email.strip().lower() for email in self.ADMIN_EMAILS.split(",") if email.strip())
 
     @model_validator(mode="after")
     def reject_default_secrets_in_production(self) -> "Settings":

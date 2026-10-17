@@ -19,7 +19,7 @@ Browser-first: точное B-rep ядро OpenCASCADE, собранное в We
 ```
 backend/         FastAPI, SQLAlchemy (async), Alembic
   app/
-    api/routes/  auth.py, projects.py (+ превью), documents.py, sketches.py, geometry.py (browser-*)
+    api/routes/  auth.py, projects.py (+ превью), documents.py, sketches.py, geometry.py (browser-*), admin.py (аналитика и роли)
     core/        database.py, security.py (OAuth2/JWT/bcrypt), rate_limit.py, storage.py (MinIO)
     models/      SQLAlchemy-модели (user, project, document, refresh_token, oauth_account)
     schemas/     Pydantic-схемы
@@ -81,7 +81,8 @@ npm run mcp           # локальный MCP-сервер управления
                       # удалённый — node mcp/remote-server.mjs (сервис mcp, порт 8787); вкладка подключается при VITE_MCP_RELAY=1
 npm run test:mcp      # тесты локального и удалённого MCP-сервера на заглушке (нужен Chromium от Playwright, стек не нужен)
 
-# Backend (из backend/): pytest
+# Backend (из backend/): pytest; SQL-агрегаты админки идут на Postgres при TEST_DATABASE_URL, без него пропускаются
+python -m app.cli admin grant|revoke <email>   # роль администратора (/admin); или ADMIN_EMAILS в .env
 ```
 
 Health-check: `GET /api/health`. Vite проксирует `/api` → `http://localhost:8000` и `/mcp` (с WebSocket) → `http://localhost:8787`.

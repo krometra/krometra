@@ -150,8 +150,18 @@ function formatDate(dateStr: string) {
           <div v-if="userEmail" :class="$style.userEmail">{{ userEmail }}</div>
         </div>
         <router-link
-          to="/account"
+          v-if="auth.user.value?.is_admin"
+          to="/admin"
           :class="[$style.userAction, $style.account]"
+          title="Администрирование"
+          aria-label="Администрирование"
+          data-testid="admin-link"
+        >
+          <CsIcon name="shield" :size="16" />
+        </router-link>
+        <router-link
+          to="/account"
+          :class="[$style.userAction, !auth.user.value?.is_admin && $style.account]"
           :title="t('account.title')"
           :aria-label="t('account.title')"
           data-testid="account-link"

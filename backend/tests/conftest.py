@@ -151,6 +151,26 @@ async def redis_client():
     await client.aclose()
 
 
+@pytest_asyncio.fixture
+async def pg_sessions():
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    from sqlalchemy.pool import NullPool
+
+    from app.models import Base
+
+    url = os.getenv("TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Postgres недоступен (задай TEST_DATABASE_URL)")
+    engine = create_async_engine(url, poolclass=NullPool)
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.drop_all)
+        await connection.run_sync(Base.metadata.create_all)
+    yield async_sessionmaker(engine, expire_on_commit=False)
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
+
+
 @pytest.fixture
 def stub_quota(monkeypatch):
     """Юнит-тесты browser-операций идут без БД: квоту и учёт объёма подменяем."""

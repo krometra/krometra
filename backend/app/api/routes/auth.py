@@ -16,6 +16,7 @@ from app.core import rate_limit
 from app.core.rate_limit import RateLimitExceeded
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, RegisterResponse, TokenResponse, UserResponse
+from app.services.admin_roles import ensure_listed_admin
 from app.services.auth_service import (
     AuthError,
     authenticate_api_key_grant,
@@ -175,8 +176,10 @@ async def logout_all(
 @router.get("/me", response_model=UserResponse)
 async def me(
     current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get the current authenticated user."""
+    await ensure_listed_admin(db, current_user)
     return UserResponse.model_validate(current_user)
 
 
