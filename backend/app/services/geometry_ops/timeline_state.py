@@ -17,14 +17,40 @@ def is_active(entry: dict) -> bool:
     return not is_suppressed(entry) and entry.get("rolled_back") is not True and not is_failed(entry)
 
 
+def _texts(values: object) -> list[str]:
+    return [value for value in values if _text(value)] if isinstance(values, list) else []
+
+
 def output_body(entry: dict) -> str | None:
     return entry.get("result_body_id") if entry.get("kind") == "boolean" else entry.get("body_id")
 
 
+def output_bodies(entry: dict) -> list[str]:
+    body_ids = entry.get("body_ids")
+    if isinstance(body_ids, list):
+        return _texts(body_ids)
+    output = output_body(entry)
+    return [output] if output else []
+
+
+def boolean_tools(entry: dict) -> list[str]:
+    tools = entry.get("tool_body_ids")
+    return _texts(tools) if isinstance(tools, list) else _texts([entry.get("tool_body_id")])
+
+
+def keeps_tools(entry: dict) -> bool:
+    return (entry.get("params") or {}).get("keep_tools") is True
+
+
+def cut_targets(entry: dict) -> list[str]:
+    return _texts((entry.get("params") or {}).get("target_body_ids")) if entry.get("kind") == "extrude" else []
+
+
 def consumed_bodies(entry: dict) -> list[str]:
     if entry.get("kind") == "boolean":
-        ids = [_text(entry.get("target_body_id")), _text(entry.get("tool_body_id"))]
-        return [body_id for body_id in ids if body_id]
+        return _texts([entry.get("target_body_id"), *([] if keeps_tools(entry) else boolean_tools(entry))])
+    if targets := cut_targets(entry):
+        return targets
     params = entry.get("params") or {}
     if entry.get("kind") == "transform" and params.get("copy") is True:
         return []
@@ -43,24 +69,30 @@ def fallback_body(entry: dict) -> str | None:
     return consumed[0] if consumed else None
 
 
-def _producers(timeline: list) -> dict[str, dict]:
-    producers: dict[str, dict] = {}
+def output_fallbacks(entry: dict) -> list[tuple[str, str | None]]:
+    outputs = output_bodies(entry)
+    if targets := cut_targets(entry):
+        return [(output, targets[index] if index < len(targets) else None) for index, output in enumerate(outputs)]
+    return [(output, fallback_body(entry) if index == 0 else None) for index, output in enumerate(outputs)]
+
+
+def _producers(timeline: list) -> dict[str, tuple[dict, str | None]]:
+    producers: dict[str, tuple[dict, str | None]] = {}
     for entry in timeline:
-        output = output_body(entry)
-        if output and output not in producers:
-            producers[output] = entry
+        for output, fallback in output_fallbacks(entry):
+            producers.setdefault(output, (entry, fallback))
     return producers
 
 
-def _effective_body(body_id: str, producers: dict[str, dict]) -> str | None:
+def _effective_body(body_id: str, producers: dict[str, tuple[dict, str | None]]) -> str | None:
     seen: set[str] = set()
     current: str | None = body_id
     while current is not None and current not in seen:
         producer = producers.get(current)
-        if producer is None or is_active(producer):
+        if producer is None or is_active(producer[0]):
             return current
         seen.add(current)
-        current = fallback_body(producer)
+        current = producer[1]
     return None
 
 
@@ -79,7 +111,7 @@ def live_bodies(components: dict, timeline: list) -> set[str]:
     return {
         body_id for body_id, component in components.items()
         if _is_body(component) and body_id not in consumed
-        and (body_id not in producers or is_active(producers[body_id]))
+        and (body_id not in producers or is_active(producers[body_id][0]))
     }
 
 

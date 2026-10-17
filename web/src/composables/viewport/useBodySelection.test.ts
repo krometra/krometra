@@ -34,8 +34,7 @@ function setup() {
   const events: string[] = [];
   const selection = useBodySelection({
     context: makeContext(entries),
-    onSelected: (id) => events.push(`+${id}`),
-    onDeselected: (id) => events.push(`-${id}`),
+    onPicked: (id) => events.push(`pick:${id}`),
     onCleared: () => events.push("cleared"),
   });
   const colorOf = (bodyId: string) =>
@@ -53,52 +52,41 @@ describe("useBodySelection", () => {
     s = setup();
   });
 
-  it("слоты цели и инструмента красятся своими цветами", () => {
-    s.selection.selectAsTarget("body-1");
-    s.selection.selectAsTool("body-2");
-    expect(s.selection.getSelected()).toEqual({ targetId: "body-1", toolId: "body-2" });
+  it("цель и каждый инструмент красятся цветом своей роли", () => {
+    s.selection.setRoles({ targetId: "body-1", toolIds: ["body-2", "body-3"] });
+    expect(s.selection.getSelected()).toEqual({ targetId: "body-1", toolId: "body-2", toolIds: ["body-2", "body-3"] });
     expect(s.colorOf("body-1")).toBe(TARGET);
     expect(s.colorOf("body-2")).toBe(TOOL);
+    expect(s.colorOf("body-3")).toBe(TOOL);
   });
 
-  it("смена тела в слоте возвращает прежнему цвет по умолчанию", () => {
-    s.selection.selectAsTarget("body-1");
-    s.selection.selectAsTarget("body-2");
+  it("тело, ушедшее из ролей, получает цвет по умолчанию, сменившее роль перекрашивается", () => {
+    s.selection.setRoles({ targetId: "body-1", toolIds: ["body-2", "body-3"] });
+    s.selection.setRoles({ targetId: "body-2", toolIds: ["body-3"] });
     expect(s.colorOf("body-1")).toBe(DEFAULT);
-    expect(s.selection.getSelected().targetId).toBe("body-2");
-    expect(s.events).toEqual(["+body-1", "-body-1", "+body-2"]);
+    expect(s.colorOf("body-2")).toBe(TARGET);
+    expect(s.colorOf("body-3")).toBe(TOOL);
   });
 
-  it("тело нельзя занять обеими ролями сразу: прежняя роль освобождается", () => {
-    s.selection.selectAsTarget("body-1");
-    s.selection.selectAsTool("body-1");
-    expect(s.selection.getSelected()).toEqual({ targetId: null, toolId: "body-1" });
-    expect(s.colorOf("body-1")).toBe(TOOL);
+  it("clear снимает все роли", () => {
+    s.selection.setRoles({ targetId: "body-1", toolIds: ["body-2"] });
+    s.selection.clear();
+    expect(s.selection.getSelected()).toEqual({ targetId: null, toolId: null, toolIds: [] });
+    expect(s.colorOf("body-1")).toBe(DEFAULT);
+    expect(s.colorOf("body-2")).toBe(DEFAULT);
   });
 
-  it("повторное назначение той же роли ничего не меняет", () => {
-    s.selection.selectAsTarget("body-1");
-    const before = [...s.events];
-    s.selection.selectAsTarget("body-1");
-    expect(s.events).toEqual(before);
+  it("клик мимо тел сообщает о сбросе, а роли решает владелец режима", () => {
+    s.selection.setRoles({ targetId: "body-1", toolIds: [] });
+    s.selection.handleClick();
+    expect(s.events).toEqual(["cleared"]);
     expect(s.colorOf("body-1")).toBe(TARGET);
   });
 
-  it("clear освобождает оба слота и сообщает о снятии", () => {
-    s.selection.selectAsTarget("body-1");
-    s.selection.selectAsTool("body-2");
-    s.selection.clear();
-    expect(s.selection.getSelected()).toEqual({ targetId: null, toolId: null });
-    expect(s.colorOf("body-1")).toBe(DEFAULT);
-    expect(s.colorOf("body-2")).toBe(DEFAULT);
-    expect(s.events.filter((e) => e.startsWith("-"))).toEqual(["-body-1", "-body-2"]);
-  });
-
-  it("forget освобождает слот удалённого тела без событий", () => {
-    s.selection.selectAsTarget("body-1");
-    const before = s.events.length;
+  it("forget убирает удалённое тело из ролей", () => {
+    s.selection.setRoles({ targetId: "body-1", toolIds: ["body-2"] });
     s.selection.forget("body-1");
-    expect(s.selection.getSelected().targetId).toBeNull();
-    expect(s.events.length).toBe(before);
+    s.selection.forget("body-2");
+    expect(s.selection.getSelected()).toEqual({ targetId: null, toolId: null, toolIds: [] });
   });
 });

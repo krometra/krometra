@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_active_user, get_db, get_storage
 from app.core.storage import AsyncStorageClient
 from app.models.user import User
-from app.schemas.geometry import BooleanResponse, ExtrudeResponse, MeshResponse, RevolveResponse
+from app.schemas.geometry import BooleanResponse, ExtrudeResponse, MeshResponse, PatternResponse, RevolveResponse
 from app.services.geometry_ops import (
     get_mesh,
     load_browser_step,
@@ -15,10 +15,13 @@ from app.services.geometry_ops import (
     save_browser_boolean,
     save_browser_extrude,
 )
+from app.services.geometry_ops.browser_boolean import parse_tool_body_ids
+from app.services.geometry_ops.browser_extrude_cuts import parse_cut_targets, save_browser_extrude_cuts
+from app.services.geometry_ops.browser_import import paired_import_bodies
 from app.services.geometry_ops.browser_naming import validated_browser_naming, validated_feature_key
 from app.services.geometry_ops.limits import MAX_STEP_BYTES
 from app.services.geometry_ops.profile_regions import parse_profile_regions
-from app.api.browser_upload_route import BrowserUploadRoute
+from app.api.browser_upload_route import BrowserImportRoute, BrowserUploadRoute
 
 router = APIRouter(prefix="/projects", tags=["geometry"], route_class=BrowserUploadRoute)
 
@@ -76,6 +79,46 @@ async def browser_extrude_endpoint(
     )
 
 
+async def browser_extrude_cuts_endpoint(
+    project_id: str,
+    steps: list[UploadFile] = File(...),
+    meshes: list[str] = Form(...),
+    namings: list[str] = Form(...),
+    sketch_id: str = Form(...),
+    distance: float = Form(...),
+    direction: str = Form(...),
+    target_body_ids: str = Form(...),
+    document_version: int = Form(...),
+    feature_key: str | None = Form(None),
+    extent_type: str = Form("distance"),
+    back_distance: float = Form(0.0),
+    offset: float = Form(0.0),
+    up_to_body_id: str | None = Form(None),
+    up_to_face_id: str | None = Form(None),
+    profile_regions: str | None = Form(None),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+    storage: AsyncStorageClient = Depends(get_storage),
+):
+    targets = parse_cut_targets(target_body_ids)
+    bodies = paired_import_bodies([await step.read(MAX_STEP_BYTES + 1) for step in steps], meshes, namings)
+    return await save_browser_extrude_cuts(
+        project_id, current_user.id, sketch_id, distance, direction, targets, bodies, document_version, db, storage,
+        feature_key=validated_feature_key(feature_key), extent_type=extent_type, back_distance=back_distance,
+        offset=offset, up_to_body_id=up_to_body_id, up_to_face_id=up_to_face_id,
+        profile_regions=parse_profile_regions(profile_regions),
+    )
+
+
+router.add_api_route(
+    "/{project_id}/geometry/browser-extrude-cuts",
+    browser_extrude_cuts_endpoint,
+    methods=["POST"],
+    response_model=PatternResponse,
+    route_class_override=BrowserImportRoute,
+)
+
+
 @router.post("/{project_id}/geometry/browser-revolve", response_model=RevolveResponse)
 async def browser_revolve_endpoint(
     project_id: str,
@@ -110,6 +153,8 @@ async def browser_boolean_endpoint(
     document_version: int = Form(...),
     naming: str | None = Form(None),
     feature_key: str | None = Form(None),
+    tool_body_ids: str | None = Form(None),
+    keep_tools: bool = Form(False),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
     storage: AsyncStorageClient = Depends(get_storage),
@@ -128,6 +173,8 @@ async def browser_boolean_endpoint(
         storage=storage,
         naming=validated_browser_naming(naming),
         feature_key=validated_feature_key(feature_key),
+        keep_tools=keep_tools,
+        tool_body_ids=parse_tool_body_ids(tool_body_id, tool_body_ids),
     )
     return BooleanResponse(result_body_id=result["result_body_id"], mesh=MeshResponse(**result["mesh"]))
 

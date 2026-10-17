@@ -16,7 +16,6 @@ const RAW_CONTROL_DEBTORS = [
   "src/components/properties/PropertiesPanel.vue",
   "src/components/sketcher/ConstraintToolbar.vue",
   "src/components/sketcher/SketcherToolbar.vue",
-  "src/components/toolbar/BooleanToolbar.vue",
   "src/components/toolbar/FilletChamferToolbar.vue",
   "src/components/viewport/ViewCube.vue",
   "src/views/DashboardView.vue",

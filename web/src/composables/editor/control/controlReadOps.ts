@@ -123,7 +123,7 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
     defineOp({
       op: "selection.get",
       description:
-        "Текущее выделение. Возвращает { selection, featureId, edges, hoveredEdge, highlightedEdges, edgeChain, booleanBodies: { targetId, toolId } }. selection — { type: face | edge | vertex, bodyId, faceId | edgeId | vertexId } либо null; featureId — выбранная запись истории; edges — рёбра, выбранные для скругления или фаски; hoveredEdge — ребро под курсором; highlightedEdges — рёбра, которые возьмёт или снимет клик в этой точке (касательная цепочка ребра либо все рёбра грани под курсором); edgeChain — включена ли касательная цепочка для кликов по рёбрам.",
+        "Текущее выделение. Возвращает { selection, featureId, edges, hoveredEdge, highlightedEdges, edgeChain, booleanBodies: { targetId, toolId, toolIds } }. selection — { type: face | edge | vertex, bodyId, faceId | edgeId | vertexId } либо null; featureId — выбранная запись истории; edges — рёбра, выбранные для скругления или фаски; hoveredEdge — ребро под курсором; highlightedEdges — рёбра, которые возьмёт или снимет клик в этой точке (касательная цепочка ребра либо все рёбра грани под курсором); edgeChain — включена ли касательная цепочка для кликов по рёбрам; booleanBodies — тела, подсвеченные в панели «Комбинировать» (цель и все инструменты) или выбранные для выреза в панели выдавливания (toolIds).",
       run: () => {
         const viewport = context.viewport();
         const hovered = viewport.getHoveredEdge();

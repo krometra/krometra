@@ -39,7 +39,7 @@ export function revolveRequest(entities: SketchEntity[], featureKey: string, ove
 }
 
 export function booleanRequest(operation: "union" | "subtract" | "intersect", targetBodyId: string, toolBodyId: string, featureKey: string) {
-  return { kind: "boolean", operation, targetBodyId, toolBodyId, featureKey };
+  return { kind: "boolean", operation, targetBodyId, toolBodyIds: [toolBodyId], featureKey };
 }
 
 export function browserEntry(patch: Partial<TimelineEntry> & Pick<TimelineEntry, "id" | "kind">): TimelineEntry {

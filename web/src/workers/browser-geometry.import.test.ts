@@ -107,7 +107,7 @@ describe("импорт STEP в browser worker (реальный OCCT/WASM)", () 
     await retain(imported, "bool-target");
     await buildBody(extrudeRequest([circle("hole", 10, 5, 3)], "k-bool-tool", { distance: 30, planeOffset: -10 }), "bool-tool");
 
-    const cut = await buildBody({ kind: "boolean", operation: "subtract", targetBodyId: "bool-target", toolBodyId: "bool-tool", featureKey: "k-bool" }, "bool-result");
+    const cut = await buildBody({ kind: "boolean", operation: "subtract", targetBodyId: "bool-target", toolBodyIds: ["bool-tool"], featureKey: "k-bool" }, "bool-result");
 
     expect(measureVolume(bodyShape("bool-result"))).toBeCloseTo(2000 - Math.PI * 9 * 10, 2);
     expect(faceNames(cut)).toHaveLength(7);

@@ -21,7 +21,15 @@ from .browser_pattern_params import checked_pattern_edit, pattern_reference_bodi
 from .browser_sketch_seat import apply_sketch_planes, feature_sketch_owner, seated_sketches, validated_sketch_planes
 from .browser_storage import browser_body_objects, persist_replaced_bodies
 from .limits import MAX_PARAMS_BYTES, MAX_REBUILD_BODIES
-from .timeline_state import MAX_ERROR_LENGTH, is_suppressed, output_body, synced_liveness, with_regen_statuses
+from .timeline_state import (
+    MAX_ERROR_LENGTH,
+    boolean_tools,
+    cut_targets,
+    is_suppressed,
+    output_bodies,
+    synced_liveness,
+    with_regen_statuses,
+)
 
 DIRECTIONS = {
     "extrude": ("one_side", "symmetric", "two_sided"),
@@ -147,22 +155,14 @@ def _validated_uploads(bodies: list[RebuiltBody]) -> list[tuple[RebuiltBody, dic
     ]
 
 
-def output_bodies(entry: dict) -> list[str]:
-    body_ids = entry.get("body_ids")
-    if isinstance(body_ids, list):
-        return [body_id for body_id in body_ids if isinstance(body_id, str) and body_id]
-    output = output_body(entry)
-    return [output] if output else []
-
-
 def input_bodies(entry: dict) -> set[str]:
     params = entry.get("params") or {}
     if entry.get("kind") == "boolean":
-        ids = (entry.get("target_body_id"), entry.get("tool_body_id"))
+        ids = (entry.get("target_body_id"), *boolean_tools(entry))
     elif entry.get("kind") == "pattern":
         ids = (params.get("target_body_id"), *pattern_reference_bodies(params))
     else:
-        ids = (params.get("target_body_id"), params.get("up_to_body_id"))
+        ids = (params.get("target_body_id"), *cut_targets(entry), params.get("up_to_body_id"))
     return {body_id for body_id in ids if isinstance(body_id, str) and body_id}
 
 
@@ -268,9 +268,9 @@ async def save_browser_rebuild(
     apply_sketch_planes(components, timeline, planes)
     timeline = with_regen_statuses(timeline, regenerated, failures)
     components = synced_liveness(components, before, timeline)
-    output = output_body(changed)
-    source = components[output].get("source") or {}
-    components[output] = {**components[output], "source": {**source, **{k: v for k, v in new_params.items() if k in source}}}
+    for output in output_bodies(changed):
+        source = components[output].get("source") or {}
+        components[output] = {**components[output], "source": {**source, **{k: v for k, v in new_params.items() if k in source}}}
     await persist_replaced_bodies(
         db, storage, project_id, user_id, objects,
         DocumentUpdate(components=components, timeline=timeline, version=doc.version),

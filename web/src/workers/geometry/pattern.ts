@@ -10,7 +10,7 @@ import {
 } from "@/lib/bodyPattern";
 import type { BodyTransform } from "@/lib/bodyTransform";
 import { generatedFaceName } from "@/lib/browserNaming";
-import { shape3DOf } from "./boolean";
+import { shape3DOf, shapeList } from "./boolean";
 import { namedFromHistory, type NamedShape } from "./naming";
 import { resolveAxisLine } from "./patternAxis";
 import { movement } from "./transform";
@@ -52,12 +52,6 @@ function placedInstance(source: NamedShape, transform: BodyTransform, featureKey
     algorithm.delete();
     trsf.delete();
   }
-}
-
-function shapeList(shapes: NamedShape[]) {
-  const list = new (getOC().NCollection_List_TopoDS_Shape)();
-  shapes.forEach((named) => list.Append(named.shape.wrapped));
-  return list;
 }
 
 function fusedInstances(source: NamedShape, copies: NamedShape[], featureKey: string): NamedShape {

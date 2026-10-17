@@ -13,6 +13,7 @@ import { holeSummaryRows } from "@/lib/holeFeature";
 import { patternParamRows } from "@/lib/bodyPatternParams";
 import { loftParamRows } from "@/lib/loftFeature";
 import { pressPullParamRows } from "@/lib/browserPressPull";
+import { booleanToolsOf, cutTargetsOf, keepsTools } from "@/lib/timelineFlags";
 import type { MeshData, TimelineEntry } from "@/types/api";
 
 const emit = defineEmits<{
@@ -136,7 +137,8 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       return [
         { label: "Операция", value: OPERATION_LABELS[entry.operation ?? ""] ?? entry.operation ?? "?" },
         { label: "Целевое тело", value: entry.target_body_id ? names.bodyLabel(entry.target_body_id) : "—" },
-        { label: "Инструмент", value: entry.tool_body_id ? names.bodyLabel(entry.tool_body_id) : "—" },
+        { label: "Инструменты", value: booleanToolsOf(entry).map(names.bodyLabel).join(", ") || "—" },
+        ...(keepsTools(entry) ? [{ label: "Сохранить инструменты", value: "да" }] : []),
       ];
     default:
       return [];
@@ -150,8 +152,10 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
   if (entry.sketch_id) rows.push({ label: "Эскиз", value: names.sketchLabel(entry.sketch_id) });
   const op = entry.params?.operation as string | undefined;
   if (op) rows.push({ label: "Операция", value: OPERATION_LABELS[op] ?? op });
+  const targets = cutTargetsOf(entry);
   const target = entry.params?.target_body_id as string | undefined;
-  if (target) rows.push({ label: "Целевое тело", value: names.bodyLabel(target) });
+  if (targets.length > 0) rows.push({ label: "Тела для выреза", value: targets.map(names.bodyLabel).join(", ") });
+  else if (target) rows.push({ label: "Целевое тело", value: names.bodyLabel(target) });
   if (entry.body_id) rows.push({ label: "Тело", value: names.bodyLabel(entry.body_id) });
   return rows;
 });

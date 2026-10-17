@@ -1,10 +1,8 @@
 import * as THREE from "three";
-import type { MeshEntry } from "./types";
 import { findByBody, findByMesh, visibleMeshes } from "./types";
 import type { SceneContext } from "./types";
 import { visibleBodyHits } from "./clipRaycast";
 
-/** Роль тела в булевой операции. Слоты симметричны — код у них общий. */
 export type BodyRole = "target" | "tool";
 
 const ROLE_COLORS: Record<BodyRole, THREE.Color> = {
@@ -12,23 +10,18 @@ const ROLE_COLORS: Record<BodyRole, THREE.Color> = {
   tool: new THREE.Color(0xff8c42),
 };
 
-const ROLES: BodyRole[] = ["target", "tool"];
+export interface BodyRoles {
+  targetId: string | null;
+  toolIds: string[];
+}
 
-/**
- * Выбор тел для булевых операций: два слота (цель и инструмент).
- *
- * Раньше здесь жили зеркальные `selectBodyAsTarget`/`selectBodyAsTool` и
- * `setBodyColor`/`resetBodyColor` — четыре почти одинаковые функции, которые
- * расходились при правках. Теперь роль это параметр.
- */
 export function useBodySelection(options: {
   context: SceneContext;
-  onSelected: (bodyId: string) => void;
-  onDeselected: (bodyId: string) => void;
+  onPicked: (bodyId: string) => void;
   onCleared: () => void;
 }) {
   const { context } = options;
-  const slots: Record<BodyRole, string | null> = { target: null, tool: null };
+  let roles: BodyRoles = { targetId: null, toolIds: [] };
 
   function paint(bodyId: string, color: THREE.Color | null) {
     const entry = findByBody(context.entries, bodyId);
@@ -43,69 +36,38 @@ export function useBodySelection(options: {
     mat.color.copy(color ?? entry.color);
   }
 
-  function roleOf(bodyId: string): BodyRole | null {
-    return ROLES.find((role) => slots[role] === bodyId) ?? null;
+  function painted(next: BodyRoles): Map<string, BodyRole> {
+    const byBody = new Map<string, BodyRole>(next.toolIds.map((bodyId) => [bodyId, "tool"]));
+    if (next.targetId) byBody.set(next.targetId, "target");
+    return byBody;
   }
 
-  function release(role: BodyRole) {
-    const bodyId = slots[role];
-    if (!bodyId) return;
-    paint(bodyId, null);
-    slots[role] = null;
-    options.onDeselected(bodyId);
-  }
-
-  function assign(role: BodyRole, bodyId: string) {
-    const previous = roleOf(bodyId);
-    if (previous === role) return;
-    if (previous) release(previous);
-    release(role);
-    slots[role] = bodyId;
-    paint(bodyId, ROLE_COLORS[role]);
-    options.onSelected(bodyId);
-  }
-
-  /** Клик по телу: первый занимает свободный слот, повторный освобождает свой. */
-  function toggle(entry: MeshEntry) {
-    const role = roleOf(entry.bodyId);
-    if (role) {
-      release(role);
-      return;
-    }
-    const free = ROLES.find((r) => slots[r] === null);
-    if (free) assign(free, entry.bodyId);
+  function setRoles(next: BodyRoles) {
+    const before = painted(roles);
+    const after = painted(next);
+    for (const bodyId of before.keys()) if (!after.has(bodyId)) paint(bodyId, null);
+    for (const [bodyId, role] of after) if (before.get(bodyId) !== role) paint(bodyId, ROLE_COLORS[role]);
+    roles = { targetId: next.targetId, toolIds: [...next.toolIds] };
   }
 
   function handleClick() {
     const meshes = visibleMeshes(context.entries);
     context.raycaster().setFromCamera(context.pointer(), context.camera());
     const hits = visibleBodyHits(context, context.raycaster().intersectObjects(meshes, false));
-
-    if (hits.length === 0) {
-      clear();
-      options.onCleared();
-      return;
-    }
-    const entry = findByMesh(context.entries, hits[0].object);
-    if (entry) toggle(entry);
+    const entry = hits.length > 0 ? findByMesh(context.entries, hits[0].object) : null;
+    if (entry) options.onPicked(entry.bodyId);
+    else options.onCleared();
   }
 
-  function clear() {
-    for (const role of ROLES) release(role);
-  }
-
-  /** Тело удалено из сцены — слот освобождается без перекраски мёртвого меша. */
   function forget(bodyId: string) {
-    const role = roleOf(bodyId);
-    if (role) slots[role] = null;
+    roles = { targetId: roles.targetId === bodyId ? null : roles.targetId, toolIds: roles.toolIds.filter((id) => id !== bodyId) };
   }
 
   return {
     handleClick,
-    clear,
+    setRoles,
+    clear: () => setRoles({ targetId: null, toolIds: [] }),
     forget,
-    selectAsTarget: (bodyId: string) => assign("target", bodyId),
-    selectAsTool: (bodyId: string) => assign("tool", bodyId),
-    getSelected: () => ({ targetId: slots.target, toolId: slots.tool }),
+    getSelected: () => ({ targetId: roles.targetId, toolId: roles.toolIds[0] ?? null, toolIds: [...roles.toolIds] }),
   };
 }

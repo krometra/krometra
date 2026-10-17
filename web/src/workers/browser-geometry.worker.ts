@@ -2,6 +2,7 @@ import { booleanNamed } from "./geometry/boolean";
 import { draftNamed, type DraftRequest } from "./geometry/draft";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
+import { publishExtrudeCuts } from "./geometry/extrudeCuts";
 import { holeNamed } from "./geometry/hole";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
 import { loftNamed, type LoftRequest } from "./geometry/loft";
@@ -27,10 +28,10 @@ import { sectionBodies, type SectionRequest } from "./geometry/section";
 import { shellNamed, type ShellRequest } from "./geometry/shell";
 import { sweepNamed, type SweepRequest } from "./geometry/sweep";
 import { transformNamed, type TransformRequest } from "./geometry/transform";
-import type { ShapeRequest, WorkerRequest } from "./geometry/types";
+import type { ExtrudeCutsRequest, ShapeRequest, WorkerRequest } from "./geometry/types";
 
 type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest
-  | MeasureRequest | PatternRequest | LoftRequest | DraftRequest | PressPullRequest;
+  | MeasureRequest | PatternRequest | LoftRequest | DraftRequest | PressPullRequest | ExtrudeCutsRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -79,6 +80,11 @@ worker.onmessage = async ({ data }: MessageEvent<Request>) => {
     if (data.kind === "thread" || data.kind === "thread-cylinder") {
       const result = await runThreadRequest(data, { init: initOcct, lookup: namedBodyShape, publishShape });
       reply({ id: data.id, ok: true, ...result }, "step" in result ? [result.step] : []);
+      return;
+    }
+    if (data.kind === "extrude-cuts") {
+      const cuts = await publishExtrudeCuts(data);
+      reply({ id: data.id, ok: true, cuts }, cuts.map((cut) => cut.step));
       return;
     }
     if (data.kind === "fillet-merge") {

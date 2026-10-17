@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 from app.schemas.ids import is_body_id, is_component_id
 
 BODY_REFERENCE_FIELDS = ("body_id", "result_body_id", "target_body_id", "tool_body_id", "up_to_body_id")
+BODY_LIST_FIELDS = ("body_ids", "tool_body_ids", "target_body_ids")
 COMPONENT_REFERENCE_FIELDS = ("id", "sketch_id", "feature_key")
 WORK_PLANE_TYPE = "work_plane"
 WORK_PLANE_KINDS = ("offset", "angle", "three_points", "midplane")
@@ -34,6 +35,10 @@ def _check_references(record: dict, where: str) -> None:
         value = record.get(field)
         if value is not None and not is_body_id(value):
             raise ValueError(f"{where}: некорректный идентификатор тела в поле {field}.")
+    for field in BODY_LIST_FIELDS:
+        values = record.get(field)
+        if values is not None and (not isinstance(values, list) or not all(is_body_id(value) for value in values)):
+            raise ValueError(f"{where}: поле {field} должно быть списком идентификаторов тел.")
     for field in COMPONENT_REFERENCE_FIELDS:
         value = record.get(field)
         if value is not None and not is_component_id(value):

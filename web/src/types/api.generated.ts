@@ -309,6 +309,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/geometry/browser-extrude-cuts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Extrude Cuts Endpoint */
+        post: operations["browser_extrude_cuts_endpoint_api_projects__project_id__geometry_browser_extrude_cuts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/geometry/browser-revolve": {
         parameters: {
             query?: never;
@@ -792,6 +809,13 @@ export interface components {
             naming?: string | null;
             /** Feature Key */
             feature_key?: string | null;
+            /** Tool Body Ids */
+            tool_body_ids?: string | null;
+            /**
+             * Keep Tools
+             * @default false
+             */
+            keep_tools: boolean;
         };
         /** Body_browser_chamfer_endpoint_api_projects__project_id__geometry_browser_chamfer_post */
         Body_browser_chamfer_endpoint_api_projects__project_id__geometry_browser_chamfer_post: {
@@ -841,6 +865,48 @@ export interface components {
             naming?: string | null;
             /** Feature Key */
             feature_key?: string | null;
+        };
+        /** Body_browser_extrude_cuts_endpoint_api_projects__project_id__geometry_browser_extrude_cuts_post */
+        Body_browser_extrude_cuts_endpoint_api_projects__project_id__geometry_browser_extrude_cuts_post: {
+            /** Steps */
+            steps: string[];
+            /** Meshes */
+            meshes: string[];
+            /** Namings */
+            namings: string[];
+            /** Sketch Id */
+            sketch_id: string;
+            /** Distance */
+            distance: number;
+            /** Direction */
+            direction: string;
+            /** Target Body Ids */
+            target_body_ids: string;
+            /** Document Version */
+            document_version: number;
+            /** Feature Key */
+            feature_key?: string | null;
+            /**
+             * Extent Type
+             * @default distance
+             */
+            extent_type: string;
+            /**
+             * Back Distance
+             * @default 0
+             */
+            back_distance: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /** Up To Body Id */
+            up_to_body_id?: string | null;
+            /** Up To Face Id */
+            up_to_face_id?: string | null;
+            /** Profile Regions */
+            profile_regions?: string | null;
         };
         /** Body_browser_extrude_endpoint_api_projects__project_id__geometry_browser_extrude_post */
         Body_browser_extrude_endpoint_api_projects__project_id__geometry_browser_extrude_post: {
@@ -2335,6 +2401,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExtrudeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_extrude_cuts_endpoint_api_projects__project_id__geometry_browser_extrude_cuts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_extrude_cuts_endpoint_api_projects__project_id__geometry_browser_extrude_cuts_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatternResponse"];
                 };
             };
             /** @description Validation Error */

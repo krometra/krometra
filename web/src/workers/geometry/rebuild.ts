@@ -4,6 +4,7 @@ import { booleanNamed } from "./boolean";
 import { draftNamed, type DraftRequest } from "./draft";
 import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
+import { extrudeCutInstanceNamed, isMultiCut } from "./extrudeCuts";
 import { mirrorNamed, type MirrorRequest } from "./mirror";
 import { holeNamed, type HoleBuildRequest } from "./hole";
 import { loftNamed, type LoftRequest } from "./loft";
@@ -36,7 +37,7 @@ function importedBody(request: { bodyId: string }, lookup: BodyLookup): NamedSha
 
 const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => NamedShape> = {
   import: importedBody,
-  extrude: (request: ExtrudeRequest, lookup) => extrudeNamed(request, lookup),
+  extrude: (request: ExtrudeRequest, lookup) => (isMultiCut(request) ? extrudeCutInstanceNamed(request, lookup) : extrudeNamed(request, lookup)),
   revolve: (request: RevolveRequest) => revolveNamed(request),
   sweep: (request: SweepRequest, lookup) => sweepNamed(request, lookup),
   loft: (request: LoftRequest, lookup) => loftNamed(request, lookup),

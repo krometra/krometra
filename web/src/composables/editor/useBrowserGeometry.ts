@@ -71,6 +71,10 @@ export interface BrowserRebuiltBody extends BrowserBuildResult {
   bodyId: string;
 }
 
+export interface BrowserTargetCut extends BrowserBuildResult {
+  targetBodyId: string;
+}
+
 export interface BrowserSeatedSketch extends SketchSeatPlacement {
   sketchId: string;
 }
@@ -98,6 +102,7 @@ interface WorkerResponse {
   heapBytes?: number;
   bodies?: BrowserRebuiltBody[];
   imported?: BrowserBuildResult[];
+  cuts?: BrowserTargetCut[];
   sketchPlanes?: BrowserSeatedSketch[];
   failures?: RebuildFailure[];
   cacheHits?: number;
@@ -169,7 +174,7 @@ function settle(data: WorkerResponse) {
     return;
   }
   recordKernelExchange(ledger, { ...request.exchange, resultHandle: data.shapeHandle, resultBytes: data.step?.byteLength });
-  for (const body of [...(data.bodies ?? []), ...(data.imported ?? [])]) ledger.stage(body.shapeHandle, body.step.byteLength);
+  for (const body of [...(data.bodies ?? []), ...(data.imported ?? []), ...(data.cuts ?? [])]) ledger.stage(body.shapeHandle, body.step.byteLength);
   const totals = ledger.totals();
   setBrowserKernelMemory(data.heapBytes ?? 0, totals.bodyCount);
   request.resolve(data);
@@ -237,6 +242,12 @@ export async function buildBrowserExtrude(input: BrowserSketchPlacement & Browse
   return buildResult(result, "Браузерное ядро вернуло неполный результат выдавливания.");
 }
 
+export async function buildBrowserExtrudeCuts(input: BrowserSketchPlacement & BrowserExtrudeOptions, targetBodyIds: string[], featureKey: string): Promise<BrowserTargetCut[]> {
+  const result = await request({ kind: "extrude-cuts", ...cloneBrowserWorkerInput(input), targetBodyIds: [...targetBodyIds], featureKey });
+  if (!result.cuts?.length) throw new Error("Браузерное ядро вернуло неполный результат выреза.");
+  return result.cuts;
+}
+
 export interface BrowserRevolveOptions {
   axisOrigin: { x: number; y: number };
   axis: "x" | "y";
@@ -260,8 +271,8 @@ export async function buildBrowserLoft(input: BrowserLoftOptions, featureKey: st
   return buildResult(result, "Браузерное ядро вернуло неполный результат лофта.");
 }
 
-export async function buildBrowserBoolean(operation: BrowserBooleanOperation, targetBodyId: string, toolBodyId: string, featureKey: string): Promise<BrowserBuildResult> {
-  const result = await request({ kind: "boolean", operation, targetBodyId, toolBodyId, featureKey });
+export async function buildBrowserBoolean(operation: BrowserBooleanOperation, targetBodyId: string, toolBodyIds: string[], featureKey: string): Promise<BrowserBuildResult> {
+  const result = await request({ kind: "boolean", operation, targetBodyId, toolBodyIds: [...toolBodyIds], featureKey });
   return buildResult(result, "Браузерное ядро вернуло неполный результат булевой операции.");
 }
 

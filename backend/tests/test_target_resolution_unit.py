@@ -3,7 +3,7 @@
 import pytest
 from fastapi import HTTPException
 
-from app.services.geometry_ops.target_resolution import resolve_target_body
+from app.services.geometry_ops.target_resolution import resolve_target_bodies, resolve_target_body
 
 
 def body(visible=True, source=None):
@@ -99,3 +99,30 @@ def test_self_referencing_source_is_ignored():
     with pytest.raises(HTTPException) as exc:
         resolve_target_body(components, "b1")
     assert exc.value.detail["error"] == "stale_target_body"
+
+
+def test_target_list_resolves_each_body_in_order():
+    components = {
+        "b1": body(visible=False),
+        "b2": body(),
+        "b3": body(source={"kind": "browser_extrude", "operation": "join", "target_body_id": "b1"}),
+    }
+    assert resolve_target_bodies(components, ["b2", "b1"]) == ["b2", "b3"]
+
+
+def test_target_list_collapses_targets_of_one_branch_into_its_live_body():
+    components = {
+        "b1": body(visible=False),
+        "b2": body(visible=False, source={"kind": "browser_extrude", "target_body_id": "b1"}),
+        "b3": body(source={"kind": "browser_extrude", "target_body_id": "b2"}),
+    }
+    assert resolve_target_bodies(components, ["b1", "b2"]) == ["b3"]
+
+
+def test_empty_or_unknown_target_list_is_rejected():
+    with pytest.raises(HTTPException) as empty:
+        resolve_target_bodies({}, [])
+    assert empty.value.detail["error"] == "target_required"
+    with pytest.raises(HTTPException) as unknown:
+        resolve_target_bodies({"b1": body()}, ["b1", "ghost"])
+    assert unknown.value.detail["error"] == "unknown_target_body"

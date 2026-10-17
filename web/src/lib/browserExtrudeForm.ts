@@ -20,6 +20,11 @@ export function browserExtrudeForm(options: BrowserExtrudeOptions): Record<strin
   return { ...fields, ...profileRegionsField(options.profileRegions) };
 }
 
+export function browserExtrudeCutsForm(options: BrowserExtrudeOptions, targetBodyIds: string[]): Record<string, string> {
+  const { operation: _operation, target_body_id: _target, ...fields } = browserExtrudeForm(options);
+  return { ...fields, target_body_ids: JSON.stringify(targetBodyIds) };
+}
+
 export function browserExtrudeLabel(options: BrowserExtrudeOptions): string {
   if (options.extentType === "through_all") return "Выдавить насквозь в браузере";
   if (options.extentType === "up_to_face") return "Выдавить до грани в браузере";

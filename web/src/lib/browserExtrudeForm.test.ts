@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BrowserExtrudeOptions } from "@/composables/editor/useBrowserGeometry";
-import { browserExtrudeForm, browserExtrudeLabel } from "./browserExtrudeForm";
+import { browserExtrudeCutsForm, browserExtrudeForm, browserExtrudeLabel } from "./browserExtrudeForm";
 
 const options = (patch: Partial<BrowserExtrudeOptions>): BrowserExtrudeOptions => ({
   distance: 10,
@@ -40,6 +40,14 @@ describe("profile_regions", () => {
     expect(browserExtrudeForm(options({ profileRegions: ["ra", "rb"] })).profile_regions).toBe('["ra","rb"]');
     expect(browserExtrudeForm(options({ profileRegions: [] }))).not.toHaveProperty("profile_regions");
     expect(browserExtrudeForm(options({ profileRegions: null }))).not.toHaveProperty("profile_regions");
+  });
+});
+
+describe("browserExtrudeCutsForm", () => {
+  it("заменяет одну цель списком задетых тел и не шлёт операцию", () => {
+    expect(browserExtrudeCutsForm(options({ operation: "cut", targetBodyId: "body-a", extentType: "through_all" }), ["body-a", "body-b"])).toEqual({
+      distance: "10", direction: "one_side", extent_type: "through_all", target_body_ids: "[\"body-a\",\"body-b\"]",
+    });
   });
 });
 

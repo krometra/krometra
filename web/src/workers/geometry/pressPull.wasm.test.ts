@@ -54,7 +54,7 @@ beforeAll(async () => {
   side = faceAt(box, [SIDE, 10, HEIGHT / 2]);
   front = faceAt(box, [10, 0, HEIGHT / 2]);
   await buildBody(extrudeRequest([circle("c", 10, 10, HOLE_RADIUS)], "k-pp-pin", { distance: HEIGHT }), "pp-pin");
-  drilled = await buildBody({ kind: "boolean", operation: "subtract", targetBodyId: BOX, toolBodyId: "pp-pin", featureKey: "k-pp-drill" }, DRILLED);
+  drilled = await buildBody({ kind: "boolean", operation: "subtract", targetBodyId: BOX, toolBodyIds: ["pp-pin"], featureKey: "k-pp-drill" }, DRILLED);
   bore = faceWhere(drilled, (face) => !face.planar);
 }, 60_000);
 

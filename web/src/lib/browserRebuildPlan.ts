@@ -5,7 +5,7 @@ import { patternReferenceBodies } from "./bodyPattern";
 import { patternModeOf, patternSpecFromParams } from "./bodyPatternParams";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
-import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
+import { booleanToolsOf, cutTargetsOf, isSuppressed, outputBodiesOf, outputBodyOf, outputFallbacks, type OutputFallback } from "./timelineFlags";
 import { workPlaneSeatSteps, type WorkPlaneSeatStep } from "./workPlaneSeat";
 
 export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft" | "press_pull";
@@ -87,15 +87,7 @@ function number(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
-export function outputBodyOf(entry: TimelineEntry): string | null {
-  return text(entry.kind === "boolean" ? entry.result_body_id : entry.body_id);
-}
-
-export function outputBodiesOf(entry: TimelineEntry): string[] {
-  if (Array.isArray(entry.body_ids)) return entry.body_ids.map(text).filter((id): id is string => id !== null);
-  const output = outputBodyOf(entry);
-  return output ? [output] : [];
-}
+export { outputBodiesOf, outputBodyOf };
 
 function patternInputs(params: Record<string, unknown>): unknown[] {
   return [params.target_body_id, ...patternReferenceBodies(patternSpecFromParams(params))];
@@ -104,8 +96,8 @@ function patternInputs(params: Record<string, unknown>): unknown[] {
 export function inputBodiesOf(entry: TimelineEntry): string[] {
   const params = entry.params ?? {};
   const ids = entry.kind === "boolean"
-    ? [entry.target_body_id, entry.tool_body_id]
-    : entry.kind === "pattern" ? patternInputs(params) : [params.target_body_id, params.up_to_body_id];
+    ? [entry.target_body_id, ...booleanToolsOf(entry)]
+    : entry.kind === "pattern" ? patternInputs(params) : [params.target_body_id, ...cutTargetsOf(entry), params.up_to_body_id];
   return [...new Set(ids.map(text).filter((id): id is string => id !== null))];
 }
 
@@ -150,6 +142,7 @@ function extrudeRequest(document: RebuildDocument, entry: TimelineEntry, params:
     offset: number(params.offset, 0),
     operation: text(params.operation) ?? "new_body",
     targetBodyId: text(params.target_body_id),
+    targetBodyIds: cutTargetsOf(entry),
     upToBodyId: text(params.up_to_body_id),
     upToFaceId: text(params.up_to_face_id),
     upToFacePoints: null,
@@ -242,7 +235,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     };
   }
   if (entry.kind === "boolean") {
-    return { kind: "boolean", featureKey, operation: entry.operation, targetBodyId: entry.target_body_id, toolBodyId: entry.tool_body_id };
+    return { kind: "boolean", featureKey, operation: entry.operation, targetBodyId: entry.target_body_id, toolBodyIds: booleanToolsOf(entry) };
   }
   if (entry.kind === "thread") return { kind: "thread", featureKey, ...threadRequest(entry, params) };
   if (entry.kind === "hole") return { kind: "hole", featureKey, ...holeRequest(document, entry, params) };
@@ -278,11 +271,10 @@ function dependencyBodies(document: RebuildDocument, entry: TimelineEntry): stri
 function bodyStep(
   document: RebuildDocument,
   entry: TimelineEntry,
-  output: string,
+  { output, fallback: fallbackBodyId }: OutputFallback,
   params: Record<string, unknown>,
   instance: number | null,
 ): RebuildStep | FailStep {
-  const fallbackBodyId = fallbackBodyOf(entry);
   try {
     const base = requestOf(document, entry, params);
     const request = instance === null ? base : { ...base, instance };
@@ -322,17 +314,18 @@ export function browserRegenPlan(
   for (const entry of document.timeline) {
     const dependencies = dependencyBodies(document, entry);
     if (!roots.has(entry.id) && !dependencies.some((id) => dirty.has(id))) continue;
-    const outputs = outputBodiesOf(entry);
+    const outputs = outputFallbacks(entry);
     if (!isBrowserFeature(entry) || outputs.length === 0) {
       throw new Error(`Операция «${entry.label}» зависит от изменённой, но не поддерживает пересборку в браузере.`);
     }
     const params = override?.entryId === entry.id ? { ...entry.params, ...override.params } : entry.params ?? {};
-    outputs.forEach((output, index) => {
+    outputs.forEach((pair, index) => {
+      const { output } = pair;
       if (isSuppressed(entry)) {
-        steps.push({ kind: "alias", entryId: entry.id, bodyId: output, fallbackBodyId: fallbackBodyOf(entry) });
+        steps.push({ kind: "alias", entryId: entry.id, bodyId: output, fallbackBodyId: pair.fallback });
       } else {
         const instance = Array.isArray(entry.body_ids) ? index + 1 : null;
-        const step = bodyStep(document, entry, output, params, instance);
+        const step = bodyStep(document, entry, pair, params, instance);
         steps.push(step.kind !== "fail" && entry.sketch_id && seated.has(entry.sketch_id) ? { ...step, sketchId: entry.sketch_id } : step);
       }
       markDirty(output);

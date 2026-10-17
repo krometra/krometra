@@ -1,29 +1,34 @@
 import type { TimelineEntry } from "@/types/api";
 import type { ModelDocument } from "./bodyHistory";
-import { outputBodyOf } from "./browserRebuildPlan";
-import { consumedBodiesOf, fallbackBodyOf, isActiveEntry } from "./timelineFlags";
+import { consumedBodiesOf, isActiveEntry, outputFallbacks } from "./timelineFlags";
 
 function isBody(component: unknown): boolean {
   return typeof component === "object" && component !== null && (component as { type?: unknown }).type === "body";
 }
 
-function producers(timeline: TimelineEntry[]): Map<string, TimelineEntry> {
-  const byBody = new Map<string, TimelineEntry>();
+interface Producer {
+  entry: TimelineEntry;
+  fallback: string | null;
+}
+
+function producers(timeline: TimelineEntry[]): Map<string, Producer> {
+  const byBody = new Map<string, Producer>();
   for (const entry of timeline) {
-    const output = outputBodyOf(entry);
-    if (output && !byBody.has(output)) byBody.set(output, entry);
+    for (const { output, fallback } of outputFallbacks(entry)) {
+      if (!byBody.has(output)) byBody.set(output, { entry, fallback });
+    }
   }
   return byBody;
 }
 
-function effectiveBody(bodyId: string, byBody: Map<string, TimelineEntry>): string | null {
+function effectiveBody(bodyId: string, byBody: Map<string, Producer>): string | null {
   const seen = new Set<string>();
   let current: string | null = bodyId;
   while (current !== null && !seen.has(current)) {
     const producer = byBody.get(current);
-    if (!producer || isActiveEntry(producer)) return current;
+    if (!producer || isActiveEntry(producer.entry)) return current;
     seen.add(current);
-    current = fallbackBodyOf(producer);
+    current = producer.fallback;
   }
   return null;
 }
@@ -41,7 +46,7 @@ export function liveBodyIds(document: ModelDocument): Set<string> {
   return new Set(Object.keys(document.components).filter((id) => {
     if (!isBody(document.components[id]) || consumed.has(id)) return false;
     const producer = byBody.get(id);
-    return !producer || isActiveEntry(producer);
+    return !producer || isActiveEntry(producer.entry);
   }));
 }
 

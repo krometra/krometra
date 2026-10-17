@@ -55,6 +55,7 @@ export interface TimelineEntry {
   result_body_id?: string;
   target_body_id?: string;
   tool_body_id?: string;
+  tool_body_ids?: string[];
   plane?: string;
   entity_count?: number;
   operation?: string;

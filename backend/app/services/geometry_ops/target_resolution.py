@@ -94,3 +94,14 @@ def resolve_target_body(components: dict, target_body_id: str) -> str:
         "Целевое тело больше не актуально: оно поглощено предыдущей операцией, "
         "а её результат не найден. Выберите тело заново в дереве модели.",
     )
+
+
+def resolve_target_bodies(components: dict, target_body_ids: list[str]) -> list[str]:
+    if not target_body_ids:
+        raise _bad_request("target_required", "Вырез по нескольким телам требует список целевых тел.")
+    resolved: list[str] = []
+    for target_body_id in target_body_ids:
+        live = resolve_target_body(components, target_body_id)
+        if live not in resolved:
+            resolved.append(live)
+    return resolved

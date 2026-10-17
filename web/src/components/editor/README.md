@@ -15,9 +15,10 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useCameraSync            поллинг камеры для ViewCube + переходы вида
 │   ├── useExtrudeRevolve        состояние и команды выдавливания/вращения + ghost-превью
 │   ├── useProfileRegions        регионы профиля эскиза: выбор кликом и Shift во вьюпорте, слитые грани для призрака
+│   ├── useCutTargets            состав тел для выреза: по умолчанию все видимые, клик в сцене/дереве снимает и добавляет
 │   ├── useQuantityField         числовое поле с выражением и единицами (lib/expr + lib/units)
 │   ├── useSketchLifecycle       выбор плоскости/грани, вход-выход из эскиза, удаление
-│   ├── useBooleanMode           режим CSG: выбор target/tool, apply
+│   ├── useBooleanMode           режим «Комбинировать»: цель + N инструментов кликами в сцене/дереве, «Сохранить инструменты», apply
 │   ├── useFilletChamfer         режим скругления/фаски: выбор рёбер, apply
 │   ├── useThread                режим резьбы: выбор грани, призрак витков, apply
 │   ├── useShell                 режим оболочки: открытые грани кликом, толщина, направление, apply
@@ -42,7 +43,7 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── EditorMenuBar            шапка: breadcrumb, статус документа, аватар
     ├── ImportStepButton         кнопка «Импорт STEP» в шапке рядом с экспортом
     ├── EditorRibbon             лента инструментов → emit action
-    ├── ModelTree                дерево модели + rename (expose startRename/cancelRename)
+    ├── ModelTree                дерево модели + rename; клик по телу забирает активный режим (shared/useBodyPick)
     ├── TreeContextMenu          контекстное меню (items приходят из EditorView)
     ├── TimelineStrip            таймлайн операций, состояния записей и перетаскиваемый маркер отката
     ├── SketchDeleteDialog       предупреждение при удалении эскиза, от которого зависят операции
@@ -53,7 +54,8 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── SketchPropsPanel         панель режима эскиза; выбор и ховер ограничений в списке общие со значками холста (shared/useSketchConstraintFocus)
     ├── ExtrudeRevolvePanel      панель выдавливания/вращения (prop: ExtrudeRevolveApi)
     ├── ProfileRegionsField      строка «Профиль» панели: весь эскиз или выбранные регионы, сброс
-    ├── BooleanPanel             панель CSG (prop: BooleanModeApi)
+    ├── BooleanPanel             панель «Комбинировать»: операция, цель, список инструментов, «Сохранить инструменты»
+    ├── BodyPickList             список выбранных тел с точечным снятием (инструменты Combine, тела для выреза)
     ├── FilletChamferPanel       панель скругления/фаски (prop: FilletChamferApi)
     ├── EdgeSelectionList        чекбокс касательной цепочки + список выбранных рёбер с точечным снятием
     ├── ThreadPanel              панель резьбы: пресеты профиля, шаг, заходы, призрак

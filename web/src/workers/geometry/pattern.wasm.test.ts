@@ -108,7 +108,7 @@ describe("массив тел на реальном OCCT/WASM", () => {
     await body("foot", [circle(10, 10, 3)], 2);
     const feet = await publishNamed(() => pattern("foot", linear({ count: 2, spacing: 40, axis2: { kind: "y" }, count2: 2, spacing2: 20 })));
     retainShape(feet.shapeHandle, "feet");
-    const plate = booleanNamed({ id: 3, kind: "boolean", operation: "subtract", targetBodyId: "plate", toolBodyId: "feet", featureKey: "k-cut" }, namedBodyShape);
+    const plate = booleanNamed({ id: 3, kind: "boolean", operation: "subtract", targetBodyId: "plate", toolBodyIds: ["feet"], featureKey: "k-cut" }, namedBodyShape);
     expect(measureVolume(plate.shape)).toBeCloseTo(60 * 40 * 5 - 4 * Math.PI * 9 * 2, 3);
     plate.shape.delete();
   });
