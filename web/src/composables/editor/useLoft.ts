@@ -1,5 +1,6 @@
 import { computed, ref, watch } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
+import { useOperationSketches } from "@/composables/shared/useOperationSketches";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -39,6 +40,7 @@ export function useLoft(deps: { projectId: string; viewportRef: ViewportRef; mes
 
   const loftMode = ref(false);
   const profileSketchIds = ref<string[]>([]);
+  useOperationSketches().track("loft", () => (loftMode.value ? profileSketchIds.value : []));
   const operation = ref<BrowserExtrudeOperation>("new_body");
   const targetBodyId = ref<string | null>(null);
   const transition = ref<LoftTransition>("smooth");
