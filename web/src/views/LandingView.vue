@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import CsButton from "@/components/ui/CsButton.vue";
 import CsLogo from "@/components/ui/CsLogo.vue";
-import PartPlaceholder from "@/components/viewport/PartPlaceholder.vue";
+import editorPreview from "@/assets/landing/editor-preview.webp";
 import { useAuth } from "@/composables/shared/useAuth";
 
 const router = useRouter();
@@ -116,11 +116,15 @@ const features = [
           <span :class="$style.win" />
           <span :class="$style.win" />
           <span :class="$style.win" />
-          <span :class="$style.previewTitle">кронштейн · Крометра</span>
+          <span :class="$style.previewTitle">Кронштейн датчика · Крометра</span>
         </div>
-        <div :class="$style.previewStage">
-          <PartPlaceholder variant="viewport" />
-        </div>
+        <img
+          :src="editorPreview"
+          :class="$style.previewImage"
+          width="1600"
+          height="1000"
+          alt="Редактор Крометры: кронштейн с отверстиями и скруглениями, дерево модели и история операций"
+        />
       </div>
     </section>
 
@@ -359,8 +363,11 @@ const features = [
   margin-left: 8px;
 }
 
-.previewStage {
-  height: 330px;
+.previewImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
 }
 
 .features {
