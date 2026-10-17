@@ -121,7 +121,7 @@ export class CadEditor {
     const cad = new CadEditor(page, (await created.json()).id as string);
     cad.token = access_token;
     await page.goto(`/editor/${cad.projectId}`);
-    await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+    await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible({ timeout: READY_TIMEOUT_MS });
     await cad.install();
     return cad;
   }

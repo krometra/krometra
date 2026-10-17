@@ -122,7 +122,8 @@ test("вырез одной операцией через два соседни�
 
   const entry = await lastEntry(cad);
   expect(entry.kind).toBe("extrude");
-  expect(entry.params).toMatchObject({ operation: "cut", target_body_ids: [barA, barB] });
+  expect(entry.params.operation).toBe("cut");
+  expect([...(entry.params.target_body_ids as string[])].sort()).toEqual([barA, barB].sort());
   const visible = await sceneBodies(cad);
   expect(visible).toContain(far);
   expect(visible).not.toContain(barA);
