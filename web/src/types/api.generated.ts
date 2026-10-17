@@ -529,6 +529,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/geometry/browser-regen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Regen Endpoint */
+        post: operations["browser_regen_endpoint_api_projects__project_id__geometry_browser_regen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/geometry/browser-rebuild": {
         parameters: {
             query?: never;
@@ -608,6 +625,40 @@ export interface paths {
         put?: never;
         /** Browser Sweep Endpoint */
         post: operations["browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/geometry/browser-pattern": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Pattern Endpoint */
+        post: operations["browser_pattern_endpoint_api_projects__project_id__geometry_browser_pattern_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/geometry/browser-press-pull": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Browser Press Pull Endpoint */
+        post: operations["browser_press_pull_endpoint_api_projects__project_id__geometry_browser_press_pull_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -895,6 +946,47 @@ export interface components {
              * @default false
              */
             merge: boolean;
+            /** Document Version */
+            document_version: number;
+            /** Naming */
+            naming?: string | null;
+            /** Feature Key */
+            feature_key?: string | null;
+        };
+        /** Body_browser_pattern_endpoint_api_projects__project_id__geometry_browser_pattern_post */
+        Body_browser_pattern_endpoint_api_projects__project_id__geometry_browser_pattern_post: {
+            /** Steps */
+            steps: string[];
+            /** Meshes */
+            meshes: string[];
+            /** Namings */
+            namings: string[];
+            /** Body Id */
+            body_id: string;
+            /** Pattern */
+            pattern: string;
+            /** Document Version */
+            document_version: number;
+            /** Feature Key */
+            feature_key?: string | null;
+        };
+        /** Body_browser_press_pull_endpoint_api_projects__project_id__geometry_browser_press_pull_post */
+        Body_browser_press_pull_endpoint_api_projects__project_id__geometry_browser_press_pull_post: {
+            /** Step */
+            step: string;
+            /** Mesh */
+            mesh: string;
+            /** Body Id */
+            body_id: string;
+            /** Face Ids */
+            face_ids: string;
+            /** Distance */
+            distance: number;
+            /**
+             * New Body
+             * @default false
+             */
+            new_body: boolean;
             /** Document Version */
             document_version: number;
             /** Naming */
@@ -1203,6 +1295,13 @@ export interface components {
             bbox: components["schemas"]["BBox"];
             /** Face Triangle Map */
             face_triangle_map: (number | string)[];
+        };
+        /** PatternResponse */
+        PatternResponse: {
+            /** Bodies */
+            bodies: components["schemas"]["ImportedBodyResponse"][];
+            /** Hidden Body Ids */
+            hidden_body_ids: string[];
         };
         /**
          * PlaneBasis
@@ -2589,6 +2688,37 @@ export interface operations {
             };
         };
     };
+    browser_regen_endpoint_api_projects__project_id__geometry_browser_regen_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     browser_rebuild_endpoint_api_projects__project_id__geometry_browser_rebuild_post: {
         parameters: {
             query?: never;
@@ -2737,6 +2867,76 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_browser_sweep_endpoint_api_projects__project_id__geometry_browser_sweep_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtrudeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_pattern_endpoint_api_projects__project_id__geometry_browser_pattern_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_pattern_endpoint_api_projects__project_id__geometry_browser_pattern_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatternResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_press_pull_endpoint_api_projects__project_id__geometry_browser_press_pull_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_browser_press_pull_endpoint_api_projects__project_id__geometry_browser_press_pull_post"];
             };
         };
         responses: {

@@ -14,6 +14,7 @@ import { featureOps } from "./control/controlFeatureOps";
 import { holeOps } from "./control/controlHoleOps";
 import { historyOps } from "./control/controlHistoryOps";
 import { patternOps } from "./control/controlPatternOps";
+import { pressPullOps } from "./control/controlPressPullOps";
 import { timelineOps } from "./control/controlTimelineOps";
 import { readOps } from "./control/controlReadOps";
 import { shellOps } from "./control/controlShellOps";
@@ -50,6 +51,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...mirrorOps(context),
     ...inspectOps(context),
     ...measureOps(context),
+    ...pressPullOps(context),
     ...imageOps(),
   ]);
 

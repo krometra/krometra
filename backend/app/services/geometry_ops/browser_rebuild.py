@@ -41,6 +41,7 @@ EDITABLE_PARAMS = {
     "mirror": {"plane", "offset"},
     "hole": {"hole_type", "diameter", "extent", "depth", "bottom", "cbore_diameter", "cbore_depth", "csink_diameter", "csink_angle"},
     "pattern": {"count", "spacing", "angle", "count2", "spacing2"},
+    "press_pull": {"distance"},
 }
 
 

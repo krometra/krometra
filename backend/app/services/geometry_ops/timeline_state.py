@@ -32,6 +32,8 @@ def consumed_bodies(entry: dict) -> list[str]:
         return []
     if entry.get("kind") == "pattern" and params.get("mode") == "separate":
         return []
+    if entry.get("kind") == "press_pull" and params.get("new_body") is True:
+        return []
     target = _text(params.get("target_body_id"))
     return [target] if target else []
 

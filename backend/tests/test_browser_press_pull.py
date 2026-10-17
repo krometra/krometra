@@ -1,0 +1,156 @@
+import json
+from types import SimpleNamespace
+
+import pytest
+from fastapi import HTTPException
+
+from app.main import app
+from app.services.geometry_ops.browser_press_pull import save_browser_press_pull, validated_press_pull_params
+from app.services.geometry_ops.browser_rebuild import validated_rebuild_params
+from app.services.geometry_ops.timeline_state import consumed_bodies, live_bodies
+
+pytestmark = pytest.mark.usefixtures("stub_quota")
+
+SOURCE = "body-aaaaaaaaaaaa"
+FACES = ["f-top", "f-bore"]
+
+
+class _WritableStorage:
+    def __init__(self):
+        self.objects = {}
+
+    async def put_object(self, key, data, content_type):
+        self.objects[key] = data
+
+
+def _browser_mesh() -> dict:
+    return {
+        "vertices": [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+        "indices": [0, 1, 2],
+        "brep_topo": {"faces": [{"face_id": 1, "edges": []}], "edges": []},
+        "bbox": {"min": [0.0, 0.0, 0.0], "max": [1.0, 1.0, 0.0]},
+        "face_triangle_map": [1],
+    }
+
+
+def _document(visible=True):
+    return SimpleNamespace(
+        version=3,
+        components={SOURCE: {"type": "body", "source": {"kind": "browser_extrude"}, "visible": visible}},
+        timeline=[],
+    )
+
+
+def _patch_document(monkeypatch, document):
+    async def get_document(*_args):
+        return document
+
+    async def save_document(_db, _project_id, _user_id, update):
+        document.components = update.components
+        document.timeline = update.timeline
+        return document
+
+    monkeypatch.setattr("app.services.geometry_ops.browser_press_pull.get_document", get_document)
+    monkeypatch.setattr("app.services.geometry_ops.browser_storage.save_document", save_document)
+
+
+async def _save(document, distance=-0.07, new_body=False, version=3, storage=None, faces=None):
+    return await save_browser_press_pull(
+        "project", "user", SOURCE, faces or FACES, distance, new_body, version,
+        b"ISO-10303-21;", json.dumps(_browser_mesh()), None, storage or _WritableStorage(),
+        feature_key="k-0011223344556677",
+    )
+
+
+def test_browser_press_pull_route_is_registered():
+    path = app.openapi()["paths"]["/api/projects/{project_id}/geometry/browser-press-pull"]
+    assert path["post"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/ExtrudeResponse")
+
+
+@pytest.mark.asyncio
+async def test_press_pull_replaces_source_and_records_signed_distance(monkeypatch):
+    document = _document()
+    _patch_document(monkeypatch, document)
+    storage = _WritableStorage()
+
+    result = await _save(document, distance=-0.07, storage=storage)
+
+    assert result["hidden_body_ids"] == [SOURCE]
+    assert document.components[SOURCE]["visible"] is False
+    assert document.components[result["body_id"]]["source"]["kind"] == "browser_press_pull"
+    entry = document.timeline[-1]
+    assert entry["kind"] == "press_pull"
+    assert entry["label"] == "Сдвиг грани 1"
+    assert entry["body_id"] == result["body_id"]
+    assert entry["params"] == {
+        "target_body_id": SOURCE, "face_ids": FACES, "distance": -0.07, "new_body": False,
+        "feature_key": "k-0011223344556677", "engine": "browser_wasm",
+    }
+    assert f"project/geometry/{result['body_id']}.step" in storage.objects
+    assert consumed_bodies(entry) == [SOURCE]
+    assert live_bodies(document.components, document.timeline) == {result["body_id"]}
+
+
+@pytest.mark.asyncio
+async def test_new_body_keeps_source_visible_and_alive(monkeypatch):
+    document = _document()
+    _patch_document(monkeypatch, document)
+
+    result = await _save(document, distance=3, new_body=True)
+
+    assert result["hidden_body_ids"] == []
+    assert document.components[SOURCE]["visible"] is True
+    entry = document.timeline[-1]
+    assert entry["params"]["new_body"] is True
+    assert consumed_bodies(entry) == []
+    assert live_bodies(document.components, document.timeline) == {SOURCE, result["body_id"]}
+
+
+@pytest.mark.asyncio
+async def test_hidden_source_is_rejected(monkeypatch):
+    document = _document(visible=False)
+    _patch_document(monkeypatch, document)
+    with pytest.raises(HTTPException) as error:
+        await _save(document)
+    assert error.value.detail["error"] == "target_changed"
+    assert document.timeline == []
+
+
+@pytest.mark.asyncio
+async def test_version_conflict_is_reported(monkeypatch):
+    document = _document()
+    _patch_document(monkeypatch, document)
+    with pytest.raises(HTTPException) as error:
+        await _save(document, version=2)
+    assert error.value.status_code == 409
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("distance", [0, 0.00001, float("nan"), float("inf")])
+async def test_invalid_distance_is_rejected_before_saving(monkeypatch, distance):
+    document = _document()
+    _patch_document(monkeypatch, document)
+    with pytest.raises(HTTPException) as error:
+        await _save(document, distance=distance)
+    assert error.value.detail["error"] == "invalid_press_pull_params"
+    assert document.timeline == []
+
+
+def test_too_many_faces_are_rejected():
+    with pytest.raises(HTTPException) as error:
+        validated_press_pull_params([f"f-{index}" for index in range(65)], 1)
+    assert error.value.detail["error"] == "invalid_press_pull_params"
+
+
+def test_distance_is_normalized():
+    assert validated_press_pull_params(FACES, -2) == {"distance": -2.0}
+    with pytest.raises(HTTPException):
+        validated_press_pull_params(FACES, True)
+
+
+def test_rebuild_accepts_signed_distance_only():
+    assert validated_rebuild_params("press_pull", {"distance": -0.07}) == {"distance": -0.07}
+    for params in ({"distance": 0}, {"new_body": True}, {"face_ids": ["f-a"]}):
+        with pytest.raises(HTTPException) as error:
+            validated_rebuild_params("press_pull", params)
+        assert error.value.detail["error"] == "invalid_rebuild_params"

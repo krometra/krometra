@@ -22,6 +22,7 @@ import { useSweep } from "@/composables/editor/useSweep";
 import { useHole } from "@/composables/editor/useHole";
 import { useMeasure } from "@/composables/editor/useMeasure";
 import { usePattern } from "@/composables/editor/usePattern";
+import { usePressPull } from "@/composables/editor/usePressPull";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -58,6 +59,7 @@ import SweepPanel from "@/components/editor/SweepPanel.vue";
 import HolePanel from "@/components/editor/HolePanel.vue";
 import MeasurePanel from "@/components/editor/MeasurePanel.vue";
 import PatternPanel from "@/components/editor/PatternPanel.vue";
+import PressPullPanel from "@/components/editor/PressPullPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -118,8 +120,10 @@ const sweep = useSweep({ projectId: props.id, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const pressPull = usePressPull({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([
   filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool, measure.tool, pattern.tool,
+  pressPull.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -216,7 +220,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
-      measure,
+      measure, pressPull,
     });
 
 // --- Горячие клавиши ---
@@ -426,11 +430,9 @@ const selectionLabel = useSelectionLabel();
           v-else-if="filletChamfer.filletChamferMode.value"
           :fillet="filletChamfer"
         />
-        <ThreadPanel
-          v-else-if="thread.threadMode.value"
-          :thread="thread"
-        />
+        <ThreadPanel v-else-if="thread.threadMode.value" :thread="thread" />
         <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
+        <PressPullPanel v-else-if="pressPull.pressPullMode.value" :press-pull="pressPull" />
         <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
         <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
         <PatternPanel v-else-if="pattern.patternMode.value" :pattern="pattern" />

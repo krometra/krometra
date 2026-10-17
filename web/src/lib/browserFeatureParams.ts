@@ -125,6 +125,7 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
     ];
   }
   if (entry.kind === "hole") return holeParamFields(values);
+  if (entry.kind === "press_pull") return [{ key: "distance", label: "Смещение", kind: "number", suffix: "мм" }];
   return [];
 }
 
