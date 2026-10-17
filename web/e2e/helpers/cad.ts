@@ -242,6 +242,11 @@ export class CadEditor {
     return [Math.round(points[0].x), Math.round(points[0].y)];
   }
 
+  async sketchPixelsPerMm(): Promise<number> {
+    const { pixelsPerMm } = await this.control<SketchProjection>("sketch.project", { points: [] });
+    return pixelsPerMm;
+  }
+
   private sketchState(): Promise<SketchState> {
     return this.control<SketchState>("sketch.get");
   }

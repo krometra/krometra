@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RectangleTool } from "@/components/sketcher/tools/RectangleTool";
 import { isPointNearEntity } from "./geometry";
-import { screenToWorld, visibleWorldBounds, worldToScreen } from "./viewCoordinates";
+import { centeredView, screenToWorld, visibleWorldBounds, worldToScreen } from "./viewCoordinates";
 
 describe("sketcher view coordinates", () => {
   const view = { offsetX: 400, offsetY: 300, zoom: 2 };
@@ -35,5 +35,12 @@ describe("sketcher view coordinates", () => {
       right: 200,
       bottom: -150,
     });
+  });
+
+  it("centers the origin on a whole pixel so clicks at 1 px/mm land on whole millimetres", () => {
+    const view = centeredView(1116, 691);
+
+    expect(view).toEqual({ offsetX: 558, offsetY: 346, zoom: 1 });
+    expect(screenToWorld(533, 371, view)).toEqual({ x: -25, y: -25 });
   });
 });

@@ -81,13 +81,21 @@ test("болт: шестигранная головка → стержень →
   );
   expect(drawn, "шестиугольник — шесть отрезков").toHaveLength(6);
 
+  const drawnTip = Math.max(
+    ...drawn.flatMap((e) => [e.start, e.end]).map((p) => Math.max(Math.abs(p.x), Math.abs(p.y))),
+  );
+  const clickGrainMm = 1 / (await cad.sketchPixelsPerMm());
+  expect(Math.abs(drawnTip - HEX_TIP), "вершины легли в пределах пикселя клика").toBeLessThanOrEqual(
+    clickGrainMm,
+  );
+
   await cad.finishSketch();
   await cad.extrude({ distance: HEAD_H, direction: "symmetric" });
 
   let topo = await cad.topology();
   expect(topo.faces, "шестигранная призма: 6 боков + верх + низ").toBe(8);
   expect(topo.bbox.max[2] - topo.bbox.min[2]).toBeCloseTo(HEAD_H, 1);
-  expect(radialExtent(topo.bbox), "габарит головки по вершинам").toBeCloseTo(HEX_TIP, 1);
+  expect(radialExtent(topo.bbox), "габарит головки по вершинам").toBeCloseTo(drawnTip, 1);
 
   // ── 2. Стержень: круг на верхней грани головки, приклеиваем 26 мм ───────
   await cad.startSketchOnFace(TOP_VIEW, TOP_SPOTS);
@@ -98,7 +106,7 @@ test("болт: шестигранная головка → стержень →
   topo = await cad.topology();
   expect(await cad.visibleBodyCount(), "болт — одно тело").toBe(1);
   expect(topo.bbox.max[2], "стержень вырос вверх от головки").toBeCloseTo(SHAFT_TOP_Z, 1);
-  expect(radialExtent(topo.bbox), "габарит по-прежнему задаёт головка").toBeCloseTo(HEX_TIP, 1);
+  expect(radialExtent(topo.bbox), "габарит по-прежнему задаёт головка").toBeCloseTo(drawnTip, 1);
 
   const beforeThread = topo;
 

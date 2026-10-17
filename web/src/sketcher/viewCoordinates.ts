@@ -14,6 +14,10 @@ export function worldToScreen(wx: number, wy: number, view: ViewTransform): Sket
   return { x: wx * view.zoom + view.offsetX, y: view.offsetY - wy * view.zoom };
 }
 
+export function centeredView(width: number, height: number): ViewTransform {
+  return { offsetX: Math.round(width / 2), offsetY: Math.round(height / 2), zoom: 1 };
+}
+
 export function visibleWorldBounds(width: number, height: number, view: ViewTransform) {
   return {
     left: screenToWorld(0, 0, view).x,
