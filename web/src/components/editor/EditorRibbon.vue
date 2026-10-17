@@ -51,6 +51,7 @@ const tools = computed<Tool[]>(() => {
     { label: "Резьба", icon: "M6 4h12 M6 8h12 M6 12h12 M6 16h12 M6 20h12 M8 2v20 M16 2v20", action: "thread", disabled: bodies < 1, testId: "ribbon-thread", hint: bodies < 1 ? "Сначала постройте тело" : "Резьба на цилиндрической грани — внешняя или внутренняя" },
     { label: "Отверстие", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", action: "hole", disabled: bodies < 1, testId: "ribbon-hole", hint: bodies < 1 ? "Сначала постройте тело" : "Отверстие на плоской грани: простое, цековка или зенковка" },
     { label: "Оболочка", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4", action: "shell", disabled: bodies < 1, testId: "ribbon-shell", hint: bodies < 1 ? "Сначала постройте тело" : "Полое тело с открытыми гранями и стенкой заданной толщины" },
+    { label: "Уклон", icon: "M8 4h8l3 16H5z M12 4v16", action: "draft", disabled: bodies < 1, testId: "ribbon-draft", hint: bodies < 1 ? "Сначала постройте тело" : "Наклон боковых граней на угол от нейтральной плоскости" },
     { divider: true },
     { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", action: "pattern", disabled: bodies < 1, testId: "ribbon-pattern", hint: bodies < 1 ? "Сначала постройте тело" : "Линейный или круговой массив тела" },
     { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", action: "mirror", disabled: bodies < 1, testId: "ribbon-mirror", hint: bodies < 1 ? "Сначала постройте тело" : "Отразить тело относительно плоскости XY, XZ, YZ или плоской грани" },

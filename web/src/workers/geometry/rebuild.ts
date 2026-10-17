@@ -1,6 +1,7 @@
 import { RebuildCache, runRebuild, type RebuildBackend } from "@/lib/browserRebuildEngine";
 import type { RebuildKind, RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import { booleanNamed } from "./boolean";
+import { draftNamed, type DraftRequest } from "./draft";
 import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
 import { mirrorNamed, type MirrorRequest } from "./mirror";
@@ -44,6 +45,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   mirror: (request: MirrorRequest, lookup) => mirrorNamed(request, lookup),
   hole: (request: HoleBuildRequest, lookup) => holeNamed(request, lookup),
   pattern: (request: PatternRequest, lookup) => patternNamed(request, lookup),
+  draft: (request: DraftRequest, lookup) => draftNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

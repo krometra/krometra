@@ -1,4 +1,5 @@
 import { booleanNamed } from "./geometry/boolean";
+import { draftNamed, type DraftRequest } from "./geometry/draft";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
 import { holeNamed } from "./geometry/hole";
@@ -27,7 +28,7 @@ import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
 type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest
-  | MeasureRequest | PatternRequest;
+  | MeasureRequest | PatternRequest | DraftRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -45,6 +46,7 @@ function buildShape(data: Request) {
   if (data.kind === "mirror") return publishNamed(() => mirrorNamed(data, namedBodyShape));
   if (data.kind === "hole") return publishNamed(() => holeNamed(data, namedBodyShape));
   if (data.kind === "pattern") return publishNamed(() => patternNamed(data, namedBodyShape));
+  if (data.kind === "draft") return publishNamed(() => draftNamed(data, namedBodyShape));
   return null;
 }
 

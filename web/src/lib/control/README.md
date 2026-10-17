@@ -45,11 +45,13 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `draft`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
 
 Правка истории (`controlTimelineOps.ts`) идёт тем же путём, что контекстное меню дерева и шкалы: `useModelHistory.editTimeline` → `TimelineEditCommand` → пересборка зависимых браузерным ядром (`browserRegenPlan`) и сохранение одним `browser-regen`. Зависимая операция, которая без удалённой или подавленной не строится, не роняет правку: она остаётся в истории со `status: "error"` и текстом в `error`, остальная модель достраивается. В `state.timeline` у записи есть `suppressed`, `rolledBack` и `error`. Каждая правка отменяется одним `history.undo`.
 
 `shell { bodyId, faceIds, thickness, direction? }` открывает перечисленные грани и оставляет стенку `thickness` мм: `inward` (по умолчанию) — внутрь, габарит сохраняется, `outward` — наружу. Слишком толстая стенка отклоняется `operation_failed` с толщиной, которая помещается.
+
+`draft { bodyId, faceIds, neutral: { plane } | { faceId }, angleDeg?, reverse? }` наклоняет грани на `angleDeg` (по умолчанию 3°) от нейтрали: базовой плоскости через начало координат или плоской грани тела. Тело сужается вдоль нормали плоскости (XY - +Z) или от нейтральной грани вглубь тела, `reverse: true` - расширяется. Грань, параллельная нейтрали, неплоская нейтраль и слишком большой угол отклоняются `operation_failed` с причиной (для угла - с углом, который помещается); грани сохраняют id.
 
 Параметры и вид результата — в `capabilities`.
 

@@ -10,6 +10,7 @@ export type EditorMode =
   | "pattern"
   | "hole"
   | "shell"
+  | "draft"
   | "mirror"
   | "boolean"
   | "sweep"
@@ -22,6 +23,7 @@ export interface EditorModeFlags {
   edgeFeature: "fillet" | "chamfer" | null;
   thread: boolean;
   shell: boolean;
+  draft: boolean;
   mirror: boolean;
   hole: boolean;
   pattern: boolean;
@@ -37,6 +39,7 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.edgeFeature) return flags.edgeFeature;
   if (flags.thread) return "thread";
   if (flags.shell) return "shell";
+  if (flags.draft) return "draft";
   if (flags.mirror) return "mirror";
   if (flags.hole) return "hole";
   if (flags.pattern) return "pattern";

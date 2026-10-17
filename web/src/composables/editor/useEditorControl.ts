@@ -17,6 +17,7 @@ import { patternOps } from "./control/controlPatternOps";
 import { timelineOps } from "./control/controlTimelineOps";
 import { readOps } from "./control/controlReadOps";
 import { shellOps } from "./control/controlShellOps";
+import { draftOps } from "./control/controlDraftOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { sketchConstraintOps } from "./control/controlSketchConstraintOps";
 import { viewportOps } from "./control/controlViewportOps";
@@ -41,6 +42,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...sketchConstraintOps(context),
     ...featureOps(context),
     ...shellOps(context),
+    ...draftOps(context),
     ...holeOps(context),
     ...historyOps(context),
     ...timelineOps(context),
