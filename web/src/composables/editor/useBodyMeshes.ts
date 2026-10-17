@@ -8,6 +8,7 @@ import type { ViewportRef } from "./types";
 import { hasServerKernelBodies } from "./browserShapeHydration";
 import { useBrowserShapeHydration } from "./useBrowserShapeHydration";
 import { useSketchOutlineSync } from "./useSketchOutlineSync";
+import { useSketchVisibility } from "./useSketchVisibility";
 
 export function useBodyMeshes(deps: {
   projectId: string;
@@ -18,7 +19,7 @@ export function useBodyMeshes(deps: {
   const { projectId, viewportRef, bodies, sketches } = deps;
   const api = useApi();
   const browserShapes = useBrowserShapeHydration(projectId);
-  const sketchOutlines = useSketchOutlineSync(viewportRef, sketches);
+  const sketchOutlines = useSketchOutlineSync(viewportRef, sketches, useSketchVisibility().isOutlineShown);
 
   const meshBodies = ref<{ body_id: string; mesh: MeshData }[]>([]);
   const legacyProject = ref(false);

@@ -12,6 +12,7 @@ import type { ExportApi } from "./useExport";
 import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
 import type { ModelHistoryApi } from "./useModelHistory";
 import type { SketchLifecycleApi } from "./useSketchLifecycle";
+import { useSketchVisibility } from "./useSketchVisibility";
 import type { TimelineEditsApi } from "./useTimelineEdits";
 
 interface Renamer {
@@ -31,6 +32,7 @@ export function useTreeContextMenu(deps: {
   const { tree, model, sketchFlow, extrude, history, bodyPresentation, exportApi, timelineEdits } = deps;
   const selection = useSelection();
   const names = useDisplayNames();
+  const sketchVisibility = useSketchVisibility();
   const menu = ref<{ x: number; y: number; kind: TreeItemKind; id: string } | null>(null);
 
   function open(event: MouseEvent, kind: TreeItemKind, id: string) {
@@ -56,14 +58,15 @@ export function useTreeContextMenu(deps: {
   }
 
   async function toggleSketchVisibility(sketchId: string) {
-    const visible = model.sketches.value.find((sketch) => sketch.id === sketchId)?.visible === false;
-    await bodyPresentation.setSketchVisible(sketchId, visible).catch((error) => toast(apiErrorMessage(error, "Не удалось изменить видимость"), "warning"));
+    const sketch = model.sketches.value.find((candidate) => candidate.id === sketchId);
+    if (!sketch) return;
+    await bodyPresentation.setSketchVisible(sketchId, !sketchVisibility.isVisible(sketch)).catch((error) => toast(apiErrorMessage(error, "Не удалось изменить видимость"), "warning"));
   }
 
   function sketchItems(id: string): CtxItem[] {
     const sketch = model.sketches.value.find((candidate) => candidate.id === id);
     const items: CtxItem[] = [
-      { label: sketch?.visible !== false ? "Скрыть" : "Показать", action: () => toggleSketchVisibility(id) },
+      { label: sketch && sketchVisibility.isVisible(sketch) ? "Скрыть" : "Показать", action: () => toggleSketchVisibility(id) },
       { label: "Редактировать эскиз", action: () => sketchFlow.editSketch(id) },
       { label: "Выдавить", action: () => extrude.startExtrudeFromSketch(id, "extrude") },
       { label: "Вращать", action: () => extrude.startExtrudeFromSketch(id, "revolve") },

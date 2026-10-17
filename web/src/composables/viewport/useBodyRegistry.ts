@@ -58,6 +58,8 @@ export function useBodyRegistry(options: {
     });
 
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     mesh.userData["bodyId"] = bodyId;
     mesh.userData["brepTopo"] = meshData.brep_topo;
 

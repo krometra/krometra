@@ -7,6 +7,7 @@ import { ISO_VIEW } from "@/composables/useViewCube";
 import { coverCrop } from "@/lib/projectThumbnail";
 import { isFinitePoint, isUsableCamera, isUsableRadius, viewDirection, type Point3 } from "@/lib/cameraGuard";
 import { interpolatePose, type CameraPose } from "@/lib/lookAtView";
+import { useSceneLighting } from "./useSceneLighting";
 
 /**
  * Порог в пикселях, ниже которого движение мыши с зажатой кнопкой всё ещё
@@ -50,12 +51,12 @@ export function useSceneCore(entries: MeshEntry[]) {
   const meshGroup = new THREE.Group();
   const sketchGroup = new THREE.Group();
   const shadedEdgesGroup = new THREE.Group();
+  const lighting = useSceneLighting(meshGroup);
 
   let renderer: THREE.WebGLRenderer | null = null;
   let scene: THREE.Scene | null = null;
   let camera: THREE.PerspectiveCamera | null = null;
   let controls: OrbitControls | null = null;
-  let headlight: THREE.DirectionalLight | null = null;
   let grid: THREE.GridHelper | null = null;
   let animationId: number | null = null;
   let cameraAnimFrame: number | null = null;
@@ -88,7 +89,6 @@ export function useSceneCore(entries: MeshEntry[]) {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, stencil: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = false;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     container.appendChild(renderer.domElement);
@@ -107,16 +107,7 @@ export function useSceneCore(entries: MeshEntry[]) {
 
     grid = createGrid(20, 20);
     scene.add(grid);
-    scene.add(new THREE.AmbientLight(0xb7c2d3, 2.1));
-
-    // Headlight: свет следует за камерой (как в Onshape/Fusion), чтобы ни одна
-    // видимая грань не была чёрной. Тени отключены — CAD-вьюпорту они не нужны,
-    // а фиксированный shadow-frustum давал ложные тёмные полосы на гранях
-    headlight = new THREE.DirectionalLight(0xffffff, 1.8);
-    headlight.position.copy(camera.position);
-    scene.add(headlight);
-    scene.add(headlight.target);
-    scene.add(new THREE.HemisphereLight(0xe8f1ff, 0xe5e0d6, 0.85));
+    lighting.attach(renderer, scene);
 
     // Вращение сцены заканчивается обычным `click`, и если курсор при этом
     // стоит мимо тела, выделение сбрасывалось: чуть повернул модель — пропал
@@ -214,10 +205,6 @@ export function useSceneCore(entries: MeshEntry[]) {
     animationId = requestAnimationFrame(animate);
     controls?.update();
     guardCamera();
-    if (headlight && camera && controls) {
-      headlight.position.copy(camera.position);
-      headlight.target.position.copy(controls.target);
-    }
     if (renderer && scene && camera) renderer.render(scene, camera);
   }
 
@@ -355,6 +342,7 @@ export function useSceneCore(entries: MeshEntry[]) {
     if (animationId !== null) cancelAnimationFrame(animationId);
     if (cameraAnimFrame !== null) cancelAnimationFrame(cameraAnimFrame);
     resizeObserver?.disconnect();
+    lighting.dispose();
     if (renderer) {
       if (cleanupHandlers) {
         renderer.domElement.removeEventListener("click", cleanupHandlers.onClick);
@@ -373,6 +361,7 @@ export function useSceneCore(entries: MeshEntry[]) {
     meshGroup,
     sketchGroup,
     shadedEdgesGroup,
+    setShadowsAllowed: lighting.setShadowsAllowed,
     init,
     updatePointer,
     setCursor,

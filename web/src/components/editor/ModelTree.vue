@@ -3,6 +3,7 @@ import { computed, reactive, ref } from "vue";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
+import { useSketchVisibility } from "@/composables/editor/useSketchVisibility";
 import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { entryStateHint } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
@@ -21,6 +22,7 @@ const emit = defineEmits<{
 const selection = useSelection();
 const names = useDisplayNames();
 const { timelineEntries, sketches, bodies } = useDocumentModel();
+const sketchVisibility = useSketchVisibility();
 
 const selectedTimelineId = computed(() => selection.selectedFeatureId.value);
 const sketchCount = computed(() => sketches.value.length);
@@ -141,7 +143,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
             title="Кликните, чтобы скрыть/показать"
             data-testid="sketch-visibility"
             @click.stop="emit('toggle-sketch-visibility', s.id)"
-          >{{ s.visible !== false ? 'видимо' : 'скрыто' }}</span>
+          >{{ sketchVisibility.isVisible(s) ? 'видимо' : 'скрыто' }}</span>
         </div>
       </template>
 

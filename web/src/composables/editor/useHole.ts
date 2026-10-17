@@ -1,5 +1,6 @@
 import { computed, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
+import { useOperationSketches } from "@/composables/shared/useOperationSketches";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -51,6 +52,7 @@ export function useHole(deps: {
   const facePlane = ref<{ origin: Vec3; normal: Vec3 } | null>(null);
   const clickedCenters = ref<Vec3[]>([]);
   const sketchId = ref<string | null>(null);
+  useOperationSketches().track("hole", () => (holeMode.value ? [sketchId.value] : []));
   const spec = ref<HoleSpec>({ ...DEFAULT_HOLE_SPEC });
   const loading = ref(false);
   const error = ref<string | null>(null);

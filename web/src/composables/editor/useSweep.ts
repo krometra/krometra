@@ -1,5 +1,6 @@
 import { computed, ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
+import { useOperationSketches } from "@/composables/shared/useOperationSketches";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -40,6 +41,7 @@ export function useSweep(deps: { projectId: string; meshes: BodyMeshesApi; model
   const sweepMode = ref(false);
   const profileSketchId = ref<string | null>(null);
   const pathSketchId = ref<string | null>(null);
+  useOperationSketches().track("sweep", () => (sweepMode.value ? [profileSketchId.value, pathSketchId.value] : []));
   const operation = ref<BrowserExtrudeOperation>("new_body");
   const targetBodyId = ref<string | null>(null);
   const orientation = ref<BrowserSweepOrientation>("corrected");

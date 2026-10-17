@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, ref } from "vue";
 import type { ComponentEntry } from "./useDocumentModel";
+import { isSketchOutlineShown } from "@/lib/sketchVisibility";
 import { useSketchOutlineSync } from "./useSketchOutlineSync";
 
 const line = { id: "l", type: "line", start: { x: 0, y: 0 }, end: { x: 1, y: 0 } };
@@ -14,9 +15,13 @@ function setup(initial: ComponentEntry[]) {
   const addSketchOutline = vi.fn();
   const removeSketchOutline = vi.fn();
   const sketches = ref(initial);
+  const used = ref(new Set<string>());
+  const inOperation = ref(new Set<string>());
+  const shown = (sketch: ComponentEntry) =>
+    isSketchOutlineShown({ visible: sketch.visible, used: used.value.has(sketch.id), inOperation: inOperation.value.has(sketch.id) });
   const scope = effectScope();
-  const outlines = scope.run(() => useSketchOutlineSync(ref({ addSketchOutline, removeSketchOutline }), sketches))!;
-  return { addSketchOutline, removeSketchOutline, sketches, outlines, stop: () => scope.stop() };
+  const outlines = scope.run(() => useSketchOutlineSync(ref({ addSketchOutline, removeSketchOutline }), sketches, shown))!;
+  return { addSketchOutline, removeSketchOutline, sketches, used, inOperation, outlines, stop: () => scope.stop() };
 }
 
 describe("useSketchOutlineSync", () => {
@@ -86,5 +91,45 @@ describe("useSketchOutlineSync", () => {
 
     expect(addSketchOutline).not.toHaveBeenCalled();
     expect(removeSketchOutline).not.toHaveBeenCalled();
+  });
+
+  it("прячет эскиз, который потребила операция, и возвращает его после отмены операции", async () => {
+    const { addSketchOutline, removeSketchOutline, used, stop } = setup([onFace(10)]);
+
+    used.value = new Set(["s2"]);
+    await nextTick();
+    expect(removeSketchOutline.mock.calls).toEqual([["s2"]]);
+
+    used.value = new Set();
+    await nextTick();
+    stop();
+
+    expect(addSketchOutline.mock.calls.map(([id]) => id)).toEqual(["s2"]);
+  });
+
+  it("не рисует использованные эскизы при загрузке, кроме явно показанных", () => {
+    const { addSketchOutline, used, outlines, stop } = setup([onBase, { ...onFace(10), visible: true }]);
+    used.value = new Set(["s1", "s2"]);
+
+    outlines.drawAll();
+    stop();
+
+    expect(addSketchOutline.mock.calls.map(([id]) => id)).toEqual(["s2"]);
+  });
+
+  it("рисует использованный эскиз, пока он выбран в панели операции", async () => {
+    const { addSketchOutline, removeSketchOutline, used, inOperation, stop } = setup([onFace(10)]);
+    used.value = new Set(["s2"]);
+    await nextTick();
+
+    inOperation.value = new Set(["s2"]);
+    await nextTick();
+    expect(addSketchOutline.mock.calls.map(([id]) => id)).toEqual(["s2"]);
+
+    inOperation.value = new Set();
+    await nextTick();
+    stop();
+
+    expect(removeSketchOutline).toHaveBeenCalledTimes(2);
   });
 });

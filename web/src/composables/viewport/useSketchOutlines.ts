@@ -100,7 +100,13 @@ export function useSketchOutlines(sketchGroup: THREE.Group) {
     const normal = frameNormal(sketchFrame);
     const group = new THREE.Group();
     group.userData.sketchOutline = sketchId;
-    const material = new LineMaterial({ color: OUTLINE_COLOR, linewidth: OUTLINE_WIDTH_PX });
+    const material = new LineMaterial({
+      color: OUTLINE_COLOR,
+      linewidth: OUTLINE_WIDTH_PX,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -4,
+    });
 
     for (const entity of entities) {
       if (isConstruction(entity)) continue;

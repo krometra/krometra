@@ -217,6 +217,7 @@ watch(
   (mode) => {
     renderingMode.value = mode ?? "shaded";
     registry.applyRenderingMode(renderingMode.value);
+    core.setShadowsAllowed(renderingMode.value !== "wireframe");
   },
 );
 
