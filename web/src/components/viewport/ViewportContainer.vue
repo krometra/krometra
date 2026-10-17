@@ -24,6 +24,8 @@ import { useCameraLookAt } from "@/composables/viewport/useCameraLookAt";
 import { bodyFaceFrame, visibleBounds } from "@/composables/viewport/bodyGeometry";
 import { raycastFace } from "@/composables/viewport/faceRaycast";
 import { useMeasurePicking } from "@/composables/viewport/useMeasurePicking";
+import { useViewportNavigation } from "@/composables/viewport/useViewportNavigation";
+import { useNavigationSettings } from "@/composables/shared/useNavigationSettings";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -67,6 +69,11 @@ const holePreview = useHolePreview(context);
 const probe = useViewportProbe(context);
 const section = useSectionView(context);
 const lookAt = useCameraLookAt(context, core.animateCameraTo);
+const navigation = useViewportNavigation({
+  controls: core.orbitControls,
+  settings: useNavigationSettings().current,
+  beforeMove: core.stopCameraAnimation,
+});
 
 const faces = useFaceSelection({
   context,
@@ -110,9 +117,11 @@ onMounted(() => {
   if (!canvasContainer.value) return;
   core.init(canvasContainer.value, { onClick: onCanvasClick, onMove: onCanvasMouseMove, onContextMenu: onCanvasContextMenu });
   context.scene().add(planes.group);
+  navigation.attach(canvasContainer.value);
 });
 
 onUnmounted(() => {
+  navigation.detach();
   section.dispose();
   core.dispose();
   registry.clearAll();
@@ -240,6 +249,7 @@ defineExpose({
   setCameraView: core.setCameraView,
   setHelpersVisible: core.setHelpersVisible,
   animateCameraTo: core.animateCameraTo,
+  orbitBy: navigation.orbitBy,
   lookAt: lookAt.lookAt,
   lookAtFace: lookAt.lookAtFace,
   faceFrame: (bodyId: string, faceId: string | number) => bodyFaceFrame(entries, bodyId, faceId),

@@ -6,10 +6,11 @@ import {
   worldToScreen as toScreen,
   visibleWorldBounds as worldBounds,
 } from "@/sketcher/viewCoordinates";
+import { createWheelClassifier, wheelGesture, wheelSample, zoomFactor } from "@/lib/navigation/wheelGesture";
+import { useNavigationSettings } from "@/composables/shared/useNavigationSettings";
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 50;
-const ZOOM_STEP = 1.1;
 const FIT_PADDING = 0.8;
 
 /**
@@ -34,6 +35,8 @@ export function useCanvasViewport(deps: {
   let panOffsetStartY = 0;
 
   let resizeObserver: ResizeObserver | null = null;
+  const classifyWheel = createWheelClassifier();
+  const navigation = useNavigationSettings();
 
   const dpr = () => window.devicePixelRatio || 1;
 
@@ -91,20 +94,27 @@ export function useCanvasViewport(deps: {
     isPanning = false;
   }
 
-  function zoomAt(e: WheelEvent) {
-    const pos = canvasPos(e);
-    if (!pos) return;
-
+  function zoomAround(pos: SketchPoint, factor: number) {
     const world = screenToWorld(pos.x, pos.y);
-
-    zoom =
-      e.deltaY < 0
-        ? Math.min(MAX_ZOOM, zoom * ZOOM_STEP)
-        : Math.max(MIN_ZOOM, zoom / ZOOM_STEP);
-
+    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * factor));
     offsetX = pos.x - world.x * zoom;
     offsetY = pos.y + world.y * zoom;
     render();
+  }
+
+  function panBy(dx: number, dy: number) {
+    offsetX += dx;
+    offsetY += dy;
+    render();
+  }
+
+  function handleWheel(e: WheelEvent) {
+    const pos = canvasPos(e);
+    if (!pos) return;
+    const sample = wheelSample(e);
+    const gesture = wheelGesture(sample, classifyWheel(sample), navigation.current());
+    if (gesture.kind === "zoom") zoomAround(pos, zoomFactor(gesture));
+    else panBy(gesture.dx, gesture.dy);
   }
 
   function centerView() {
@@ -184,7 +194,7 @@ export function useCanvasViewport(deps: {
     startPan,
     updatePan,
     endPan,
-    zoomAt,
+    handleWheel,
     centerView,
     fitToView,
     getZoom: () => zoom,

@@ -40,5 +40,9 @@ export function useCameraSync(viewportRef: ViewportRef) {
     handleViewChange(ISO_VIEW);
   }
 
-  return { cameraState, handleViewChange, handleViewIso };
+  function handleOrbit(orbit: { azimuth: number; elevation: number }) {
+    viewportRef.value?.orbitBy(orbit.azimuth, orbit.elevation);
+  }
+
+  return { cameraState, handleViewChange, handleViewIso, handleOrbit };
 }

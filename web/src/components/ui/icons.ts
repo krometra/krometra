@@ -48,6 +48,7 @@ export const ICONS = {
     { d: "M3.5 19.5h17 M6 16h12", faded: true },
     { d: "M12 3v9.5 M8.5 9 12 12.5 15.5 9" },
   ],
+  mouse: [{ d: "M12 3a5.5 5.5 0 0 0-5.5 5.5v7a5.5 5.5 0 0 0 11 0v-7A5.5 5.5 0 0 0 12 3z M12 6.5v3.5" }],
 } satisfies Record<string, IconPath[]>;
 
 export type IconName = keyof typeof ICONS;

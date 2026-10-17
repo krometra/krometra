@@ -383,6 +383,7 @@ const selectionLabel = useSelectionLabel();
           :camera-target="camera.cameraState.value.target"
           @view-change="camera.handleViewChange"
           @view-iso="camera.handleViewIso"
+          @orbit="camera.handleOrbit"
         />
 
         <AxisTriad
