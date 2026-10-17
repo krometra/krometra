@@ -75,6 +75,10 @@ class ConstraintType(str, Enum):
     PARALLEL = "parallel"
     PERPENDICULAR = "perpendicular"
     EQUAL = "equal"
+    COLLINEAR = "collinear"
+    MIDPOINT = "midpoint"
+    POINT_ON_CURVE = "point_on_curve"
+    FIX = "fix"
     # Dimensional
     DISTANCE = "distance"
     RADIUS = "radius"

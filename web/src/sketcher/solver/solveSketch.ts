@@ -17,6 +17,8 @@ import {
   applyPerpendicular,
   applyVertical,
 } from "./geometricConstraints";
+import { collectPins, restorePins } from "./fixConstraint";
+import { applyCollinear, applyMidpoint, applyPointOnCurve, incidenceResidual } from "./incidenceConstraints";
 import { CONVERGENCE_THRESHOLD, buildPointMap, constraintSegments, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
 import type { SketchConstraint, SketchEntity, SolverOutput } from "./types";
 
@@ -31,7 +33,8 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
 
   const workEntities: SketchEntity[] = JSON.parse(JSON.stringify(entities));
   const points = buildPointMap(workEntities);
-  shareCoincidentPoints(points, constraints);
+  shareCoincidentPoints(points, constraints, workEntities);
+  const pins = collectPins(constraints, workEntities, points);
 
   let converged = false;
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
@@ -39,6 +42,7 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
     for (const constraint of constraints) {
       maxDisplacement = Math.max(maxDisplacement, applyConstraint(constraint, workEntities, points));
       pinOrigin(points);
+      restorePins(pins);
     }
     if (maxDisplacement < CONVERGENCE_THRESHOLD) {
       converged = true;
@@ -55,19 +59,22 @@ function applyConstraint(constraint: SketchConstraint, entities: SketchEntity[],
   switch (constraint.type) {
     case "horizontal": return applyHorizontal(constraint, points);
     case "vertical": return applyVertical(constraint, points);
-    case "coincident": return applyCoincident(constraint, points);
+    case "coincident": return applyCoincident(constraint, entities, points);
     case "parallel": return applyParallel(constraint, points);
     case "perpendicular": return applyPerpendicular(constraint, points);
     case "equal": return applyEqual(constraint, entities, points);
-    case "distance": return applyDistance(constraint, points);
-    case "horizontal_distance": return applyAxisDistance(constraint, points, "x");
-    case "vertical_distance": return applyAxisDistance(constraint, points, "y");
+    case "distance": return applyDistance(constraint, entities, points);
+    case "horizontal_distance": return applyAxisDistance(constraint, entities, points, "x");
+    case "vertical_distance": return applyAxisDistance(constraint, entities, points, "y");
     case "length": return applyLength(constraint, points);
     case "line_distance": return applyLineDistance(constraint, points);
-    case "point_line_distance": return applyPointLineDistance(constraint, points);
+    case "point_line_distance": return applyPointLineDistance(constraint, entities, points);
     case "radius": return applyRadius(constraint, entities, points);
     case "diameter": return applyDiameter(constraint, entities, points);
     case "angle": return applyAngle(constraint, points);
+    case "collinear": return applyCollinear(constraint, points);
+    case "midpoint": return applyMidpoint(constraint, entities, points);
+    case "point_on_curve": return applyPointOnCurve(constraint, entities, points);
     default: return 0;
   }
 }
@@ -86,7 +93,7 @@ function computeResidual(constraints: SketchConstraint[], entities: SketchEntity
   for (const constraint of constraints) {
     const error = constraint.type === "horizontal" || constraint.type === "vertical"
       ? alignmentResidual(constraint, points)
-      : dimensionResidual(constraint, entities, points);
+      : Math.max(dimensionResidual(constraint, entities, points), incidenceResidual(constraint, entities, points));
     maxErr = Math.max(maxErr, error);
   }
   return maxErr;

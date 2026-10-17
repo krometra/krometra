@@ -55,7 +55,18 @@ function isPointToPoint(constraint: SketchConstraint): boolean {
   return constraint.type === "coincident" && constraint.anchors.length >= 2;
 }
 
-export function shareCoincidentPoints(points: PointMap, constraints: SketchConstraint[]) {
+function fixedKeys(constraints: SketchConstraint[], entities: SketchEntity[]): Set<string> {
+  const keys = new Set<string>();
+  for (const constraint of constraints.filter((c) => c.type === "fix")) {
+    for (const ref of constraint.anchors) {
+      if (ref.sub_index >= 0) keys.add(key(ref.entity_id, ref.sub_index));
+      else if (getEntity(entities, ref.entity_id)) for (let i = 0; i < 4; i++) keys.add(key(ref.entity_id, i));
+    }
+  }
+  return keys;
+}
+
+function coincidentGroups(points: PointMap, constraints: SketchConstraint[]): string[][] {
   const parent = new Map<string, string>();
   const find = (k: string): string => {
     let root = k;
@@ -63,22 +74,42 @@ export function shareCoincidentPoints(points: PointMap, constraints: SketchConst
     parent.set(k, root);
     return root;
   };
-  const union = (a: string, b: string) => {
-    const ra = find(a);
-    const rb = find(b);
-    if (ra === rb) return;
-    if (rb === ORIGIN_KEY) parent.set(ra, rb);
-    else parent.set(rb, ra);
-  };
   for (const constraint of constraints.filter(isPointToPoint)) {
     const keys = constraint.anchors.map((ref) => key(ref.entity_id, ref.sub_index)).filter((k) => points.has(k));
-    for (const k of keys.slice(1)) union(keys[0], k);
+    for (const k of keys.slice(1)) {
+      const [ra, rb] = [find(keys[0]), find(k)];
+      if (ra !== rb) parent.set(rb, ra);
+    }
   }
   const groups = new Map<string, string[]>();
   for (const k of parent.keys()) groups.set(find(k), [...(groups.get(find(k)) ?? []), k]);
-  for (const [root, members] of groups) {
-    const shared = root === ORIGIN_KEY ? points.get(ORIGIN_KEY)! : centroid(members.map((k) => points.get(k)!));
-    for (const k of members) points.set(k, shared);
+  return [...groups.values()];
+}
+
+function carryRoundPoints(points: PointMap, entities: SketchEntity[], centerKey: string, shared: Set<string>, dx: number, dy: number) {
+  const [entityId, sub] = [centerKey.slice(0, centerKey.lastIndexOf(":")), centerKey.slice(centerKey.lastIndexOf(":") + 1)];
+  const entity = sub === "0" ? getEntity(entities, entityId) : undefined;
+  if (!entity) return;
+  const rest = roundPoints(points, entity).slice(1);
+  rest.forEach((p, i) => {
+    if (!shared.has(key(entityId, i + 1))) shiftPoints([p], dx, dy);
+  });
+}
+
+export function shareCoincidentPoints(points: PointMap, constraints: SketchConstraint[], entities: SketchEntity[]) {
+  const groups = coincidentGroups(points, constraints);
+  const shared = new Set(groups.flat());
+  const fixed = fixedKeys(constraints, entities);
+  for (const members of groups) {
+    const anchor = members.find((k) => k === ORIGIN_KEY) ?? members.find((k) => fixed.has(k));
+    const target = anchor ? { ...points.get(anchor)! } : centroid(members.map((k) => points.get(k)!));
+    for (const k of members) {
+      const original = points.get(k)!;
+      carryRoundPoints(points, entities, k, shared, target.x - original.x, target.y - original.y);
+    }
+    const point = anchor ? points.get(anchor)! : target;
+    Object.assign(point, target);
+    for (const k of members) points.set(k, point);
   }
 }
 
@@ -119,6 +150,27 @@ export function anchorRay(points: PointMap, ref: ConstraintRef): Segment | null 
   return ref.sub_index === 1 ? { start: segment.end, end: segment.start } : segment;
 }
 
+export function roundPoints(points: PointMap, entity: SketchEntity): SketchPoint[] {
+  const count = entity.type === "arc" ? 3 : entity.type === "circle" ? 2 : 0;
+  return Array.from({ length: count }, (_, i) => getPoint(points, { entity_id: entity.id, sub_index: i }))
+    .filter((p): p is SketchPoint => p !== null);
+}
+
+export function movingPoints(points: PointMap, entities: SketchEntity[], ref: ConstraintRef): SketchPoint[] {
+  const point = getPoint(points, ref);
+  if (!point) return [];
+  const entity = ref.sub_index === 0 ? getEntity(entities, ref.entity_id) : undefined;
+  const round = entity ? roundPoints(points, entity) : [];
+  return round.length > 0 ? round : [point];
+}
+
+export function shiftPoints(moving: SketchPoint[], dx: number, dy: number) {
+  for (const p of moving) {
+    p.x += dx;
+    p.y += dy;
+  }
+}
+
 export function constraintSegments(points: PointMap, constraint: SketchConstraint, count: number): Segment[] | null {
   if (constraint.anchors.length < count) return null;
   const segments = constraint.anchors.slice(0, count).map((ref) => anchorSegment(points, ref));
@@ -126,7 +178,7 @@ export function constraintSegments(points: PointMap, constraint: SketchConstrain
 }
 
 export function updateArcPoints(entity: SketchEntity, points: PointMap) {
-  const center = entity.center ?? { x: 0, y: 0 };
+  const center = getPoint(points, { entity_id: entity.id, sub_index: 0 }) ?? entity.center ?? { x: 0, y: 0 };
   const radius = entity.radius ?? 0;
   if (entity.type === "arc") {
     const start = getPoint(points, { entity_id: entity.id, sub_index: 1 });
@@ -149,9 +201,9 @@ function copyPoint(points: PointMap, entityId: string, subIndex: number, target:
 }
 
 function writeCircle(entity: SketchEntity, points: PointMap) {
+  copyPoint(points, entity.id, 0, entity.center);
   const rim = getPoint(points, { entity_id: entity.id, sub_index: 1 });
   if (rim && entity.center) entity.radius = Math.hypot(rim.x - entity.center.x, rim.y - entity.center.y);
-  copyPoint(points, entity.id, 0, entity.center);
 }
 
 function writeArc(entity: SketchEntity, points: PointMap) {

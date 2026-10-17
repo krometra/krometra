@@ -12,6 +12,7 @@ import ConstraintToolbar from "./ConstraintToolbar.vue";
 import ValueInputOverlay from "./ValueInputOverlay.vue";
 import LiveDimensionsOverlay from "./LiveDimensionsOverlay.vue";
 import DimensionInputOverlay from "./DimensionInputOverlay.vue";
+import SelectedConstraintBar from "./SelectedConstraintBar.vue";
 import { isConstruction, isPointNearEntity } from "@/sketcher/geometry";
 import { useSketchEntities } from "@/composables/sketcher/useSketchEntities";
 import { useSketchSnapping } from "@/composables/sketcher/useSketchSnapping";
@@ -20,6 +21,7 @@ import { useLiveDimensions } from "@/composables/sketcher/useLiveDimensions";
 import { useEdgeDrag } from "@/composables/sketcher/useEdgeDrag";
 import { useSketchConstraints } from "@/composables/sketcher/useSketchConstraints";
 import { useSketchDimensions } from "@/composables/sketcher/useSketchDimensions";
+import { useConstraintGlyphs } from "@/composables/sketcher/useConstraintGlyphs";
 import { LineTool } from "./tools/LineTool";
 import { RectangleTool } from "./tools/RectangleTool";
 import { CircleTool } from "./tools/CircleTool";
@@ -131,7 +133,9 @@ const constraints = useSketchConstraints({
   openDimension: dimensions.openFromToolbar,
 });
 
-const highlightedIds = computed(() => [...sketch.selectedEntityIds.value, ...dimension.highlightedIds.value]);
+const glyphs = useConstraintGlyphs({ sketch, zoom, screenToWorld });
+
+const highlightedIds = computed(() => [...sketch.selectedEntityIds.value, ...dimension.highlightedIds.value, ...glyphs.highlightedIds.value]);
 const canvasSnap = computed(() =>
   isDimensionTool.value
     ? dimension.marker.value
@@ -192,10 +196,17 @@ function clickHitsLabel(screenX: number, screenY: number): boolean {
   return !drawing && dimensions.labelAt(screenX, screenY) !== null;
 }
 
+function clickHitsGlyph(screenX: number, screenY: number): boolean {
+  if (aux.isAuxTool.value || isDimensionTool.value) return false;
+  if (!isSelectTool.value && currentTool.value.isActive()) return false;
+  return glyphs.click(screenX, screenY);
+}
+
 function onCanvasClick(screenX: number, screenY: number) {
   const world = screenToWorld(screenX, screenY);
   dimensionInput.cancel();
   if (clickHitsLabel(screenX, screenY)) return;
+  if (clickHitsGlyph(screenX, screenY)) return;
 
   if (isDimensionTool.value) {
     dimension.onClick(screenX, screenY);
@@ -274,6 +285,10 @@ function onCanvasMove(screenX: number, screenY: number) {
 }
 
 function detectHover(screenX: number, screenY: number) {
+  if (glyphs.hover(screenX, screenY)) {
+    hoveredEntityId.value = null;
+    return;
+  }
   const world = screenToWorld(screenX, screenY);
   const threshold = PICK_PX / zoom();
 
@@ -410,11 +425,13 @@ function onSketchKeyDown(e: KeyboardEvent) {
       dimension.reset();
       return;
     }
+    glyphs.clear();
     sketch.clearSelection();
     return;
   }
   if (e.key === "Delete" || e.key === "Backspace") {
     e.preventDefault();
+    if (glyphs.deleteSelected()) return;
     sketch.removeSelected();
     return;
   }
@@ -473,6 +490,13 @@ defineExpose({
       @clear="sketch.clearSelection()"
     />
 
+    <SelectedConstraintBar
+      v-if="glyphs.selected.value"
+      :constraint="glyphs.selected.value"
+      @delete="glyphs.deleteSelected()"
+      @clear="glyphs.clear()"
+    />
+
     <DimensionInputOverlay
       v-if="dimensionInput.state.value"
       :x="dimensionInput.state.value.x"
@@ -513,6 +537,8 @@ defineExpose({
       :preview="preview"
       :hovered-entity-id="hoveredEntityId"
       :constraints="sketch.constraints.value"
+      :hovered-constraint-id="glyphs.hoveredId.value"
+      :selected-constraint-id="glyphs.selectedId.value"
       :selected-entity-ids="highlightedIds"
       :snap-point="canvasSnap?.at ?? null"
       :snap-label="canvasSnap?.label ?? null"

@@ -15,6 +15,8 @@ import {
   constraintSegments,
   getEntity,
   getPoint,
+  movingPoints,
+  shiftPoints,
   updateArcPoints,
   type PointMap,
   type Segment,
@@ -40,7 +42,12 @@ function pointPair(constraint: SketchConstraint, points: PointMap): [SketchPoint
   return p0 && p1 ? [p0, p1] : null;
 }
 
-export function applyDistance(constraint: SketchConstraint, points: PointMap): number {
+function shiftPair(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap, dx: number, dy: number) {
+  shiftPoints(movingPoints(points, entities, constraint.anchors[0]), -dx, -dy);
+  shiftPoints(movingPoints(points, entities, constraint.anchors[1]), dx, dy);
+}
+
+export function applyDistance(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap): number {
   const pair = pointPair(constraint, points);
   if (!pair || constraint.value === null) return 0;
   const [p0, p1] = pair;
@@ -49,20 +56,18 @@ export function applyDistance(constraint: SketchConstraint, points: PointMap): n
   const current = Math.hypot(dx, dy);
   if (current < 0.001) return 0;
   const correction = (constraint.value - current) * LEARNING_RATE * 0.5;
-  shift(p0, (-dx / current) * correction, (-dy / current) * correction);
-  shift(p1, (dx / current) * correction, (dy / current) * correction);
+  shiftPair(constraint, entities, points, (dx / current) * correction, (dy / current) * correction);
   return Math.abs(current - constraint.value);
 }
 
-export function applyAxisDistance(constraint: SketchConstraint, points: PointMap, axis: Axis): number {
+export function applyAxisDistance(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap, axis: Axis): number {
   const pair = pointPair(constraint, points);
   if (!pair || constraint.value === null) return 0;
   const [p0, p1] = pair;
   const current = p1[axis] - p0[axis];
   const error = sideSign(current) * constraint.value - current;
   const half = error * LEARNING_RATE * 0.5;
-  p0[axis] -= half;
-  p1[axis] += half;
+  shiftPair(constraint, entities, points, axis === "x" ? half : 0, axis === "y" ? half : 0);
   return Math.abs(error);
 }
 
@@ -114,7 +119,7 @@ function sharesPoint(point: SketchPoint, segment: Segment): boolean {
   return point === segment.start || point === segment.end;
 }
 
-export function applyPointLineDistance(constraint: SketchConstraint, points: PointMap): number {
+export function applyPointLineDistance(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap): number {
   if (constraint.anchors.length < 2 || constraint.value === null) return 0;
   const point = getPoint(points, constraint.anchors[0]);
   const line = anchorSegment(points, constraint.anchors[1]);
@@ -124,7 +129,7 @@ export function applyPointLineDistance(constraint: SketchConstraint, points: Poi
   if (!n || current === null) return 0;
   const error = sideSign(current) * constraint.value - current;
   const half = error * LEARNING_RATE * 0.5;
-  shift(point, n.x * half, n.y * half);
+  shiftPoints(movingPoints(points, entities, constraint.anchors[0]), n.x * half, n.y * half);
   shiftSegment(line, -n.x * half, -n.y * half);
   return Math.abs(error);
 }
