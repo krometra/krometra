@@ -2,10 +2,13 @@ import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { param } from "@/lib/control/params";
 import { filterTopology, findFaces } from "@/lib/control/faceSearch";
 import { describeBodyTopology, meshStats } from "@/lib/control/topology";
+import { useSketchVisibility } from "../useSketchVisibility";
 import { bodyLineage } from "./controlBodyOps";
 import type { EditorControlContext } from "./controlContext";
 
 export function readOps(context: EditorControlContext, busyReason: () => string | null): ControlOp[] {
+  const sketchVisibility = useSketchVisibility();
+
   function selectionSnapshot() {
     const current = context.selection.selection.value;
     if (!current) return null;
@@ -34,7 +37,7 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
     defineOp({
       op: "state",
       description:
-        "Состояние редактора одним снимком; доступно сразу после монтирования, ещё до готовности. Возвращает { projectId, mode, ready, kernel, kernelError, legacyProject, document: { version, dirty }, bodies: [{ id, name, visible, color, consumedBy, replacedBy }], consumedBodyCount, sketches: [{ id, name, plane, planeOffset, used, visible }], timeline: [{ id, kind, label, name, status, params, sketchId, bodyId }], busy }. bodies по умолчанию — только «живые» тела; join, cut, скругление, фаска, резьба, оболочка, уклон, сдвиг грани без newBody, булева операция, перемещение без копии и зеркало с объединением поглощают исходное тело: оно скрывается, а результат получает новый id. У поглощённого тела consumedBy — id записи истории, replacedBy — тело-результат; такие тела показываются с allBodies = true, их число — consumedBodyCount. Цепочку замен проходят по replacedBy до тела с consumedBy = null. У extrude params.distance хранится со знаком вдоль нормали эскиза: плюс — по нормали, минус — против; new_body и join без reversed дают плюс, cut без reversed — минус. Чтобы повторить операцию по params, передайте distance = |distance| и reversed = (operation = cut ? distance > 0 : distance < 0). mode: model | sketch | plane_pick | extrude | revolve | fillet | chamfer | thread | shell | draft | mirror | hole | boolean | sweep | loft | measure | press_pull. kernel — фаза браузерного ядра: idle | loading | ready | restarting | failed. busy = true, пока идёт мутирующая операция, сохранение или перезагрузка тел. bodyId записи истории — тело-результат операции.",
+        "Состояние редактора одним снимком; доступно сразу после монтирования, ещё до готовности. Возвращает { projectId, mode, ready, kernel, kernelError, legacyProject, document: { version, dirty }, bodies: [{ id, name, visible, color, consumedBy, replacedBy }], consumedBodyCount, sketches: [{ id, name, plane, planeOffset, used, visible }] (visible - рисуется ли контур эскиза во вьюпорте: эскиз, по которому построена операция, по умолчанию скрыт, пока его не показали явно через sketch.setVisible или глаз в дереве), timeline: [{ id, kind, label, name, status, params, sketchId, bodyId }], busy }. bodies по умолчанию — только «живые» тела; join, cut, скругление, фаска, резьба, оболочка, уклон, сдвиг грани без newBody, булева операция, перемещение без копии и зеркало с объединением поглощают исходное тело: оно скрывается, а результат получает новый id. У поглощённого тела consumedBy — id записи истории, replacedBy — тело-результат; такие тела показываются с allBodies = true, их число — consumedBodyCount. Цепочку замен проходят по replacedBy до тела с consumedBy = null. У extrude params.distance хранится со знаком вдоль нормали эскиза: плюс — по нормали, минус — против; new_body и join без reversed дают плюс, cut без reversed — минус. Чтобы повторить операцию по params, передайте distance = |distance| и reversed = (operation = cut ? distance > 0 : distance < 0). mode: model | sketch | plane_pick | extrude | revolve | fillet | chamfer | thread | shell | draft | mirror | hole | boolean | sweep | loft | measure | press_pull. kernel — фаза браузерного ядра: idle | loading | ready | restarting | failed. busy = true, пока идёт мутирующая операция, сохранение или перезагрузка тел. bodyId записи истории — тело-результат операции.",
       needsReady: false,
       params: {
         allBodies: param.optional(param.boolean("Включить в bodies поглощённые тела (промежуточные тела цепочек). По умолчанию false.")),
@@ -55,7 +58,7 @@ export function readOps(context: EditorControlContext, busyReason: () => string 
           plane: sketch.plane ?? null,
           planeOffset: typeof sketch.plane_offset === "number" ? sketch.plane_offset : 0,
           used: context.model.sketchHasFeature(sketch.id),
-          visible: sketch.visible !== false,
+          visible: sketchVisibility.isVisible(sketch),
         })),
         timeline: context.model.timelineEntries.value.map(context.timelineEntry),
         busy: busyReason() !== null,

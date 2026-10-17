@@ -1,5 +1,6 @@
 import { computed, onUnmounted, ref, watch } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
+import { useOperationSketches } from "@/composables/shared/useOperationSketches";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useSketch } from "@/composables/shared/useSketch";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
@@ -46,6 +47,7 @@ export function useExtrudeRevolve(deps: {
 
   const lastSavedSketchId = ref<string | null>(null);
   const lastSavedSketchTargetId = ref<string | null>(null);
+  useOperationSketches().track("extrude", () => [lastSavedSketchId.value]);
   // Панель одна на две операции; режим решает, какую из них показать.
   const panelMode = ref<"extrude" | "revolve">("extrude");
   const parameterVariables = () => parameterQuantities(paramsStore.parameters.value);

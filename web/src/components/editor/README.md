@@ -10,6 +10,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── types.ts                 общие типы редактора (RenderingMode, CtxItem, …)
 │   ├── useDocumentModel         производные от useDocument: sketches/bodies/timelineEntries
 │   ├── useBodyMeshes            меши сцены: trackMesh/untrackMesh/replaceMesh/hydrateBodyMeshes
+│   ├── useSketchVisibility      видимость эскиза: явный глаз в дереве или авто (использованный скрыт), эскиз панели операции виден
 │   ├── useDocumentStatus        статус сохранения документа (loading/saved/…/conflict)
 │   ├── useCameraSync            поллинг камеры для ViewCube + переходы вида
 │   ├── useExtrudeRevolve        состояние и команды выдавливания/вращения + ghost-превью

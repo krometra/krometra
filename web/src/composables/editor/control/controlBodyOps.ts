@@ -1,4 +1,5 @@
 import { bodyConsumers, deleteBody } from "@/lib/bodyHistory";
+import { useSketchVisibility } from "../useSketchVisibility";
 import { isIdentityTransform } from "@/lib/bodyTransform";
 import { outputBodyOf } from "@/lib/browserRebuildPlan";
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
@@ -33,6 +34,8 @@ export function bodyLineage(context: EditorControlContext) {
 }
 
 export function bodyOps(context: EditorControlContext): ControlOp[] {
+  const sketchVisibility = useSketchVisibility();
+
   function requireBody(bodyId: string) {
     if (!context.model.bodies.value.some((body) => body.id === bodyId)) {
       throw fail("not_found", `Тела «${bodyId}» нет в документе. Список тел — op "state".`);
@@ -153,6 +156,23 @@ export function bodyOps(context: EditorControlContext): ControlOp[] {
         const resultId = await context.bodyTransform.apply(bodyId, transform, copy === true);
         const feature = context.model.timelineEntries.value.find((entry) => !known.has(entry.id));
         return { bodyId: resultId, feature: feature ? context.timelineEntry(feature) : null, mode: context.mode() };
+      },
+    }),
+
+    defineOp({
+      op: "sketch.setVisible",
+      description:
+        "Показывает или скрывает контур эскиза во вьюпорте - как глаз в дереве модели. Эскиз, по которому построена операция (used = true), скрыт по умолчанию; явный выбор сохраняется в документе и сильнее автоматики. История не меняется. Возвращает { sketch: { id, used, visible } }.",
+      mutates: true,
+      params: {
+        sketchId: param.id("Эскиз из op state."),
+        visible: param.boolean("true - показать, false - скрыть."),
+      },
+      run: async ({ sketchId, visible }) => {
+        context.requireSketch(sketchId);
+        await context.bodyPresentation.setSketchVisible(sketchId, visible);
+        const sketch = context.model.sketches.value.find((candidate) => candidate.id === sketchId);
+        return { sketch: { id: sketchId, used: context.model.sketchHasFeature(sketchId), visible: sketch ? sketchVisibility.isVisible(sketch) : visible } };
       },
     }),
 

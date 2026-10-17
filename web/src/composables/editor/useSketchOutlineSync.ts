@@ -13,10 +13,6 @@ interface OutlineViewport {
   removeSketchOutline(sketchId: string): void;
 }
 
-export function isSketchShown(sketch: ComponentEntry): boolean {
-  return sketch.visible !== false;
-}
-
 function sketchFrame(sketch: ComponentEntry): SketchOutlineFrame {
   return {
     plane: (sketch.plane as SketchPlane) ?? "XY",
@@ -25,7 +21,11 @@ function sketchFrame(sketch: ComponentEntry): SketchOutlineFrame {
   };
 }
 
-export function useSketchOutlineSync(viewportRef: Ref<OutlineViewport | undefined>, sketches: Ref<ComponentEntry[]>) {
+export function useSketchOutlineSync(
+  viewportRef: Ref<OutlineViewport | undefined>,
+  sketches: Ref<ComponentEntry[]>,
+  isSketchShown: (sketch: ComponentEntry) => boolean,
+) {
   function draw(sketch: ComponentEntry) {
     viewportRef.value?.addSketchOutline(sketch.id, (sketch.entities as SketchEntity[]) ?? [], sketchFrame(sketch));
   }
