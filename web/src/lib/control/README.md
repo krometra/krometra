@@ -35,7 +35,7 @@ type ControlErrorCode =
 
 ## Операции
 
-Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `viewport.project`, `viewport.capture`, `export`, `measure`.
 
 `measure { targets, density? }` меряет один или два объекта (тело, грань, ребро, точка с прилипанием к вершине) по точной B-rep геометрии ядра тем же запросом, что инструмент «Измерить»: свойства каждого объекта и для пары минимальное расстояние с двумя точками, угол, межосевое и межцентровое расстояние. Режим `measure` в `state` — открыта панель инструмента; сама операция работает в любом режиме и модель не меняет.
 
@@ -45,7 +45,7 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.deleteConstraint`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
 
 Правка истории (`controlTimelineOps.ts`) идёт тем же путём, что контекстное меню дерева и шкалы: `useModelHistory.editTimeline` → `TimelineEditCommand` → пересборка зависимых браузерным ядром (`browserRegenPlan`) и сохранение одним `browser-regen`. Зависимая операция, которая без удалённой или подавленной не строится, не роняет правку: она остаётся в истории со `status: "error"` и текстом в `error`, остальная модель достраивается. В `state.timeline` у записи есть `suppressed`, `rolledBack` и `error`. Каждая правка отменяется одним `history.undo`.
 

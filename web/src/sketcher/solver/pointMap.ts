@@ -83,6 +83,27 @@ export function anchorRay(points: PointMap, ref: ConstraintRef): Segment | null 
   return ref.sub_index === 1 ? { start: segment.end, end: segment.start } : segment;
 }
 
+export function roundPoints(points: PointMap, entity: SketchEntity): SketchPoint[] {
+  const count = entity.type === "arc" ? 3 : entity.type === "circle" ? 2 : 0;
+  return Array.from({ length: count }, (_, i) => getPoint(points, { entity_id: entity.id, sub_index: i }))
+    .filter((p): p is SketchPoint => p !== null);
+}
+
+export function movingPoints(points: PointMap, entities: SketchEntity[], ref: ConstraintRef): SketchPoint[] {
+  const point = getPoint(points, ref);
+  if (!point) return [];
+  const entity = ref.sub_index === 0 ? getEntity(entities, ref.entity_id) : undefined;
+  const round = entity ? roundPoints(points, entity) : [];
+  return round.length > 0 ? round : [point];
+}
+
+export function shiftPoints(moving: SketchPoint[], dx: number, dy: number) {
+  for (const p of moving) {
+    p.x += dx;
+    p.y += dy;
+  }
+}
+
 export function constraintSegments(points: PointMap, constraint: SketchConstraint, count: number): Segment[] | null {
   if (constraint.anchors.length < count) return null;
   const segments = constraint.anchors.slice(0, count).map((ref) => anchorSegment(points, ref));
@@ -90,7 +111,7 @@ export function constraintSegments(points: PointMap, constraint: SketchConstrain
 }
 
 export function updateArcPoints(entity: SketchEntity, points: PointMap) {
-  const center = entity.center ?? { x: 0, y: 0 };
+  const center = getPoint(points, { entity_id: entity.id, sub_index: 0 }) ?? entity.center ?? { x: 0, y: 0 };
   const radius = entity.radius ?? 0;
   if (entity.type === "arc") {
     const start = getPoint(points, { entity_id: entity.id, sub_index: 1 });
@@ -113,9 +134,9 @@ function copyPoint(points: PointMap, entityId: string, subIndex: number, target:
 }
 
 function writeCircle(entity: SketchEntity, points: PointMap) {
+  copyPoint(points, entity.id, 0, entity.center);
   const rim = getPoint(points, { entity_id: entity.id, sub_index: 1 });
   if (rim && entity.center) entity.radius = Math.hypot(rim.x - entity.center.x, rim.y - entity.center.y);
-  copyPoint(points, entity.id, 0, entity.center);
 }
 
 function writeArc(entity: SketchEntity, points: PointMap) {

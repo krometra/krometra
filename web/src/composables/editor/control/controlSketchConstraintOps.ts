@@ -1,5 +1,7 @@
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { param } from "@/lib/control/params";
+import { fail } from "@/lib/control/protocol";
+import { constraintGlyphs } from "@/sketcher/constraintGlyphs";
 import {
   CONSTRAINT_TYPE_NAMES,
   SKETCH_CONSTRAINT_HELP,
@@ -17,7 +19,42 @@ export function sketchConstraintOps(context: EditorControlContext): ControlOp[] 
     return { constraintId, residual: sketch.solveResidual.value, entities: sketch.entities.value };
   }
 
+  function glyphsOnPage() {
+    context.requireSketchMode();
+    const view = context.sketcherRef.value?.getCanvas();
+    const element = view?.getCanvasEl();
+    if (!view || !element) throw fail("not_ready", "Канвас эскиза ещё не смонтирован.");
+    const rect = element.getBoundingClientRect();
+    return constraintGlyphs(sketch.constraints.value, sketch.entities.value, 1 / view.getZoom()).map((glyph) => {
+      const screen = view.worldToScreen(glyph.at.x, glyph.at.y);
+      return { constraintId: glyph.constraintId, type: glyph.type, text: glyph.text, at: glyph.at, x: rect.left + screen.x, y: rect.top + screen.y };
+    });
+  }
+
   return [
+    defineOp({
+      op: "sketch.constraintGlyphs",
+      description:
+        "Значки геометрических ограничений на холсте открытого эскиза. Возвращает [{ constraintId, type, text, at, x, y }]: at — точка значка в мм эскиза, " +
+        "x, y — клиентские координаты страницы. У ограничения на паре объектов (equal, parallel) по значку у каждого. Только в режиме эскиза.",
+      run: glyphsOnPage,
+    }),
+
+    defineOp({
+      op: "sketch.deleteConstraint",
+      description:
+        "Удаляет ограничение или размер из открытого эскиза одним шагом истории (как Delete по выбранному значку) и решает эскиз. " +
+        "id — из sketch.get (constraints). Возвращает { constraintId, residual, entities }.",
+      mutates: true,
+      params: { constraintId: param.string("id ограничения.") },
+      run: ({ constraintId }) => {
+        context.requireSketchMode();
+        if (!sketch.constraints.value.some((c) => c.id === constraintId)) throw fail("not_found", `В эскизе нет ограничения «${constraintId}».`);
+        sketch.applyCanvasEdit(sketch.entities.value, sketch.constraints.value.filter((c) => c.id !== constraintId));
+        return solved(constraintId);
+      },
+    }),
+
     defineOp({
       op: "sketch.addConstraint",
       description:

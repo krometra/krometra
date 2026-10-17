@@ -79,4 +79,28 @@ describe("useSketchConstraints для нескольких объектов", ()
     const { api } = setup(["a", "gone"]);
     expect(api.canApply("coincident")).toBe(false);
   });
+
+  it("новые кнопки на панели: коллинеарность, середина, точка на кривой, фиксация", () => {
+    const { api } = setup(["a", "b"]);
+    expect(api.constraintTypes).toEqual(expect.arrayContaining(["collinear", "midpoint", "point_on_curve", "fix"]));
+    expect(api.label("fix")).toBe("Фикс");
+    expect(api.canApply("collinear")).toBe(true);
+  });
+
+  it("фиксация трёх отрезков: каждый целиком, одна запись истории", () => {
+    const { api, deps, added } = setup(["a", "b", "c"]);
+    api.create("fix");
+    expect(added.map(({ constraint }) => constraint.anchors)).toEqual([
+      [{ entity_id: "a", sub_index: -1 }],
+      [{ entity_id: "b", sub_index: -1 }],
+      [{ entity_id: "c", sub_index: -1 }],
+    ]);
+    expect(deps.solveAndApply).toHaveBeenCalledTimes(1);
+  });
+
+  it("середина для одного отрезка недоступна и объясняет почему", () => {
+    const { api } = setup(["a"]);
+    expect(api.canApply("midpoint")).toBe(false);
+    expect(api.title("midpoint")).toContain("недоступно: только для точки и отрезка, выбрано 1");
+  });
 });

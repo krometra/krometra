@@ -18,6 +18,8 @@ const props = defineProps<{
   preview: SketchEntity | null;
   hoveredEntityId: string | null;
   constraints?: SketchConstraint[];
+  hoveredConstraintId?: string | null;
+  selectedConstraintId?: string | null;
   selectedEntityIds?: string[];
   snapPoint?: SketchPoint | null;
   snapLabel?: string | null;
@@ -57,7 +59,10 @@ function render() {
 
   if (props.preview) drawEntity(ctx, view, props.preview, false, true);
   if (props.constraints?.length) {
-    drawConstraints(ctx, view, props.constraints, props.entities);
+    drawConstraints(ctx, view, props.constraints, props.entities, {
+      hovered: props.hoveredConstraintId ?? null,
+      selected: props.selectedConstraintId ?? null,
+    });
   }
   if (props.snapPoint) drawSnapMarker(ctx, view, props.snapPoint, props.snapLabel);
 
@@ -104,6 +109,8 @@ watch(
     props.preview,
     props.hoveredEntityId,
     props.constraints,
+    props.hoveredConstraintId,
+    props.selectedConstraintId,
     props.selectedEntityIds,
     props.snapPoint,
     props.snapLabel,

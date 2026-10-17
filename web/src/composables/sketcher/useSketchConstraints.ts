@@ -5,7 +5,8 @@ import type { DimensionDraft } from "@/sketcher/dimensionPlan";
 
 const TOOLBAR_TYPES = [
   "horizontal", "vertical", "coincident", "parallel", "perpendicular",
-  "equal", "distance", "radius", "angle",
+  "equal", "collinear", "midpoint", "point_on_curve", "fix",
+  "distance", "radius", "angle",
 ] as const;
 
 type ToolbarConstraintType = (typeof TOOLBAR_TYPES)[number];
@@ -19,6 +20,10 @@ const CONSTRAINT_LABELS: Record<ToolbarConstraintType, string> = {
   parallel: "∥",
   perpendicular: "⊥",
   equal: "=",
+  collinear: "Колл",
+  midpoint: "Сер",
+  point_on_curve: "На кр",
+  fix: "Фикс",
   distance: "↔",
   radius: "R",
   angle: "∠",
@@ -31,6 +36,10 @@ const CONSTRAINT_HINTS: Record<ToolbarConstraintType, string> = {
   parallel: "Параллельность — выберите два отрезка или больше",
   perpendicular: "Перпендикулярность — выберите два отрезка",
   equal: "Равенство — выберите отрезки или окружности и дуги",
+  collinear: "Коллинеарность — выберите два отрезка или больше: они встанут на одну прямую",
+  midpoint: "Середина — точку и отрезок; для окружности её центр, для двух отрезков начало первого",
+  point_on_curve: "Точка на кривой — первым точку (у отрезка начало, у окружности центр), вторым отрезок, окружность или дугу",
+  fix: "Зафиксировать — выбранные объекты целиком или точки останутся на месте",
   distance: "Размер (D) — длина отрезка, расстояние между параллельными, угол, диаметр",
   radius: "Радиус — выберите окружность или дугу",
   angle: "Угол — выберите два отрезка",

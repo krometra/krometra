@@ -1,10 +1,11 @@
 import type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity } from "@/types/api";
 import { dimensionRangeError, isDimensionType } from "@/sketcher/dimensionKinds";
 import { SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
+import { WHOLE_ENTITY } from "@/sketcher/solver/fixConstraint";
 import { INVALID, isPlainObject, type ParamSpec } from "./params";
 import { fail } from "./protocol";
 
-type Kind = "line" | "round" | "point" | "any";
+type Kind = "line" | "round" | "curve" | "point" | "any" | "fixable";
 
 const SIGNATURES: Record<ConstraintType, Kind[]> = {
   horizontal: ["line"],
@@ -13,6 +14,10 @@ const SIGNATURES: Record<ConstraintType, Kind[]> = {
   parallel: ["line", "line"],
   perpendicular: ["line", "line"],
   equal: ["any", "any"],
+  collinear: ["line", "line"],
+  midpoint: ["point", "line"],
+  point_on_curve: ["point", "curve"],
+  fix: ["fixable"],
   distance: ["point", "point"],
   horizontal_distance: ["point", "point"],
   vertical_distance: ["point", "point"],
@@ -28,7 +33,9 @@ export const CONSTRAINT_TYPE_NAMES = Object.keys(SIGNATURES) as ConstraintType[]
 
 export const SKETCH_CONSTRAINT_HELP =
   "Ограничение эскиза. Геометрические (без value): horizontal, vertical [отрезок]; parallel, perpendicular [отрезок, отрезок]; " +
-  "coincident [точка, точка]; equal [два отрезка или две окружности/дуги]. Размерные (value обязателен, мм или градусы): " +
+  "coincident [точка, точка]; equal [два отрезка или две окружности/дуги]; collinear [отрезок, отрезок] — на одной прямой; " +
+  "midpoint [точка, отрезок] — точка в середине отрезка; point_on_curve [точка, кривая] — точка на отрезке или его продолжении, на окружности или дуге; " +
+  "fix [объект или точка] — без point закрепляет объект целиком, с point — только эту точку. Размерные (value обязателен, мм или градусы): " +
   "length [отрезок] — длина; line_distance [отрезок, отрезок] — расстояние между параллельными; " +
   "point_line_distance [точка, отрезок] — перпендикулярное расстояние; distance [точка, точка] — наклонное; " +
   "horizontal_distance и vertical_distance [точка, точка] — по X и по Y, сторона сохраняется по текущему положению; " +
@@ -39,6 +46,7 @@ export const SKETCH_CONSTRAINT_HELP =
 export interface ConstraintAnchorInput {
   entityId: string;
   point: number;
+  whole?: boolean;
 }
 
 function readAnchor(value: unknown): ConstraintAnchorInput | typeof INVALID {
@@ -47,7 +55,8 @@ function readAnchor(value: unknown): ConstraintAnchorInput | typeof INVALID {
   const point = value.point ?? 0;
   if (typeof entityId !== "string" || entityId.length === 0) return INVALID;
   if (typeof point !== "number" || !Number.isInteger(point) || point < 0 || point > 3) return INVALID;
-  return { entityId: entityId === "origin" ? SKETCH_ORIGIN_ID : entityId, point };
+  const anchor = { entityId: entityId === "origin" ? SKETCH_ORIGIN_ID : entityId, point };
+  return value.point === undefined ? { ...anchor, whole: true } : anchor;
 }
 
 export function constraintAnchorsParam(description: string): ParamSpec<ConstraintAnchorInput[]> {
@@ -65,17 +74,19 @@ export function constraintAnchorsParam(description: string): ParamSpec<Constrain
 }
 
 function kindOf(entity: SketchEntity | undefined, anchor: ConstraintAnchorInput): Kind[] {
-  if (anchor.entityId === SKETCH_ORIGIN_ID) return anchor.point === 0 ? ["point", "any"] : [];
+  if (anchor.entityId === SKETCH_ORIGIN_ID) return anchor.point === 0 ? ["point", "any", "fixable"] : [];
   if (!entity) return [];
-  if (entity.type === "line") return anchor.point <= 1 ? ["line", "point", "any"] : [];
-  if (entity.type === "circle") return anchor.point <= 1 ? ["round", "point", "any"] : [];
-  if (entity.type === "arc") return anchor.point <= 2 ? ["round", "point", "any"] : [];
+  if (entity.type === "line") return anchor.point <= 1 ? ["line", "curve", "point", "any", "fixable"] : [];
+  if (entity.type === "circle") return anchor.point <= 1 ? ["round", "curve", "point", "any", "fixable"] : [];
+  if (entity.type === "arc") return anchor.point <= 2 ? ["round", "curve", "point", "any", "fixable"] : [];
   return [];
 }
 
 const KIND_NAMES: Record<Kind, string> = {
   line: "отрезок",
   round: "окружность или дуга",
+  curve: "отрезок, окружность или дуга",
+  fixable: "объект или точка",
   point: "точка",
   any: "объект",
 };
@@ -106,6 +117,10 @@ function checkValue(type: ConstraintType, value: number | undefined): number | n
 }
 
 function toRef(anchor: ConstraintAnchorInput, type: ConstraintType, kind: Kind): ConstraintRef {
+  if (kind === "fixable") {
+    const whole = anchor.whole === true && anchor.entityId !== SKETCH_ORIGIN_ID;
+    return { entity_id: anchor.entityId, sub_index: whole ? WHOLE_ENTITY : anchor.point };
+  }
   const keepsPoint = kind === "point" || type === "angle";
   return { entity_id: anchor.entityId, sub_index: keepsPoint ? anchor.point : 0 };
 }

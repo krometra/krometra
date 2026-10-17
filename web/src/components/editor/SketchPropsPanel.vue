@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, ref, useCssModule, watch } from "vue";
 import { useSketch } from "@/composables/shared/useSketch";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import PropsPanelShell from "./PropsPanelShell.vue";
@@ -7,10 +7,13 @@ import type { SketchConstraint } from "@/types/api";
 import CsNumberInput from "@/components/ui/CsNumberInput.vue";
 import { isDimensionType } from "@/sketcher/dimensionKinds";
 import { SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
+import { CONSTRAINT_ICONS, CONSTRAINT_TITLES } from "@/sketcher/constraintNames";
+import { useSketchConstraintFocus } from "@/composables/shared/useSketchConstraintFocus";
 
 const emit = defineEmits<{ ok: []; cancel: [] }>();
 
 const sketch = useSketch();
+const style = useCssModule();
 const names = useDisplayNames();
 
 const sketchPlaneLabel = computed(() => {
@@ -30,42 +33,6 @@ const sketchPlaneHint = computed(() => {
   return offset !== 0 ? `смещение ${offset.toFixed(1)} мм` : "";
 });
 
-const constraintIconMap: Record<string, string> = {
-  horizontal: "⏤",
-  vertical: "⏐",
-  coincident: "⊙",
-  parallel: "∥",
-  perpendicular: "⊥",
-  equal: "=",
-  distance: "↔",
-  radius: "R",
-  angle: "∠",
-  length: "⟷",
-  diameter: "⌀",
-  line_distance: "↔",
-  point_line_distance: "↔",
-  horizontal_distance: "↔",
-  vertical_distance: "↕",
-};
-
-const CONSTRAINT_LABELS: Record<string, string> = {
-  horizontal: "Гориз.",
-  vertical: "Верт.",
-  coincident: "Совпад.",
-  parallel: "Паралл.",
-  perpendicular: "Перпенд.",
-  equal: "Равно",
-  distance: "Расст.",
-  radius: "Радиус",
-  angle: "Угол",
-  length: "Длина",
-  diameter: "Диаметр",
-  line_distance: "Расст. между",
-  point_line_distance: "До линии",
-  horizontal_distance: "По гориз.",
-  vertical_distance: "По верт.",
-};
-
 const ENTITY_KIND_LABELS: Record<string, string> = {
   line: "Отрезок",
   rectangle: "Прямоуг.",
@@ -84,9 +51,23 @@ const entityLabels = computed(() => {
   return map;
 });
 
+const focus = useSketchConstraintFocus();
+
 function constraintTitle(c: SketchConstraint): string {
-  return CONSTRAINT_LABELS[c.type] ?? c.type;
+  return CONSTRAINT_TITLES[c.type] ?? c.type;
 }
+
+function rowClass(c: SketchConstraint) {
+  return [style.constraintRow, c.id === focus.selectedId.value && style.constraintRowSelected, c.id === focus.hoveredId.value && style.constraintRowHovered];
+}
+
+const rows = ref<HTMLElement | null>(null);
+
+watch(focus.selectedId, async (id) => {
+  if (id === null) return;
+  await nextTick();
+  rows.value?.querySelector(`[data-constraint-id="${CSS.escape(id)}"]`)?.scrollIntoView({ block: "nearest" });
+});
 
 function constraintTargets(c: SketchConstraint): string {
   return c.anchors
@@ -127,14 +108,21 @@ function setConstraintValue(c: SketchConstraint, value: number) {
     <div v-if="sketch.conflict.value" :class="$style.conflictWarning">
       ⚠ Версия документа изменилась. Сохраните эскиз повторно.
     </div>
-    <div v-if="sketch.constraints.value.length > 0" :class="$style.constraintSection">
+    <div v-if="sketch.constraints.value.length > 0" ref="rows" :class="$style.constraintSection">
       <div :class="$style.panelHead">ОГРАНИЧЕНИЯ ({{ sketch.constraints.value.length }})</div>
       <div
         v-for="c in sketch.constraints.value"
         :key="c.id"
-        :class="$style.constraintRow"
+        :class="rowClass(c)"
+        data-testid="sketch-constraint-row"
+        :data-constraint-id="c.id"
+        :data-selected="c.id === focus.selectedId.value ? 'true' : undefined"
+        :data-hovered="c.id === focus.hoveredId.value ? 'true' : undefined"
+        @click="focus.select(c.id)"
+        @mouseenter="focus.hover(c.id)"
+        @mouseleave="focus.hover(null)"
       >
-        <span :class="$style.constraintIcon">{{ constraintIconMap[c.type] ?? c.type }}</span>
+        <span :class="$style.constraintIcon">{{ CONSTRAINT_ICONS[c.type] ?? c.type }}</span>
         <div :class="$style.constraintBody">
           <div :class="$style.constraintTitle">{{ constraintTitle(c) }}</div>
           <div :class="$style.constraintTargets">{{ constraintTargets(c) }}</div>
@@ -149,7 +137,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
         <button
           :class="$style.constraintDel"
           title="Удалить ограничение"
-          @click="sketch.removeConstraint(c.id)"
+          @click.stop="sketch.removeConstraint(c.id)"
         >
           ✕
         </button>
@@ -236,6 +224,17 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 }
 
 .constraintRow:hover {
+  background: oklch(0.78 0.13 75 / 0.05);
+  color: var(--cs-text);
+}
+
+.constraintRowSelected,
+.constraintRowSelected:hover {
+  background: var(--cs-primary-soft);
+  color: var(--cs-text);
+}
+
+.constraintRowHovered {
   background: oklch(0.78 0.13 75 / 0.05);
   color: var(--cs-text);
 }
