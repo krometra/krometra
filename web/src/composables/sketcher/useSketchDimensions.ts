@@ -2,7 +2,7 @@ import type { SketchPoint } from "@/types/api";
 import { useParameters } from "@/composables/useParameters";
 import { parameterQuantities } from "@/lib/units";
 import { findDimensionLabelAt } from "@/sketcher/dimensionLayout";
-import type { DimensionDraft } from "@/sketcher/dimensionPlan";
+import type { DimensionDraft, DimensionTarget } from "@/sketcher/dimensionPlan";
 import { useDimensionInput } from "./useDimensionInput";
 import { useDimensionTool } from "./useDimensionTool";
 import type { SketchEntitiesApi } from "./useSketchEntities";
@@ -63,9 +63,9 @@ export function useSketchDimensions(deps: {
   }
 
   function startFromSelection() {
-    const ids = new Set(sketch.selectedEntityIds.value);
-    if (ids.size === 0) return;
-    tool.startFromEntities(sketch.entities.value.filter((e) => ids.has(e.id)), toolbarPoint());
+    const targets = sketch.selection.targets().filter((t): t is DimensionTarget => t !== null);
+    if (targets.length === 0) return;
+    tool.startFromTargets(targets, toolbarPoint());
     sketch.clearSelection();
   }
 

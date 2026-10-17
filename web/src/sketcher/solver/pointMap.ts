@@ -1,5 +1,6 @@
 import { ccwSweep } from "../arcGeometry";
-import { SKETCH_ORIGIN, SKETCH_ORIGIN_ID } from "../sketchOrigin";
+import { SKETCH_AXIS_IDS, SKETCH_ORIGIN, SKETCH_ORIGIN_ID } from "../sketchOrigin";
+import { LINE_MIDPOINT, REFERENCE_SPAN, axisSegment } from "../sketchPoints";
 import type { ConstraintRef, SketchConstraint, SketchEntity, SketchPoint } from "./types";
 
 export type PointMap = Map<string, SketchPoint>;
@@ -22,14 +23,31 @@ function onCircle(center: SketchPoint, radius: number, angle: number): SketchPoi
   return { x: center.x + radius * Math.cos(angle), y: center.y + radius * Math.sin(angle) };
 }
 
+export const midpoint = (a: SketchPoint, b: SketchPoint): SketchPoint => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+
+function inflineSegment(point: SketchPoint, angle: number): Segment {
+  return { start: point, end: { x: point.x + Math.cos(angle) * REFERENCE_SPAN, y: point.y + Math.sin(angle) * REFERENCE_SPAN } };
+}
+
+function setSegment(map: PointMap, entityId: string, segment: Segment) {
+  setPoint(map, entityId, 0, segment.start);
+  setPoint(map, entityId, 1, segment.end);
+}
+
 export function buildPointMap(entities: SketchEntity[]): PointMap {
   const map: PointMap = new Map();
   map.set(ORIGIN_KEY, { ...SKETCH_ORIGIN });
+  setSegment(map, SKETCH_AXIS_IDS.x, axisSegment("x"));
+  setSegment(map, SKETCH_AXIS_IDS.y, axisSegment("y"));
   for (const entity of entities) {
     switch (entity.type) {
       case "line":
         setPoint(map, entity.id, 0, entity.start!);
         setPoint(map, entity.id, 1, entity.end!);
+        setPoint(map, entity.id, LINE_MIDPOINT, midpoint(entity.start!, entity.end!));
+        break;
+      case "infline":
+        setSegment(map, entity.id, inflineSegment(entity.point!, entity.angle!));
         break;
       case "circle":
         setPoint(map, entity.id, 0, entity.center!);
@@ -49,13 +67,6 @@ export function buildPointMap(entities: SketchEntity[]): PointMap {
     }
   }
   return map;
-}
-
-export function pinOrigin(points: PointMap) {
-  const origin = points.get(ORIGIN_KEY);
-  if (!origin) return;
-  origin.x = SKETCH_ORIGIN.x;
-  origin.y = SKETCH_ORIGIN.y;
 }
 
 export function getPoint(points: PointMap, ref: ConstraintRef): SketchPoint | null {
@@ -146,6 +157,16 @@ export function writePointsBack(entities: SketchEntity[], points: PointMap) {
         copyPoint(points, entity.id, 0, entity.corner1);
         copyPoint(points, entity.id, 1, entity.corner2);
         break;
+      case "infline":
+        writeInfline(entity, points);
+        break;
     }
   }
+}
+
+function writeInfline(entity: SketchEntity, points: PointMap) {
+  const segment = anchorSegment(points, { entity_id: entity.id, sub_index: 0 });
+  if (!segment || !entity.point) return;
+  copyPoint(points, entity.id, 0, entity.point);
+  entity.angle = Math.atan2(segment.end.y - segment.start.y, segment.end.x - segment.start.x);
 }

@@ -1,24 +1,23 @@
-import type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity } from "@/types/api";
+import type { ConstraintRef, ConstraintType, SketchConstraint } from "@/types/api";
 import {
   angleDraft,
   defaultCursor,
   radiusDraft,
   resolveDimension,
+  sameTarget,
   type DimensionDraft,
   type DimensionTarget,
 } from "./dimensionPlan";
-import { targetOfEntity } from "./dimensionTargets";
 
-export interface ConstraintPick {
-  entity: SketchEntity;
-  ref: ConstraintRef;
-}
+export type ConstraintPick = DimensionTarget;
 
 const PER_OBJECT = new Set<ConstraintType>(["horizontal", "vertical"]);
 const CHAINED = new Set<ConstraintType>(["coincident", "parallel", "equal"]);
 
-const isLine = (pick: ConstraintPick) => pick.entity.type === "line";
-const isRound = (pick: ConstraintPick) => pick.entity.type === "circle" || pick.entity.type === "arc";
+const isPoint = (pick: ConstraintPick) => pick.kind === "point";
+const isLine = (pick: ConstraintPick) => pick.kind === "line";
+const isSegment = (pick: ConstraintPick) => pick.kind === "line" && !pick.infinite;
+const isRound = (pick: ConstraintPick) => pick.kind === "circle" || pick.kind === "arc";
 
 function exactCountBlocker(picks: ConstraintPick[], count: number, noun: string): string | null {
   return picks.length === count ? null : `только для ${noun}, выбрано ${picks.length}`;
@@ -29,34 +28,39 @@ function minCountBlocker(picks: ConstraintPick[]): string | null {
 }
 
 function linesOnlyBlocker(picks: ConstraintPick[]): string | null {
-  return picks.every(isLine) ? null : "только отрезки";
+  return picks.every(isLine) ? null : "только отрезки и прямые";
+}
+
+function pointsOnlyBlocker(picks: ConstraintPick[]): string | null {
+  return picks.every(isPoint) ? null : "только точки: концы, середины, центры, начало координат";
 }
 
 function sameKindBlocker(picks: ConstraintPick[]): string | null {
-  return picks.every(isLine) || picks.every(isRound) ? null : "только отрезки или только окружности и дуги";
+  return picks.every(isSegment) || picks.every(isRound) ? null : "только отрезки или только окружности и дуги";
 }
 
-function dimensionTargets(picks: ConstraintPick[]): DimensionTarget[] | null {
-  const targets = picks.map((pick) => targetOfEntity(pick.entity));
-  return targets.every((t): t is DimensionTarget => t !== null) ? targets : null;
+function isPointPair(picks: ConstraintPick[]): boolean {
+  return picks.length === 2 && picks.every(isPoint);
+}
+
+function alignmentBlocker(picks: ConstraintPick[]): string | null {
+  if (picks.every(isLine)) return null;
+  if (!isPointPair(picks)) return "только отрезки или две точки";
+  return sameTarget(picks[0], picks[1]) ? "это та же точка" : null;
 }
 
 function distanceBlocker(picks: ConstraintPick[]): string | null {
-  const targets = dimensionTargets(picks);
-  if (!targets) return "размер ставится на отрезки, окружности и дуги";
-  const resolution = resolveDimension(targets, defaultCursor(targets));
+  const resolution = resolveDimension(picks, defaultCursor(picks));
   if (resolution.status === "invalid") return resolution.reason;
   return resolution.status === "incomplete" ? resolution.hint : null;
 }
 
 export function toolbarDimension(type: ConstraintType, picks: ConstraintPick[]): DimensionDraft | null {
-  const targets = dimensionTargets(picks);
-  if (!targets) return null;
-  const [first, second] = targets;
+  const [first, second] = picks;
   if (type === "radius" && (first?.kind === "circle" || first?.kind === "arc")) return radiusDraft(first);
-  if (type === "angle" && first?.kind === "line" && second?.kind === "line") return angleDraft(first, second, defaultCursor(targets));
+  if (type === "angle" && first?.kind === "line" && second?.kind === "line") return angleDraft(first, second, defaultCursor(picks));
   if (type !== "distance") return null;
-  const resolution = resolveDimension(targets, defaultCursor(targets));
+  const resolution = resolveDimension(picks, defaultCursor(picks));
   return resolution.status === "ready" ? resolution.draft : null;
 }
 
@@ -65,9 +69,9 @@ export function constraintBlocker(type: ConstraintType, picks: ConstraintPick[])
   switch (type) {
     case "horizontal":
     case "vertical":
-      return linesOnlyBlocker(picks);
+      return alignmentBlocker(picks);
     case "coincident":
-      return minCountBlocker(picks);
+      return minCountBlocker(picks) ?? pointsOnlyBlocker(picks);
     case "parallel":
       return minCountBlocker(picks) ?? linesOnlyBlocker(picks);
     case "equal":
@@ -84,8 +88,9 @@ export function constraintBlocker(type: ConstraintType, picks: ConstraintPick[])
   }
 }
 
-function anchorGroups(type: ConstraintType, refs: ConstraintRef[]): ConstraintRef[][] {
-  if (PER_OBJECT.has(type)) return refs.map((ref) => [ref]);
+function anchorGroups(type: ConstraintType, picks: ConstraintPick[]): ConstraintRef[][] {
+  const refs = picks.map((pick) => ({ ...pick.ref }));
+  if (PER_OBJECT.has(type)) return isPointPair(picks) ? [refs] : refs.map((ref) => [ref]);
   if (CHAINED.has(type)) return refs.slice(1).map((ref, i) => [refs[i], ref]);
   return [refs];
 }
@@ -95,7 +100,7 @@ export function planConstraints(
   picks: ConstraintPick[],
   nextId: () => string,
 ): SketchConstraint[] {
-  return anchorGroups(type, picks.map((pick) => ({ ...pick.ref }))).map((anchors) => ({
+  return anchorGroups(type, picks).map((anchors) => ({
     id: nextId(),
     type,
     anchors,

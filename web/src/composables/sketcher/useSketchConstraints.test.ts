@@ -1,16 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import type { SketchConstraint, SketchEntity } from "@/types/api";
+import { SKETCH_AXIS_IDS, SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
+import { LINE_MIDPOINT } from "@/sketcher/sketchPoints";
+import type { SketchSelectionItem } from "@/sketcher/sketchSelection";
 import { useSketchConstraints } from "./useSketchConstraints";
+import { useSketchSelection } from "./useSketchSelection";
 
 const line = (id: string): SketchEntity => ({ id, type: "line", start: { x: 0, y: 0 }, end: { x: 10, y: 1 } });
+const point = (entityId: string, subIndex: number): SketchSelectionItem => ({ kind: "point", entityId, subIndex });
 
-function setup(selected: string[]) {
+function setup(selected: (string | SketchSelectionItem)[]) {
   const added: { constraint: SketchConstraint; silent?: boolean }[] = [];
   let counter = 0;
+  const selection = useSketchSelection(ref<SketchEntity[]>([line("a"), line("b"), line("c")]));
+  selection.set(selected.map((item) => (typeof item === "string" ? { kind: "entity", entityId: item } : item)));
   const deps = {
-    entities: ref<SketchEntity[]>([line("a"), line("b"), line("c")]),
-    selectedEntityIds: ref<string[]>(selected),
+    selectionTargets: selection.targets,
     nextConstraintId: () => `c${++counter}`,
     addConstraint: vi.fn((constraint: SketchConstraint, opts?: { silent?: boolean }) => {
       added.push({ constraint, silent: opts?.silent });
@@ -78,5 +84,40 @@ describe("useSketchConstraints для нескольких объектов", ()
   it("удалённый из эскиза объект в выделении блокирует ограничения", () => {
     const { api } = setup(["a", "gone"]);
     expect(api.canApply("coincident")).toBe(false);
+  });
+
+  it("совпадение двух выбранных точек цепляется к их номерам", () => {
+    const { api, added } = setup([point("a", 1), point("b", 0)]);
+    api.create("coincident");
+    expect(added.map(({ constraint }) => constraint.anchors)).toEqual([
+      [{ entity_id: "a", sub_index: 1 }, { entity_id: "b", sub_index: 0 }],
+    ]);
+  });
+
+  it("середина отрезка совпадает с началом координат", () => {
+    const { api, added } = setup([point("c", LINE_MIDPOINT), { kind: "origin" }]);
+    api.create("coincident");
+    expect(added[0].constraint.anchors).toEqual([
+      { entity_id: "c", sub_index: LINE_MIDPOINT },
+      { entity_id: SKETCH_ORIGIN_ID, sub_index: 0 },
+    ]);
+  });
+
+  it("горизонталь двух точек — одно ограничение, совпадение отрезков недоступно", () => {
+    const { api, added } = setup([point("a", 1), point("b", 1)]);
+    api.create("horizontal");
+    expect(added.map(({ constraint }) => constraint.anchors)).toEqual([
+      [{ entity_id: "a", sub_index: 1 }, { entity_id: "b", sub_index: 1 }],
+    ]);
+    expect(setup(["a", "b"]).api.title("coincident")).toContain("только точки");
+  });
+
+  it("параллельность отрезка оси Y", () => {
+    const { api, added } = setup(["a", { kind: "axis", axis: "y" }]);
+    api.create("parallel");
+    expect(added[0].constraint.anchors).toEqual([
+      { entity_id: "a", sub_index: 0 },
+      { entity_id: SKETCH_AXIS_IDS.y, sub_index: 0 },
+    ]);
   });
 });

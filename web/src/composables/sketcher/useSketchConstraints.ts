@@ -1,7 +1,6 @@
-import type { Ref } from "vue";
-import type { ConstraintType, SketchConstraint, SketchEntity } from "@/types/api";
+import type { ConstraintType, SketchConstraint } from "@/types/api";
 import { constraintBlocker, planConstraints, toolbarDimension, type ConstraintPick } from "@/sketcher/constraintPlan";
-import type { DimensionDraft } from "@/sketcher/dimensionPlan";
+import type { DimensionDraft, DimensionTarget } from "@/sketcher/dimensionPlan";
 
 const TOOLBAR_TYPES = [
   "horizontal", "vertical", "coincident", "parallel", "perpendicular",
@@ -25,9 +24,9 @@ const CONSTRAINT_LABELS: Record<ToolbarConstraintType, string> = {
 };
 
 const CONSTRAINT_HINTS: Record<ToolbarConstraintType, string> = {
-  horizontal: "Горизонтальность — выберите один или несколько отрезков",
-  vertical: "Вертикальность — выберите один или несколько отрезков",
-  coincident: "Совпадение — выберите два объекта или больше",
+  horizontal: "Горизонтальность — выберите отрезки или две точки",
+  vertical: "Вертикальность — выберите отрезки или две точки",
+  coincident: "Совпадение — выберите две точки или больше: концы, середины, центры, начало координат",
   parallel: "Параллельность — выберите два отрезка или больше",
   perpendicular: "Перпендикулярность — выберите два отрезка",
   equal: "Равенство — выберите отрезки или окружности и дуги",
@@ -44,8 +43,7 @@ export function constraintLabel(type: ConstraintType): string {
 }
 
 export function useSketchConstraints(deps: {
-  entities: Ref<SketchEntity[]>;
-  selectedEntityIds: Ref<string[]>;
+  selectionTargets: () => (DimensionTarget | null)[];
   nextConstraintId: () => string;
   addConstraint: (constraint: SketchConstraint, opts?: { silent?: boolean }) => void;
   clearSelection: () => void;
@@ -53,8 +51,7 @@ export function useSketchConstraints(deps: {
   openDimension: (draft: DimensionDraft) => void;
 }) {
   const {
-    entities,
-    selectedEntityIds,
+    selectionTargets,
     nextConstraintId,
     addConstraint,
     clearSelection,
@@ -62,17 +59,14 @@ export function useSketchConstraints(deps: {
     openDimension,
   } = deps;
 
-  function selectedPicks(): ConstraintPick[] {
-    return selectedEntityIds.value.flatMap((id) => {
-      const entity = entities.value.find((e) => e.id === id);
-      return entity ? [{ entity, ref: { entity_id: id, sub_index: 0 } }] : [];
-    });
+  function selectedPicks(): ConstraintPick[] | null {
+    const targets = selectionTargets();
+    return targets.every((t): t is DimensionTarget => t !== null) ? targets : null;
   }
 
   function blocker(type: ConstraintType): string | null {
     const picks = selectedPicks();
-    if (picks.length !== selectedEntityIds.value.length) return "выделение устарело";
-    return constraintBlocker(type, picks);
+    return picks ? constraintBlocker(type, picks) : "выделение устарело или объект не участвует в ограничениях";
   }
 
   function canApply(type: ConstraintType): boolean {
@@ -86,8 +80,8 @@ export function useSketchConstraints(deps: {
   }
 
   function create(type: ConstraintType) {
-    if (!canApply(type)) return;
     const picks = selectedPicks();
+    if (!picks || constraintBlocker(type, picks) !== null) return;
     const draft = toolbarDimension(type, picks);
     if (draft) {
       openDimension(draft);

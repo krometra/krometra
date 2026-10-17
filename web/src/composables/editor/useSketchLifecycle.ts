@@ -7,6 +7,7 @@ import { apiErrorMessage, toast } from "@/composables/useToast";
 import { deleteSketch as deleteSketchEntry } from "@/lib/bodyHistory";
 import { browserFaceBoundary, browserFacePlane } from "@/lib/browserFacePlane";
 import { faceBoundaryEntities } from "@/lib/faceBoundary";
+import { FACE_EDGE_ID_PREFIX } from "@/sketcher/sketchOrigin";
 import type SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
 import type { SketchConstraint, SketchEntity, SketchLine, SketchPlane } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
@@ -71,7 +72,7 @@ export function useSketchLifecycle(deps: {
         const end = polyline[p + 1];
         if (Math.hypot(end.x - start.x, end.y - start.y) < 1e-6) continue;
         lines.push({
-          id: `face-edge-${faceId}-${i++}`,
+          id: `${FACE_EDGE_ID_PREFIX}${faceId}-${i++}`,
           type: "line",
           start: { x: start.x, y: start.y },
           end: { x: end.x, y: end.y },

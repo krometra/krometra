@@ -1,4 +1,5 @@
 import type { MeshData, PlaneBasis, SketchEntity, SketchPoint } from "@/types/api";
+import { FACE_EDGE_ID_PREFIX } from "@/sketcher/sketchOrigin";
 
 type Vector3 = [number, number, number];
 
@@ -89,7 +90,7 @@ export function faceBoundaryEntities(mesh: MeshData, faceId: string | number, ba
   for (const edgeId of face.edges) {
     const polyline = edges.get(String(edgeId))?.polyline;
     if (!polyline || polyline.length < 6) return null;
-    entities.push(...edgeEntities(polylinePoints(polyline, basis), `face-edge-${faceId}-${edgeId}`));
+    entities.push(...edgeEntities(polylinePoints(polyline, basis), `${FACE_EDGE_ID_PREFIX}${faceId}-${edgeId}`));
   }
   return entities;
 }

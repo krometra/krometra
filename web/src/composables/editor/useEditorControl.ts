@@ -19,6 +19,7 @@ import { readOps } from "./control/controlReadOps";
 import { shellOps } from "./control/controlShellOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { sketchConstraintOps } from "./control/controlSketchConstraintOps";
+import { sketchSelectionOps } from "./control/controlSketchSelectionOps";
 import { viewportOps } from "./control/controlViewportOps";
 
 declare global {
@@ -39,6 +40,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...viewportOps(context),
     ...sketchOps(context),
     ...sketchConstraintOps(context),
+    ...sketchSelectionOps(context),
     ...featureOps(context),
     ...shellOps(context),
     ...holeOps(context),

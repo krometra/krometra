@@ -1,4 +1,5 @@
 import type { SketchEntity, SketchPoint } from "@/types/api";
+import { entityRefPoint } from "./sketchPoints";
 
 /**
  * Геометрические характеристики сущностей эскиза, нужные и рендеру,
@@ -26,23 +27,7 @@ export function entityCenter(entity: SketchEntity): SketchPoint | null {
 }
 
 export function entityPoint(entity: SketchEntity, subIndex: number): SketchPoint | null {
-  switch (entity.type) {
-    case "infline":
-      return entity.point;
-    case "line":
-      return subIndex === 0 ? entity.start : entity.end;
-    case "rectangle":
-      return subIndex === 0 ? entity.corner1 : entity.corner2;
-    case "circle":
-    case "arc": {
-      if (!entity.center || !entity.radius) return null;
-      const angle = subIndex === 0 ? 0 : entity.type === "arc" ? entity.startAngle : Math.PI / 2;
-      return {
-        x: entity.center.x + entity.radius * Math.cos(angle),
-        y: entity.center.y + entity.radius * Math.sin(angle),
-      };
-    }
-  }
+  return entityRefPoint(entity, subIndex);
 }
 
 export interface BBox {

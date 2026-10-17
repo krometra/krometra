@@ -8,7 +8,7 @@ import {
   type DimensionResolution,
   type DimensionTarget,
 } from "@/sketcher/dimensionPlan";
-import { pickDimensionTarget, targetOfEntity } from "@/sketcher/dimensionTargets";
+import { pickDimensionTarget } from "@/sketcher/dimensionTargets";
 import { dimensionText, dimensionTitle } from "@/sketcher/dimensionKinds";
 import { SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
 
@@ -89,8 +89,7 @@ export function useDimensionTool(deps: {
     hovered.value = pickAt(world);
   }
 
-  function startFromEntities(entities: SketchEntity[], screen: { x: number; y: number }) {
-    const picked = entities.map(targetOfEntity).filter((t): t is DimensionTarget => t !== null);
+  function startFromTargets(picked: DimensionTarget[], screen: { x: number; y: number }) {
     if (picked.length === 0) return;
     targets.value = picked;
     cursor.value = defaultCursor(picked);
@@ -102,7 +101,7 @@ export function useDimensionTool(deps: {
     return targets.value.length > 0;
   }
 
-  return { targets, hint, highlightedIds, marker, onClick, onMove, reset, startFromEntities, isPicking };
+  return { targets, hovered, hint, highlightedIds, marker, onClick, onMove, reset, startFromTargets, isPicking };
 }
 
 export type DimensionToolApi = ReturnType<typeof useDimensionTool>;

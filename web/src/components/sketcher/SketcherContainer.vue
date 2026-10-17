@@ -12,7 +12,7 @@ import ConstraintToolbar from "./ConstraintToolbar.vue";
 import ValueInputOverlay from "./ValueInputOverlay.vue";
 import LiveDimensionsOverlay from "./LiveDimensionsOverlay.vue";
 import DimensionInputOverlay from "./DimensionInputOverlay.vue";
-import { isConstruction, isPointNearEntity } from "@/sketcher/geometry";
+import { marksOfTargets } from "@/sketcher/selectionMarks";
 import { useSketchEntities } from "@/composables/sketcher/useSketchEntities";
 import { useSketchSnapping } from "@/composables/sketcher/useSketchSnapping";
 import { useAuxLines } from "@/composables/sketcher/useAuxLines";
@@ -20,6 +20,7 @@ import { useLiveDimensions } from "@/composables/sketcher/useLiveDimensions";
 import { useEdgeDrag } from "@/composables/sketcher/useEdgeDrag";
 import { useSketchConstraints } from "@/composables/sketcher/useSketchConstraints";
 import { useSketchDimensions } from "@/composables/sketcher/useSketchDimensions";
+import { useSketchPicking } from "@/composables/sketcher/useSketchPicking";
 import { LineTool } from "./tools/LineTool";
 import { RectangleTool } from "./tools/RectangleTool";
 import { CircleTool } from "./tools/CircleTool";
@@ -27,8 +28,6 @@ import { ArcTool } from "./tools/ArcTool";
 import { ThreePointArcTool } from "./tools/ThreePointArcTool";
 import type { SketchTool, SketchToolContext } from "./tools/SketchTool";
 import { cancelToolStep } from "./tools/cancelToolStep";
-
-const PICK_PX = 10;
 
 const props = defineProps<{
   plane: SketchPlane;
@@ -60,7 +59,6 @@ const isDimensionTool = computed(() => props.tool === "dimension");
 const currentTool = computed(() => tools[props.tool] ?? tools.line);
 
 const preview = ref<SketchEntity | null>(null);
-const hoveredEntityId = ref<string | null>(null);
 const toolStepHint = ref<string | null>(null);
 
 function selectTool(t: SketchToolName) {
@@ -114,16 +112,17 @@ const edgeDrag = useEdgeDrag({
   zoom,
   screenToWorld,
   emitChanged: sketch.emitChanged,
-  toggleSelection: sketch.toggleSelection,
+  toggleSelection: (entityId) => sketch.selection.toggle({ kind: "entity", entityId }),
 });
+
+const picking = useSketchPicking({ entities: sketch.entities, zoom, selection: sketch.selection, edgeDrag });
 
 const dimensions = useSketchDimensions({ sketch, zoom, screenToWorld, canvasRect });
 const dimension = dimensions.tool;
 const dimensionInput = dimensions.input;
 
 const constraints = useSketchConstraints({
-  entities: sketch.entities,
-  selectedEntityIds: sketch.selectedEntityIds,
+  selectionTargets: sketch.selection.targets,
   nextConstraintId: sketch.nextConstraintId,
   addConstraint: sketch.addConstraint,
   clearSelection: sketch.clearSelection,
@@ -131,11 +130,17 @@ const constraints = useSketchConstraints({
   openDimension: dimensions.openFromToolbar,
 });
 
-const highlightedIds = computed(() => [...sketch.selectedEntityIds.value, ...dimension.highlightedIds.value]);
-const canvasSnap = computed(() =>
-  isDimensionTool.value
-    ? dimension.marker.value
-    : snapping.snapPoint.value && { at: snapping.snapPoint.value, label: snapping.snapHint.value?.label ?? null },
+const highlightedIds = computed(() => [...sketch.selection.entityIds.value, ...dimension.highlightedIds.value]);
+const canvasSnap = computed(() => {
+  if (isDimensionTool.value) return dimension.marker.value;
+  if (isSelectTool.value) return picking.hoveredPoint.value;
+  return snapping.snapPoint.value && { at: snapping.snapPoint.value, label: snapping.snapHint.value?.label ?? null };
+});
+const selectionMarks = computed(() =>
+  marksOfTargets(
+    [...sketch.selection.targets(), ...dimension.targets.value],
+    isDimensionTool.value ? dimension.hovered.value : picking.hoveredTarget.value,
+  ),
 );
 
 const auxHint = computed(() => {
@@ -165,27 +170,6 @@ function updatePreview() {
   toolStepHint.value = aux.isAuxTool.value ? null : currentTool.value.hint?.() ?? null;
 }
 
-function findEntityAt(world: SketchPoint): SketchEntity | null {
-  const threshold = PICK_PX / zoom();
-  for (let i = sketch.entities.value.length - 1; i >= 0; i--) {
-    const entity = sketch.entities.value[i];
-    if (isConstruction(entity)) continue;
-    if (isPointNearEntity(world, entity, threshold)) return entity;
-  }
-  return null;
-}
-
-function pickOrDrag(world: SketchPoint): boolean {
-  const hit = findEntityAt(world);
-  if (!hit) {
-    sketch.clearSelection();
-    return false;
-  }
-  if (hit.type === "line" && !hit.construction) edgeDrag.start(hit, world);
-  else sketch.toggleSelection(hit.id);
-  return true;
-}
-
 function clickHitsLabel(screenX: number, screenY: number): boolean {
   if (aux.isAuxTool.value) return false;
   const drawing = !isSelectTool.value && !isDimensionTool.value && currentTool.value.isActive();
@@ -210,7 +194,7 @@ function onCanvasClick(screenX: number, screenY: number) {
 
   if (isSelectTool.value) {
     snapping.clearSnap();
-    pickOrDrag(world);
+    picking.selectAt(world);
     return;
   }
 
@@ -220,7 +204,7 @@ function onCanvasClick(screenX: number, screenY: number) {
   // A click on a snap point starts drawing from it instead of selecting/dragging.
   if (!tool.isActive()) {
     snapping.snapWorld(world);
-    if (snapping.snapPoint.value === null && pickOrDrag(world)) {
+    if (snapping.snapPoint.value === null && picking.selectDrawableAt(world)) {
       updatePreview();
       return;
     }
@@ -240,7 +224,7 @@ function onCanvasMove(screenX: number, screenY: number) {
   }
 
   if (isSelectTool.value) {
-    detectHover(screenX, screenY);
+    picking.hoverItemAt(screenToWorld(screenX, screenY));
     return;
   }
 
@@ -274,17 +258,7 @@ function onCanvasMove(screenX: number, screenY: number) {
 }
 
 function detectHover(screenX: number, screenY: number) {
-  const world = screenToWorld(screenX, screenY);
-  const threshold = PICK_PX / zoom();
-
-  for (let i = sketch.entities.value.length - 1; i >= 0; i--) {
-    const entity = sketch.entities.value[i];
-    if (isPointNearEntity(world, entity, threshold)) {
-      hoveredEntityId.value = entity.id;
-      return;
-    }
-  }
-  hoveredEntityId.value = null;
+  picking.hoverEntityAt(screenToWorld(screenX, screenY));
 }
 
 function applyProduced(
@@ -358,6 +332,7 @@ function resetInteraction() {
   preview.value = null;
   toolStepHint.value = currentTool.value.hint?.() ?? null;
   snapping.clearSnap();
+  picking.clearHover();
   liveDimensions.close();
   edgeDrag.cancel();
   aux.reset();
@@ -445,6 +420,7 @@ function loadSketch(data: SketchData) {
 defineExpose({
   loadSketch,
   getCanvas: () => sketchCanvasRef.value,
+  selection: sketch.selection,
 });
 </script>
 
@@ -463,8 +439,8 @@ defineExpose({
     />
 
     <ConstraintToolbar
-      v-if="sketch.selectedEntityIds.value.length > 0"
-      :selected-count="sketch.selectedEntityIds.value.length"
+      v-if="sketch.selection.count.value > 0"
+      :selected-count="sketch.selection.count.value"
       :constraint-types="constraints.constraintTypes"
       :can-apply="constraints.canApply"
       :label="constraints.label"
@@ -511,11 +487,12 @@ defineExpose({
       ref="sketchCanvasRef"
       :entities="sketch.entities.value"
       :preview="preview"
-      :hovered-entity-id="hoveredEntityId"
+      :hovered-entity-id="picking.hoveredEntityId.value"
       :constraints="sketch.constraints.value"
       :selected-entity-ids="highlightedIds"
       :snap-point="canvasSnap?.at ?? null"
       :snap-label="canvasSnap?.label ?? null"
+      :marks="selectionMarks"
       @canvas-click="onCanvasClick"
       @canvas-dblclick="dimensions.editAt"
       @canvas-move="onCanvasMove"

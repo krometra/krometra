@@ -10,6 +10,7 @@ import {
   dimensionResidual,
 } from "./dimensionConstraints";
 import {
+  alignedPair,
   applyCoincident,
   applyEqual,
   applyHorizontal,
@@ -17,12 +18,14 @@ import {
   applyPerpendicular,
   applyVertical,
 } from "./geometricConstraints";
-import { CONVERGENCE_THRESHOLD, buildPointMap, constraintSegments, pinOrigin, writePointsBack, type PointMap } from "./pointMap";
+import { CONVERGENCE_THRESHOLD, buildPointMap, writePointsBack, type PointMap } from "./pointMap";
+import { createReferenceGuard, touchesReference } from "./settle";
 import type { SketchConstraint, SketchEntity, SolverOutput } from "./types";
 
 export type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity, SketchPoint, SolverOutput } from "./types";
 
 const MAX_ITERATIONS = 50;
+const REFERENCE_ITERATIONS = 200;
 
 export function solveSketch(entities: SketchEntity[], constraints: SketchConstraint[]): SolverOutput {
   if (!constraints || constraints.length === 0) {
@@ -31,13 +34,14 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
 
   const workEntities: SketchEntity[] = JSON.parse(JSON.stringify(entities));
   const points = buildPointMap(workEntities);
+  const run = createReferenceGuard(workEntities, points);
 
   let converged = false;
-  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+  const iterations = constraints.some(touchesReference) ? REFERENCE_ITERATIONS : MAX_ITERATIONS;
+  for (let iter = 0; iter < iterations; iter++) {
     let maxDisplacement = 0;
     for (const constraint of constraints) {
-      maxDisplacement = Math.max(maxDisplacement, applyConstraint(constraint, workEntities, points));
-      pinOrigin(points);
+      maxDisplacement = Math.max(maxDisplacement, run(constraint, () => applyConstraint(constraint, workEntities, points)));
     }
     if (maxDisplacement < CONVERGENCE_THRESHOLD) {
       converged = true;
@@ -72,7 +76,7 @@ function applyConstraint(constraint: SketchConstraint, entities: SketchEntity[],
 }
 
 function alignmentResidual(constraint: SketchConstraint, points: PointMap): number {
-  const [segment] = constraintSegments(points, constraint, 1) ?? [];
+  const segment = alignedPair(constraint, points);
   if (!segment) return 0;
   return constraint.type === "horizontal"
     ? Math.abs(segment.start.y - segment.end.y)

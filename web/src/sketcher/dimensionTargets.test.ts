@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { SketchEntity } from "@/types/api";
-import { dimensionPointTargets, pickDimensionTarget, targetOfEntity } from "./dimensionTargets";
-import { SKETCH_ORIGIN_ID } from "./sketchOrigin";
+import { pickDimensionTarget, targetOfEntity, targetOfSelection } from "./dimensionTargets";
+import { SKETCH_AXIS_IDS, SKETCH_ORIGIN_ID } from "./sketchOrigin";
+import { LINE_MIDPOINT } from "./sketchPoints";
 
 const line: SketchEntity = { id: "l", type: "line", start: { x: 10, y: 10 }, end: { x: 50, y: 10 } };
 const construction: SketchEntity = { id: "k", type: "line", start: { x: 10, y: 30 }, end: { x: 50, y: 30 }, construction: true };
@@ -17,8 +18,9 @@ describe("pickDimensionTarget", () => {
     expect(pick(49, 11)).toMatchObject({ kind: "point", ref: { entity_id: "l", sub_index: 1 } });
   });
 
-  it("середина отрезка выбирает отрезок целиком", () => {
-    expect(pick(30, 11)).toMatchObject({ kind: "line", ref: { entity_id: "l", sub_index: 0 } });
+  it("рядом с серединой — отрезок целиком, точно на середине — точка «Середина»", () => {
+    expect(pick(26, 11)).toMatchObject({ kind: "line", ref: { entity_id: "l", sub_index: 0 } });
+    expect(pick(30, 10.5)).toMatchObject({ kind: "point", ref: { entity_id: "l", sub_index: LINE_MIDPOINT }, at: { x: 30, y: 10 }, label: "Середина" });
   });
 
   it("центр окружности — точка, обод — окружность", () => {
@@ -38,10 +40,15 @@ describe("pickDimensionTarget", () => {
     expect(pick(0.5, -0.5)).toMatchObject({ kind: "point", ref: { entity_id: SKETCH_ORIGIN_ID, sub_index: 0 }, at: { x: 0, y: 0 } });
   });
 
-  it("вспомогательная геометрия и пустое место не выбираются", () => {
-    expect(pick(30, 30)).toBeNull();
-    expect(pick(10, 30)).toBeNull();
+  it("вспомогательная геометрия выбирается как отрезок и точки, пустое место — нет", () => {
+    expect(pick(20, 30)).toMatchObject({ kind: "line", ref: { entity_id: "k", sub_index: 0 } });
+    expect(pick(10, 30)).toMatchObject({ kind: "point", ref: { entity_id: "k", sub_index: 0 } });
     expect(pick(200, 200)).toBeNull();
+  });
+
+  it("ось выбирается бесконечной прямой, если рядом нет объектов", () => {
+    expect(pick(-150, 2)).toMatchObject({ kind: "line", ref: { entity_id: SKETCH_AXIS_IDS.x }, infinite: true });
+    expect(pick(1, 150)).toMatchObject({ kind: "line", ref: { entity_id: SKETCH_AXIS_IDS.y }, infinite: true });
   });
 
   it("из двух точек рядом берётся ближайшая", () => {
@@ -60,9 +67,17 @@ describe("targetOfEntity", () => {
   });
 });
 
-describe("dimensionPointTargets", () => {
-  it("концы, центры и начало координат без вспомогательной геометрии", () => {
-    const refs = dimensionPointTargets(entities).map((t) => `${t.ref.entity_id}:${t.ref.sub_index}`);
-    expect(refs).toEqual(["l:0", "l:1", "c:0", "a:0", "a:1", "a:2", `${SKETCH_ORIGIN_ID}:0`]);
+describe("targetOfSelection", () => {
+  it("точка, начало координат, ось и бесконечная прямая", () => {
+    expect(targetOfSelection({ kind: "point", entityId: "a", subIndex: 2 }, entities)).toMatchObject({ kind: "point", at: { x: -50, y: 10 } });
+    expect(targetOfSelection({ kind: "origin" }, entities)).toMatchObject({ kind: "point", ref: { entity_id: SKETCH_ORIGIN_ID, sub_index: 0 } });
+    expect(targetOfSelection({ kind: "axis", axis: "y" }, entities)).toMatchObject({ kind: "line", infinite: true, segment: { start: { x: 0, y: 0 } } });
+    const infline: SketchEntity = { id: "i", type: "infline", point: { x: 1, y: 2 }, angle: 0 };
+    expect(targetOfSelection({ kind: "entity", entityId: "i" }, [infline])).toMatchObject({ kind: "line", infinite: true });
+  });
+
+  it("исчезнувший объект или несуществующая точка не дают цели", () => {
+    expect(targetOfSelection({ kind: "entity", entityId: "gone" }, entities)).toBeNull();
+    expect(targetOfSelection({ kind: "point", entityId: "c", subIndex: 1 }, entities)).toBeNull();
   });
 });

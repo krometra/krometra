@@ -50,6 +50,7 @@ function verticalSides(state: SketchSnapshot) {
 }
 
 const midpoint = (e: SketchSnapshot["entities"][number]): [number, number] => [(e.start!.x + e.end!.x) / 2, (e.start!.y + e.end!.y) / 2];
+const offMidpoint = (e: SketchSnapshot["entities"][number]): [number, number] => [e.start!.x + (e.end!.x - e.start!.x) * 0.3, e.start!.y + (e.end!.y - e.start!.y) * 0.3];
 
 async function gapBetween(cad: CadEditor, leftId: string, rightId: string): Promise<number> {
   const state = await sketchState(cad);
@@ -80,9 +81,9 @@ test("Размер (D): расстояние между сторонами дв�
   await page.keyboard.press("d");
   await expect(sketchUi(page).getByText("Размер: выберите отрезок, окружность, дугу или точку")).toBeVisible();
 
-  await clickAt(cad, midpoint(aRight));
+  await clickAt(cad, offMidpoint(aRight));
   await expect(sketchUi(page).getByText(/^Длина 20/)).toBeVisible();
-  await clickAt(cad, midpoint(bLeft));
+  await clickAt(cad, offMidpoint(bLeft));
 
   await expect(dimensionInput(page)).toBeVisible();
   await expect(dimensionInput(page).getByText("Расстояние между отрезками")).toBeVisible();
