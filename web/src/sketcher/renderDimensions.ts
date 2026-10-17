@@ -1,13 +1,13 @@
 import type { DimensionLayout } from "./dimensionLayout";
-import { labelHalfSize } from "./dimensionLayout";
+import { ARROW_HALF_WIDTH_PX, ARROW_PX, type DimensionArrow } from "./dimensionMarks";
 
-const LINE_COLOR = "rgba(196, 128, 18, 0.85)";
-const PILL_COLOR = "rgba(255, 248, 230, 0.95)";
+const LINE_COLOR = "rgba(196, 128, 18, 0.9)";
 const TEXT_COLOR = "rgba(120, 72, 0, 1)";
+const TEXT_HALO = "rgba(255, 255, 255, 0.9)";
 
-function drawSegments(ctx: CanvasRenderingContext2D, layout: DimensionLayout) {
+function drawLines(ctx: CanvasRenderingContext2D, layout: DimensionLayout) {
   ctx.beginPath();
-  for (const [a, b] of layout.segments) {
+  for (const [a, b] of layout.lines) {
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
   }
@@ -19,22 +19,29 @@ function drawSegments(ctx: CanvasRenderingContext2D, layout: DimensionLayout) {
   ctx.stroke();
 }
 
+function drawArrow(ctx: CanvasRenderingContext2D, arrow: DimensionArrow, zoom: number) {
+  const { tip, dir } = arrow;
+  const length = ARROW_PX / zoom;
+  const half = ARROW_HALF_WIDTH_PX / zoom;
+  const base = { x: tip.x - dir.x * length, y: tip.y - dir.y * length };
+  ctx.moveTo(tip.x, tip.y);
+  ctx.lineTo(base.x - dir.y * half, base.y + dir.x * half);
+  ctx.lineTo(base.x + dir.y * half, base.y - dir.x * half);
+  ctx.closePath();
+}
+
 function drawLabel(ctx: CanvasRenderingContext2D, layout: DimensionLayout, zoom: number) {
-  const half = labelHalfSize(layout.text, 1);
   ctx.save();
   ctx.translate(layout.label.x, layout.label.y);
   ctx.scale(1 / zoom, -1 / zoom);
-  ctx.fillStyle = PILL_COLOR;
-  ctx.strokeStyle = LINE_COLOR;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(-half.w, -half.h, half.w * 2, half.h * 2, 4);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = TEXT_COLOR;
-  ctx.font = "11px ui-monospace, monospace";
+  ctx.font = "12px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = TEXT_HALO;
+  ctx.strokeText(layout.text, 0, 1);
+  ctx.fillStyle = TEXT_COLOR;
   ctx.fillText(layout.text, 0, 1);
   ctx.restore();
 }
@@ -43,8 +50,12 @@ export function drawDimensions(ctx: CanvasRenderingContext2D, layouts: Dimension
   if (layouts.length === 0) return;
   ctx.save();
   ctx.strokeStyle = LINE_COLOR;
+  ctx.fillStyle = LINE_COLOR;
   ctx.lineWidth = 1 / zoom;
-  for (const layout of layouts) drawSegments(ctx, layout);
+  for (const layout of layouts) drawLines(ctx, layout);
+  ctx.beginPath();
+  for (const layout of layouts) for (const arrow of layout.arrows) drawArrow(ctx, arrow, zoom);
+  ctx.fill();
   for (const layout of layouts) drawLabel(ctx, layout, zoom);
   ctx.restore();
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { browserContours } from "@/lib/browserContours";
 import { profileFaces } from "@/sketcher/contours";
+import type { SketchEntity as ProfileEntity } from "@/types/api";
 import { solveSketch, type SketchConstraint, type SketchEntity } from "./solveSketch";
 
 const line = (id: string, x1: number, y1: number, x2: number, y2: number): SketchEntity => ({
@@ -9,6 +10,8 @@ const line = (id: string, x1: number, y1: number, x2: number, y2: number): Sketc
   start: { x: x1, y: y1 },
   end: { x: x2, y: y2 },
 });
+
+const asProfile = (entities: SketchEntity[]) => entities as ProfileEntity[];
 
 const ref = (entity_id: string, sub_index = 0) => ({ entity_id, sub_index });
 
@@ -83,8 +86,8 @@ describe("прямоугольники из отрезков после прав
     const sketch = twoRectanglesWithDimensions(width, gap);
     const out = solveSketch(sketch.entities, sketch.constraints);
     expect(maxCornerGap(out.entities, sketch.constraints)).toBeLessThan(1e-6);
-    expect(() => browserContours(out.entities)).not.toThrow();
-    expect(profileFaces(out.entities)).toHaveLength(2);
+    expect(() => browserContours(asProfile(out.entities))).not.toThrow();
+    expect(profileFaces(asProfile(out.entities))).toHaveLength(2);
     expect(out.residual).toBeLessThan(1e-3);
   });
 
@@ -96,6 +99,6 @@ describe("прямоугольники из отрезков после прав
       entities = solveSketch(entities, constraints).entities;
       expect(maxCornerGap(entities, constraints)).toBeLessThan(1e-6);
     }
-    expect(() => browserContours(entities)).not.toThrow();
+    expect(() => browserContours(asProfile(entities))).not.toThrow();
   });
 });
