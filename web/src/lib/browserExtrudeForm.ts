@@ -1,4 +1,9 @@
 import type { BrowserExtrudeOptions } from "@/composables/editor/useBrowserGeometry";
+import { hasProfileRegions } from "./browserProfile";
+
+export function profileRegionsField(keys: string[] | null | undefined): Record<string, string> {
+  return hasProfileRegions(keys) ? { profile_regions: JSON.stringify(keys) } : {};
+}
 
 export function browserExtrudeForm(options: BrowserExtrudeOptions): Record<string, string> {
   const fields: Record<string, string> = {
@@ -12,7 +17,7 @@ export function browserExtrudeForm(options: BrowserExtrudeOptions): Record<strin
   if (options.targetBodyId) fields.target_body_id = options.targetBodyId;
   if (options.upToBodyId) fields.up_to_body_id = options.upToBodyId;
   if (options.upToFaceId !== null) fields.up_to_face_id = String(options.upToFaceId);
-  return fields;
+  return { ...fields, ...profileRegionsField(options.profileRegions) };
 }
 
 export function browserExtrudeLabel(options: BrowserExtrudeOptions): string {

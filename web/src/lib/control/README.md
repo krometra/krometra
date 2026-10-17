@@ -35,7 +35,9 @@ type ControlErrorCode =
 
 ## Операции
 
-Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `sketch.regions`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+
+`sketch.regions { sketchId }` делит сохранённый эскиз на регионы: замкнутые области, на которые его режут пересекающиеся отрезки, дуги и окружности, с отверстиями (`lib/sketchRegions.ts`). У региона `key`, площадь, точка внутри и число отверстий. Ключи передаются в `extrude` и `revolve` параметром `profileRegions`: строится только объединение выбранных регионов (смежные сливаются в одну грань), без параметра берётся весь эскиз, как раньше. Ключ — хеш набора рёбер-источников региона со стороной каждого (`id сущности` + по какую сторону от её направления лежит регион), поэтому он переживает правку размеров, пока пересечения те же; пропавший после правки регион роняет пересборку операции с понятной ошибкой.
 
 `measure { targets, density? }` меряет один или два объекта (тело, грань, ребро, точка с прилипанием к вершине) по точной B-rep геометрии ядра тем же запросом, что инструмент «Измерить»: свойства каждого объекта и для пары минимальное расстояние с двумя точками, угол, межосевое и межцентровое расстояние. Режим `measure` в `state` — открыта панель инструмента; сама операция работает в любом режиме и модель не меняет.
 

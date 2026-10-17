@@ -35,6 +35,14 @@ describe("browserExtrudeForm", () => {
   });
 });
 
+describe("profile_regions", () => {
+  it("отправляет выбранные регионы JSON-списком и молчит без выбора", () => {
+    expect(browserExtrudeForm(options({ profileRegions: ["ra", "rb"] })).profile_regions).toBe('["ra","rb"]');
+    expect(browserExtrudeForm(options({ profileRegions: [] }))).not.toHaveProperty("profile_regions");
+    expect(browserExtrudeForm(options({ profileRegions: null }))).not.toHaveProperty("profile_regions");
+  });
+});
+
 describe("browserExtrudeLabel", () => {
   it("называет операцию по типу границы", () => {
     expect(browserExtrudeLabel(options({ distance: -4 }))).toBe("Выдавить 4мм в браузере");

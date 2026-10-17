@@ -7,11 +7,13 @@ import { useParameters } from "@/composables/useParameters";
 import { toast } from "@/composables/useToast";
 import { liveBodyId } from "@/lib/browserBodySuccession";
 import { parameterQuantities } from "@/lib/units";
+import { profileFaces } from "@/sketcher/contours";
 import type { ExtrudeOperation, PlaneBasis, SketchEntity, SketchPlane } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { ViewportRef } from "./types";
 import { useExtrudeExtent, type ExtrudeExtentSettings } from "./useExtrudeExtent";
+import { useProfileRegions } from "./useProfileRegions";
 import { useQuantityField } from "./useQuantityField";
 
 export interface ExtrudeSettings extends ExtrudeExtentSettings {
@@ -81,6 +83,7 @@ export function useExtrudeRevolve(deps: {
   onUnmounted(() => stopBrowserGeometry?.());
 
   function clearSketchContext() {
+    profile.reset();
     lastSavedSketchId.value = null;
     lastSavedSketchTargetId.value = null;
     extrudeTargetBodyId.value = null;
@@ -104,6 +107,16 @@ export function useExtrudeRevolve(deps: {
   const previewSketchData = computed(() => {
     if (!lastSavedSketchId.value) return null;
     return model.sketches.value.find((s) => s.id === lastSavedSketchId.value) ?? null;
+  });
+
+  const profile = useProfileRegions({
+    viewportRef,
+    source: computed(() => {
+      const s = previewSketchData.value;
+      if (!s || sketch.sketchMode.value) return null;
+      const { entities, plane, planeOffset, planeBasis } = sketchPlacement(s);
+      return { entities, frame: { plane, offset: planeOffset, basis: planeBasis } };
+    }),
   });
 
   const extrudeEffectiveTargetId = computed(
@@ -131,10 +144,12 @@ export function useExtrudeRevolve(deps: {
   const extrudePreview = computed(() => {
     const s = previewSketchData.value;
     if (!s || sketch.sketchMode.value || panelMode.value !== "extrude") return null;
-    return { placement: sketchPlacement(s), ...extent.previewSpan(sketchPlacement(s), extrudeBase()) };
+    const placement = sketchPlacement(s);
+    const faces = profile.merged.value.polygons ?? profileFaces(placement.entities);
+    return { placement, faces, ...extent.previewSpan(placement, extrudeBase()) };
   });
 
-  const extrudePreviewError = computed(() => extrudePreview.value?.error ?? null);
+  const extrudePreviewError = computed(() => profile.merged.value.error ?? extrudePreview.value?.error ?? null);
 
   function updateExtrudePreview() {
     const preview = extrudePreview.value;
@@ -142,9 +157,9 @@ export function useExtrudeRevolve(deps: {
       viewportRef.value?.hideExtrudePreview();
       return;
     }
-    const { entities, plane, planeOffset, planeBasis } = preview.placement;
+    const { plane, planeOffset, planeBasis } = preview.placement;
     viewportRef.value?.showExtrudePreview(
-      entities,
+      preview.faces,
       { plane, offset: planeOffset, basis: planeBasis },
       preview.span,
       extrudeOperation.value === "cut" ? 0xe06a5a : 0x4da6ff,
@@ -188,6 +203,7 @@ export function useExtrudeRevolve(deps: {
 
   function extrudeValidationError(browserTarget: boolean): string | null {
     if (previewSketchData.value === null) return "Эскиз не найден в документе.";
+    if (profile.merged.value.error) return profile.merged.value.error;
     if (extrudeOperation.value !== "new_body" && !browserTarget) return "Целевое тело не загружено в браузерное ядро.";
     if (extent.extentType.value === "up_to_face" && !extent.upToFace.value) return "Кликните грань, до которой выдавливать.";
     if (extent.extentType.value === "up_to_body" && !isBrowserBody(extent.upToBodyId.value)) return "Выберите browser-тело, до которого выдавливать.";
@@ -227,7 +243,7 @@ export function useExtrudeRevolve(deps: {
         projectId,
         lastSavedSketchId.value,
         sketchPlacement(savedSketch),
-        extent.options({ ...extrudeBase(), targetBodyId: browserTarget ? extrudeEffectiveTargetId.value : null }),
+        { ...extent.options({ ...extrudeBase(), targetBodyId: browserTarget ? extrudeEffectiveTargetId.value : null }), profileRegions: profile.keys() },
         documentStore.version.value,
         () => documentStore.document.value,
         (bodyId) => meshes.untrackMesh(bodyId),
@@ -259,6 +275,10 @@ export function useExtrudeRevolve(deps: {
       revolveError.value = "Угол вращения должен быть больше 0 и не больше 360°";
       return;
     }
+    if (profile.merged.value.error) {
+      revolveError.value = profile.merged.value.error;
+      return;
+    }
     revolveLoading.value = true;
     revolveError.value = null;
     const opStart = performance.now();
@@ -271,10 +291,18 @@ export function useExtrudeRevolve(deps: {
       ]);
       stopBrowserGeometry = disposeBrowserGeometry;
       const command = new BrowserRevolveCommand(
-        projectId, lastSavedSketchId.value, (savedSketch.entities as SketchEntity[]) ?? [],
-        (savedSketch.plane as SketchPlane) ?? "XY", typeof savedSketch.plane_offset === "number" ? savedSketch.plane_offset : 0,
-        (savedSketch.plane_basis as PlaneBasis | null) ?? null, revolveAxisOrigin.value, revolveAxis.value,
-        revolveAngle.value, revolveDirection.value, documentStore.version.value, () => documentStore.document.value,
+        projectId,
+        lastSavedSketchId.value,
+        sketchPlacement(savedSketch),
+        {
+          axisOrigin: revolveAxisOrigin.value,
+          axis: revolveAxis.value,
+          angle: revolveAngle.value,
+          direction: revolveDirection.value,
+          profileRegions: profile.keys(),
+        },
+        documentStore.version.value,
+        () => documentStore.document.value,
       );
 
       await undoRedo.execute(command);
@@ -316,6 +344,7 @@ export function useExtrudeRevolve(deps: {
     extrudeTargetBodyId.value = null;
     extrudeError.value = null;
     revolveError.value = null;
+    profile.reset();
     resetOperationSettings();
   }
 
@@ -351,6 +380,7 @@ export function useExtrudeRevolve(deps: {
     extrudeOperation,
     extrudeTargetBodyId,
     extent,
+    profile,
     extrudePreviewError,
     pickExtentFace,
     extrudeLoading,

@@ -3,10 +3,11 @@ import { assertBrowserVolumeChanged, browserBooleanOfExtrude } from "@/lib/brows
 import { boxCorners, flatPoints } from "@/lib/browserExtrudeExtent";
 import { browserExtrudeFrame, type Vector3 } from "@/lib/browserExtrudeFrame";
 import { browserSpanFromPoints } from "@/lib/browserExtentTarget";
-import { sweepProbes, worldProbes } from "@/lib/browserSweepNaming";
+import { browserProfileSelection } from "@/lib/browserProfile";
+import { worldProbes } from "@/lib/browserSweepNaming";
 import { namedBoolean } from "./boolean";
 import { facePointsByName, namedFromSweep, type NamedShape } from "./naming";
-import { sweepSketchProfiles } from "./profile";
+import { sweepProfiles } from "./profile";
 import { shapeMesh } from "./shapes";
 import type { BodyLookup, ExtrudeRequest } from "./types";
 
@@ -59,12 +60,13 @@ export function combineWithTarget(
 
 export function extrudeNamed(request: ExtrudeRequest, lookup: BodyLookup): NamedShape {
   const span = browserSpanFromPoints(request, request, extentPoints(request, lookup));
-  const tool = sweepSketchProfiles(request.entities, (center) => {
+  const selection = browserProfileSelection(request.entities, request.profileRegions);
+  const tool = sweepProfiles(selection.profiles, (center) => {
     const frame = browserExtrudeFrame({ ...request, center }, span);
     return { ...frame, sweep: (sketch) => sketch.extrude(frame.length, { extrusionDirection: frame.n }) };
   });
   const frame = browserExtrudeFrame({ ...request, center: { x: 0, y: 0 } }, span);
-  const probes = worldProbes(sweepProbes(request.entities), frame, { x: 0, y: 0 }, {
+  const probes = worldProbes(selection.probes, frame, { x: 0, y: 0 }, {
     kind: "prism",
     direction: frame.n,
     length: frame.length,

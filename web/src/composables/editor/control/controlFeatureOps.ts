@@ -9,6 +9,7 @@ import type { PlaneBasis, SketchPlane } from "@/types/api";
 import { fail } from "@/lib/control/protocol";
 import type { EditorControlContext } from "./controlContext";
 import { applyControlFeature, FEATURE_RESULT, requireVisibleBody } from "./controlFeatureResult";
+import { PROFILE_REGIONS_HELP, selectProfileRegions } from "./controlRegionOps";
 
 const THREAD_FACE_TIMEOUT_MS = 30_000;
 
@@ -109,6 +110,7 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
         upToBodyId: param.optional(param.id("Тело-предел для extent = up_to_body или тело грани-предела для up_to_face.")),
         upToFaceId: param.optional(param.id("Грань-предел для extent = up_to_face (id из op topology).")),
         offset: param.optional(param.number("Отступ от предела в мм для up_to_face и up_to_body.")),
+        profileRegions: param.optional(param.list(param.string("Ключ региона."), PROFILE_REGIONS_HELP)),
       },
       run: async (params) => {
         const extentType = params.extent ?? "distance";
@@ -143,6 +145,7 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           upToFace,
           offset: params.offset,
         });
+        selectProfileRegions(context, params.profileRegions);
         await nextTick();
         const applied = await applyFeature(extrude.handleExtrude, () => extrude.extrudeError.value, extrude.clearSketchContext);
         return { ...applied, ...(capsOf(applied.feature) ?? { capFaceIds: null, baseFaceIds: null }) };
@@ -159,8 +162,9 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
         axis: param.optional(param.oneOf(["x", "y"], "Ось вращения в координатах эскиза, по умолчанию y.")),
         axisOrigin: param.optional(param.vec2("Точка [x, y] в координатах эскиза, через которую проходит ось. По умолчанию [0, 0].")),
         direction: param.optional(param.oneOf(["one_side", "symmetric"], "one_side (по умолчанию) или symmetric — поровну в обе стороны.")),
+        profileRegions: param.optional(param.list(param.string("Ключ региона."), PROFILE_REGIONS_HELP)),
       },
-      run: async ({ sketchId, angle, axis, axisOrigin, direction }) => {
+      run: async ({ sketchId, angle, axis, axisOrigin, direction, profileRegions }) => {
         context.requireSketch(sketchId);
         context.leaveTools();
         extrude.startExtrudeFromSketch(sketchId, "revolve");
@@ -170,6 +174,7 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           axisOrigin: { x: axisOrigin?.[0] ?? 0, y: axisOrigin?.[1] ?? 0 },
           direction,
         });
+        selectProfileRegions(context, profileRegions);
         return applyFeature(extrude.handleRevolve, () => extrude.revolveError.value, extrude.clearSketchContext);
       },
     }),

@@ -1,4 +1,6 @@
 import { browserContourPolygon, browserRegions, type BrowserRegion } from "./browserContours";
+import { sweepProbes, type SweepProbe } from "./browserSweepNaming";
+import { mergedProfileOf } from "./sketchRegions";
 import { isConstruction } from "@/sketcher/geometry";
 import type { SketchEntity, SketchPoint } from "@/types/api";
 
@@ -23,6 +25,19 @@ export function browserProfilesOf(entities: SketchEntity[]): BrowserProfile[] {
   const regions = browserRegions(visible);
   if (regions.length === 0) throw new Error("В эскизе нет замкнутого контура.");
   return regions;
+}
+
+export function hasProfileRegions(keys: string[] | null | undefined): keys is string[] {
+  return Array.isArray(keys) && keys.length > 0;
+}
+
+export function browserProfileSelection(
+  entities: SketchEntity[],
+  regionKeys: string[] | null | undefined,
+): { profiles: BrowserProfile[]; probes: SweepProbe[] } {
+  if (!hasProfileRegions(regionKeys)) return { profiles: browserProfilesOf(entities), probes: sweepProbes(entities) };
+  const merged = mergedProfileOf(entities, regionKeys);
+  return { profiles: merged.regions, probes: merged.probes };
 }
 
 export interface BrowserProfileBounds {
