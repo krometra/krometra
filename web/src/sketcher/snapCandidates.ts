@@ -11,9 +11,9 @@
 // центр прямоугольника, центр и квадранты окружности, центр и концы дуги,
 // пересечения любых пар прямых.
 
-import type { SketchEntity, SketchPoint } from "@/types/api";
+import type { ConstraintRef, SketchEntity, SketchPoint } from "@/types/api";
 import { intersectLines, lineRefOf, projectOnLine, type LineRef } from "./geometry";
-import { SKETCH_ORIGIN } from "./sketchOrigin";
+import { SKETCH_ORIGIN, SKETCH_ORIGIN_ID } from "./sketchOrigin";
 
 export type SnapKind =
   | "endpoint"
@@ -31,6 +31,7 @@ export interface SnapCandidate {
   kind: SnapKind;
   /** Что подписать рядом с маркером. */
   label: string;
+  ref?: ConstraintRef;
 }
 
 /**
@@ -61,10 +62,11 @@ export const SNAP_LABELS: Record<SnapKind, string> = {
   grid: "Сетка",
 };
 
-const at = (point: SketchPoint, kind: SnapKind): SnapCandidate => ({
+const at = (point: SketchPoint, kind: SnapKind, owner?: string, subIndex = 0): SnapCandidate => ({
   point,
   kind,
   label: SNAP_LABELS[kind],
+  ...(owner === undefined ? {} : { ref: { entity_id: owner, sub_index: subIndex } }),
 });
 
 const mid = (a: SketchPoint, b: SketchPoint): SketchPoint => ({
@@ -78,19 +80,19 @@ export function entityCandidates(entity: SketchEntity): SnapCandidate[] {
     case "line":
       // Линии построения тоже дают концы: контур грани приходит именно ими.
       return [
-        at(entity.start, "endpoint"),
-        at(entity.end, "endpoint"),
-        at(mid(entity.start, entity.end), "midpoint"),
+        at(entity.start, "endpoint", entity.id, 0),
+        at(entity.end, "endpoint", entity.id, 1),
+        at(mid(entity.start, entity.end), "midpoint", entity.id, 0),
       ];
     case "rectangle": {
       const { corner1: c1, corner2: c2 } = entity;
       const c3 = { x: c2.x, y: c1.y };
       const c4 = { x: c1.x, y: c2.y };
       return [
-        at(c1, "endpoint"),
-        at(c2, "endpoint"),
-        at(c3, "endpoint"),
-        at(c4, "endpoint"),
+        at(c1, "endpoint", entity.id, 0),
+        at(c2, "endpoint", entity.id, 1),
+        at(c3, "endpoint", entity.id, 2),
+        at(c4, "endpoint", entity.id, 3),
         at(mid(c1, c3), "midpoint"),
         at(mid(c3, c2), "midpoint"),
         at(mid(c2, c4), "midpoint"),
@@ -101,24 +103,28 @@ export function entityCandidates(entity: SketchEntity): SnapCandidate[] {
     case "circle": {
       const { center: c, radius: r } = entity;
       return [
-        at(c, "center"),
-        at({ x: c.x + r, y: c.y }, "quadrant"),
-        at({ x: c.x - r, y: c.y }, "quadrant"),
-        at({ x: c.x, y: c.y + r }, "quadrant"),
-        at({ x: c.x, y: c.y - r }, "quadrant"),
+        at(c, "center", entity.id, 0),
+        at({ x: c.x + r, y: c.y }, "quadrant", entity.id),
+        at({ x: c.x - r, y: c.y }, "quadrant", entity.id),
+        at({ x: c.x, y: c.y + r }, "quadrant", entity.id),
+        at({ x: c.x, y: c.y - r }, "quadrant", entity.id),
       ];
     }
     case "arc": {
       const { center: c, radius: r } = entity;
       return [
-        at(c, "center"),
+        at(c, "center", entity.id, 0),
         at(
           { x: c.x + r * Math.cos(entity.startAngle), y: c.y + r * Math.sin(entity.startAngle) },
           "endpoint",
+          entity.id,
+          1,
         ),
         at(
           { x: c.x + r * Math.cos(entity.endAngle), y: c.y + r * Math.sin(entity.endAngle) },
           "endpoint",
+          entity.id,
+          2,
         ),
       ];
     }
@@ -157,7 +163,7 @@ export function intersectionCandidates(entities: SketchEntity[]): SnapCandidate[
 
 /** Все кандидаты эскиза: точки примитивов + пересечения прямых. */
 export function collectCandidates(entities: SketchEntity[]): SnapCandidate[] {
-  return [...entities.flatMap(entityCandidates), ...intersectionCandidates(entities), at({ ...SKETCH_ORIGIN }, "origin")];
+  return [...entities.flatMap(entityCandidates), ...intersectionCandidates(entities), at({ ...SKETCH_ORIGIN }, "origin", SKETCH_ORIGIN_ID)];
 }
 
 const distance = (a: SketchPoint, b: SketchPoint) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -255,9 +261,12 @@ export function snapAt(
     if (perpendicular) return perpendicular;
   }
 
-  const projections = allLineRefs(entities).map((line) =>
-    at(projectOnLine(cursor, line), "on-line"),
-  );
+  const projections = entities.flatMap((entity) => {
+    const line = lineRefOf(entity, { construction: true }) ?? lineRefOf(entity, { construction: false });
+    if (!line) return [];
+    const owner = entity.type === "line" ? entity.id : undefined;
+    return [at(projectOnLine(cursor, line), "on-line", owner)];
+  });
   const projection = pickCandidate(projections, cursor, threshold);
   if (projection) return projection;
 

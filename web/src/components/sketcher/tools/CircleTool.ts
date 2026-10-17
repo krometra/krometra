@@ -1,6 +1,6 @@
 // Circle tool: click for center, drag for radius
 
-import type { SketchEntity, SketchCircle, SketchPoint, SketchConstraint } from "@/types/api";
+import type { SketchEntity, SketchCircle, SketchPoint } from "@/types/api";
 import type { SketchTool, SketchToolContext } from "./SketchTool";
 
 export class CircleTool implements SketchTool {
@@ -88,78 +88,5 @@ export class CircleTool implements SketchTool {
 
   isActive(): boolean {
     return this.drawing;
-  }
-
-  detectConstraints(
-    _ctx: SketchToolContext,
-    existingEntities: SketchEntity[]
-  ): SketchConstraint[] {
-    if (!this.center || !this.currentRadius) return [];
-    const id = this.currentId ?? `circle-${Date.now()}`;
-    const constraints: SketchConstraint[] = [];
-
-    // Auto-equal radius with existing circles
-    for (const entity of existingEntities) {
-      if ((entity.type === "circle" || entity.type === "arc") && entity.radius) {
-        if (Math.abs(this.currentRadius - entity.radius) / entity.radius < 0.05) {
-          constraints.push({
-            id: `constraint-eq-${Date.now()}`,
-            type: "equal",
-            anchors: [
-              { entity_id: id, sub_index: 0 },
-              { entity_id: entity.id, sub_index: 0 },
-            ],
-            value: null,
-          });
-          break;
-        }
-      }
-    }
-
-    // Auto-coincident center with existing points
-    for (const entity of existingEntities) {
-      if (entity.type === "line") {
-        const d1 = Math.sqrt((this.center.x - entity.start.x) ** 2 + (this.center.y - entity.start.y) ** 2);
-        const d2 = Math.sqrt((this.center.x - entity.end.x) ** 2 + (this.center.y - entity.end.y) ** 2);
-        if (d1 < 8) {
-          constraints.push({
-            id: `constraint-c-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
-            type: "coincident",
-            anchors: [
-              { entity_id: id, sub_index: 0 },
-              { entity_id: entity.id, sub_index: 0 },
-            ],
-            value: null,
-          });
-        }
-        if (d2 < 8) {
-          constraints.push({
-            id: `constraint-c-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
-            type: "coincident",
-            anchors: [
-              { entity_id: id, sub_index: 0 },
-              { entity_id: entity.id, sub_index: 1 },
-            ],
-            value: null,
-          });
-        }
-      }
-      if ((entity.type === "circle" || entity.type === "arc") && entity.center) {
-        const d = Math.sqrt((this.center.x - entity.center.x) ** 2 + (this.center.y - entity.center.y) ** 2);
-        if (d < 8) {
-          constraints.push({
-            id: `constraint-c-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
-            type: "coincident",
-            anchors: [
-              { entity_id: id, sub_index: 0 },
-              { entity_id: entity.id, sub_index: 0 },
-            ],
-            value: null,
-          });
-        }
-      }
-    }
-
-    return constraints;
   }
 }

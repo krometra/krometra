@@ -24,7 +24,8 @@ function copyId(input: SketchEntityInput, index: number): { id?: string } {
 function rectangleLines(input: Extract<SketchEntityInput, { type: "rectangle" }>, move: Transform): SketchEntityInput[] {
   const { corner1, corner2 } = input;
   const corners = [corner1, { x: corner2.x, y: corner1.y }, corner2, { x: corner1.x, y: corner2.y }].map(move);
-  return corners.map((start, index) => ({ type: "line", start, end: corners[(index + 1) % 4] }));
+  const flags = input.construction === undefined ? {} : { construction: input.construction };
+  return corners.map((start, index) => ({ type: "line", start, end: corners[(index + 1) % 4], ...flags }));
 }
 
 function transformed(input: SketchEntityInput, move: Transform, rotation: number): SketchEntityInput[] {

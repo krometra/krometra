@@ -51,6 +51,13 @@ describe("sketchEntitiesParam", () => {
     expect(rejected("line")).toBe(true);
   });
 
+  it("прямоугольник бывает вспомогательным, и при повороте массивом его стороны тоже", () => {
+    const rectangle = { type: "rectangle", corner1: { x: 5, y: -1 }, corner2: { x: 7, y: 1 }, construction: true };
+    expect(read([rectangle])).toEqual([{ ...rectangle }]);
+    const turned = read([{ type: "circular_pattern", count: 3, center: { x: 0, y: 0 }, entities: [rectangle] }]);
+    expect(turned.filter((entity) => entity.type === "line").every((entity) => entity.construction === true)).toBe(true);
+  });
+
   it("отклоняет неверные id и construction", () => {
     expect(rejected([{ type: "circle", center: { x: 0, y: 0 }, radius: 1, id: 7 }])).toBe(true);
     expect(rejected([{ type: "circle", center: { x: 0, y: 0 }, radius: 1, construction: "yes" }])).toBe(true);

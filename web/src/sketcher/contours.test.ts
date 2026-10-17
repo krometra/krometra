@@ -46,6 +46,19 @@ describe("profileContours", () => {
     ];
     expect(profileContours(entities)).toHaveLength(1);
   });
+
+  it("вспомогательные окружность, дуга и прямоугольник не дают ни контура, ни отверстия", () => {
+    const entities: SketchEntity[] = [
+      ...square(40),
+      { id: "cc", type: "circle", center: { x: 20, y: 20 }, radius: 5, construction: true },
+      { id: "ca", type: "arc", center: { x: 20, y: 20 }, radius: 8, startAngle: 0, endAngle: Math.PI, construction: true },
+      { id: "cr", type: "rectangle", corner1: { x: 5, y: 5 }, corner2: { x: 10, y: 10 }, construction: true },
+    ];
+    expect(profileContours(entities)).toHaveLength(1);
+    const faces = profileFaces(entities);
+    expect(faces).toHaveLength(1);
+    expect(faces[0].holes).toHaveLength(0);
+  });
 });
 
 describe("profileFaces", () => {
