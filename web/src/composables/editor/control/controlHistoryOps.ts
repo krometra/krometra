@@ -7,14 +7,15 @@ import type { EditorControlContext } from "./controlContext";
 import type { HistoryDirection } from "../useModelHistory";
 
 const CHANGE_FORMAT =
-  "{ label, removed: [запись], added: [запись], changed: [запись] } — запись в формате timeline из op state";
+  "{ label, removed: [запись], added: [запись], changed: [запись], components?: [id] } — запись в формате timeline из op state, components — id изменённых компонентов документа (тела, эскизы, рабочие плоскости)";
 
-export function describeChange(context: EditorControlContext, label: string, change: TimelineChange) {
+export function describeChange(context: EditorControlContext, label: string, change: TimelineChange, components?: string[]) {
   return {
     label,
     removed: change.removed.map(context.timelineEntry),
     added: change.added.map(context.timelineEntry),
     changed: change.changed.map(context.timelineEntry),
+    ...(components ? { components } : {}),
   };
 }
 
@@ -38,11 +39,11 @@ export function historyOps(context: EditorControlContext): ControlOp[] {
   async function stepModel(direction: HistoryDirection) {
     const step = await context.history.step(direction).catch(asOperationFailure);
     if (!step) throw fail("operation_failed", direction === "undo" ? "Отменять нечего." : "Повторять нечего.");
-    if (isEmptyChange(step.change)) {
+    if (isEmptyChange(step.change) && step.components.length === 0) {
       throw fail("operation_failed", `«${step.label}»: история модели не изменилась. Проверьте op state.`);
     }
     const key = direction === "undo" ? "undone" : "redone";
-    return { scope: "model", [key]: describeChange(context, step.label, step.change), ...availability() };
+    return { scope: "model", [key]: describeChange(context, step.label, step.change, step.components), ...availability() };
   }
 
   function stepHistory(direction: HistoryDirection) {

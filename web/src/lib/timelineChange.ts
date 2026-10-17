@@ -17,6 +17,11 @@ export function timelineChange(before: TimelineEntry[], after: TimelineEntry[]):
   };
 }
 
+export function changedComponentIds(before: Record<string, unknown>, after: Record<string, unknown>): string[] {
+  const ids = new Set([...Object.keys(before), ...Object.keys(after)]);
+  return [...ids].filter((id) => !sameJson(before[id], after[id]));
+}
+
 export function isEmptyChange(change: TimelineChange): boolean {
   return change.added.length + change.removed.length + change.changed.length === 0;
 }
