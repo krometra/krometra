@@ -4,7 +4,7 @@
 // сгенерированный `api.generated.ts` (`npm run gen:api`), чтобы контракт не
 // расходился молча. Руками здесь описывается только то, чего в схеме нет или
 // что на клиенте сужено (например `Record<string, unknown>` вместо `unknown`).
-import type { components } from "./api.generated";
+import type { components, operations } from "./api.generated";
 
 type Schemas = components["schemas"];
 
@@ -18,6 +18,17 @@ export type ProjectUpdate = Schemas["ProjectUpdate"];
 export type ApiKey = Schemas["ApiKeyResponse"];
 export type ApiKeyCreated = Schemas["ApiKeyCreated"];
 export type ApiKeyListResponse = Schemas["ApiKeyListResponse"];
+export type AdminOverview = Schemas["AdminOverview"];
+export type AdminDailyPoint = Schemas["AdminDailyPoint"];
+export type AdminOperationStat = Schemas["AdminOperationStat"];
+export type AdminUserRow = Schemas["AdminUserRow"];
+export type AdminUserPage = Schemas["AdminUserPage"];
+export type AdminProjectRow = Schemas["AdminProjectRow"];
+export type AdminProjectPage = Schemas["AdminProjectPage"];
+export type AdminKindCount = Schemas["AdminKindCount"];
+export type AdminUserRole = Schemas["AdminUserRole"];
+export type AdminUserSort = NonNullable<NonNullable<operations["users_api_admin_users_get"]["parameters"]["query"]>["sort"]>;
+export type AdminProjectSort = NonNullable<NonNullable<operations["projects_api_admin_projects_get"]["parameters"]["query"]>["sort"]>;
 
 export interface ApiError {
   error: string;

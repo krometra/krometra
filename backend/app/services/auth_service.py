@@ -30,6 +30,7 @@ from app.models.base import new_uuid, utcnow
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, normalize_email
+from app.services.admin_roles import promote_listed_admin
 from app.services.api_key_service import api_key_belongs_to, find_api_key
 
 settings = get_settings()
@@ -102,6 +103,7 @@ async def authenticate_password_grant(
         await rate_limit.consume(redis, rate_limit.LOGIN_FAILURES_BY_EMAIL, email_key)
         raise AuthError("invalid_grant", "Invalid credentials.")
     await rate_limit.reset(redis, rate_limit.LOGIN_FAILURES_BY_EMAIL, email_key)
+    promote_listed_admin(user)
 
     access_token = create_access_token(user.id, user.email, api_key_id=None)
     refresh_token_raw = await _start_refresh_family(db, redis, user.id, api_key_id=None)
@@ -124,6 +126,7 @@ async def authenticate_api_key_grant(
         raise AuthError("invalid_grant", "Invalid API key.")
 
     api_key.last_used_at = utcnow()
+    promote_listed_admin(user)
     access_token = create_access_token(user.id, user.email, api_key_id=api_key.id)
     refresh_token_raw = await _start_refresh_family(db, redis, user.id, api_key_id=api_key.id)
     await db.commit()
@@ -214,6 +217,7 @@ async def refresh_access_token(
     user = await _find_user_by_id(db, db_token.user_id)
     if not user:
         raise AuthError("invalid_grant", "User not found.")
+    promote_listed_admin(user)
 
     access_token = create_access_token(user.id, user.email, api_key_id=db_token.api_key_id)
 

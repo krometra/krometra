@@ -50,6 +50,15 @@ async def get_current_active_user(session: AuthSession = Depends(get_auth_sessio
     return session.user
 
 
+async def get_current_admin(user: User = Depends(get_current_active_user)) -> User:
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": "forbidden", "error_description": "Доступно только администраторам."},
+        )
+    return user
+
+
 async def get_password_session_user(session: AuthSession = Depends(get_auth_session)) -> User:
     if session.api_key_id is not None:
         raise HTTPException(

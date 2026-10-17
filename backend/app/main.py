@@ -13,6 +13,7 @@ from app.api.routes import browser_loft
 from app.api.routes import browser_hole
 from app.api.routes import browser_draft
 from app.api.routes import browser_press_pull
+from app.api.routes import admin
 from app.config import get_settings
 
 settings = get_settings()
@@ -60,6 +61,7 @@ app.include_router(browser_loft.router, prefix="/api")
 app.include_router(browser_pattern.router, prefix="/api")
 app.include_router(browser_draft.router, prefix="/api")
 app.include_router(browser_press_pull.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 
 
 @app.get("/api/health")

@@ -102,6 +102,12 @@ make backend-shell    # запустить backend локально без Docke
 make frontend-shell   # запустить frontend локально (Vite)
 ```
 
+Администратор (страница `/admin` с аналитикой по пользователям и проектам): почта в `ADMIN_EMAILS` в `.env` получает роль при следующем входе, либо явно командой в контейнере backend:
+
+```bash
+docker compose exec app python -m app.cli admin grant you@example.com    # revoke - снять, list - список
+```
+
 Сборка и проверки фронтенда (из `web/`):
 
 ```bash

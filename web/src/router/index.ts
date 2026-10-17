@@ -34,6 +34,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/admin",
+      name: "admin",
+      component: () => import("@/views/AdminView.vue"),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
       path: "/editor/:id",
       name: "editor",
       component: () => import("@/views/EditorView.vue"),
@@ -58,6 +64,8 @@ router.beforeEach(async (to, _from, next) => {
     if (to.name === "dashboard") next({ name: "landing" });
     else next({ name: "login", query: { redirect: to.fullPath } });
   } else if (to.meta.guest && auth.isAuthenticated.value) {
+    next({ name: "dashboard" });
+  } else if (to.meta.requiresAdmin && !auth.user.value?.is_admin) {
     next({ name: "dashboard" });
   } else {
     next();
