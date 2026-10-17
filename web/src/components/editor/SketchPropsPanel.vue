@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useCssModule, watch } from "vue";
 import { useSketch } from "@/composables/shared/useSketch";
+import { useDocument } from "@/composables/shared/useDocument";
+import { isWorkPlane } from "@/lib/workPlaneDocument";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { SketchConstraint } from "@/types/api";
@@ -15,8 +17,16 @@ const emit = defineEmits<{ ok: []; cancel: [] }>();
 const sketch = useSketch();
 const style = useCssModule();
 const names = useDisplayNames();
+const documentStore = useDocument();
+
+const workPlaneLabel = computed(() => {
+  const planeId = sketch.refPlaneId.value;
+  const plane = planeId ? documentStore.document.value?.components?.[planeId] : null;
+  return planeId && isWorkPlane(plane) ? names.names.value[planeId] ?? plane.label : null;
+});
 
 const sketchPlaneLabel = computed(() => {
+  if (workPlaneLabel.value) return `Рабочая плоскость «${workPlaneLabel.value}»`;
   if (sketch.refBodyId.value !== null) {
     const face = sketch.refFaceId.value !== null ? `Грань #${sketch.refFaceId.value}` : "Грань";
     return `${face} · ${names.bodyLabel(sketch.refBodyId.value)}`;
@@ -26,7 +36,7 @@ const sketchPlaneLabel = computed(() => {
 
 const sketchPlaneHint = computed(() => {
   const offset = sketch.planeOffset.value;
-  if (sketch.refBodyId.value !== null) {
+  if (sketch.refBodyId.value !== null || workPlaneLabel.value) {
     const orientation = `в плоскости ${sketch.sketchPlane.value}`;
     return offset !== 0 ? `${orientation}, смещение ${offset.toFixed(1)} мм` : orientation;
   }

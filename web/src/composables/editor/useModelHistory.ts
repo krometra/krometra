@@ -2,7 +2,7 @@ import { useDocument } from "@/composables/shared/useDocument";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
 import type { DocumentEdit } from "@/core/commands/DocumentEditCommand";
 import type { TimelineEdit } from "@/core/commands/TimelineEditCommand";
-import { timelineChange, type TimelineChange } from "@/lib/timelineChange";
+import { changedComponentIds, timelineChange, type TimelineChange } from "@/lib/timelineChange";
 import type { TimelineEntry } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
 
@@ -11,6 +11,7 @@ export type HistoryDirection = "undo" | "redo";
 export interface HistoryStep {
   label: string;
   change: TimelineChange;
+  components: string[];
 }
 
 export function useModelHistory(deps: { projectId: string; meshes: BodyMeshesApi }) {
@@ -27,11 +28,17 @@ export function useModelHistory(deps: { projectId: string; meshes: BodyMeshesApi
     return timelineChange(before, timeline());
   }
 
+  function components(): Record<string, unknown> {
+    return documentStore.document.value?.components ?? {};
+  }
+
   async function step(direction: HistoryDirection): Promise<HistoryStep | null> {
     const before = timeline();
+    const componentsBefore = components();
     const command = direction === "undo" ? await undoRedo.undo() : await undoRedo.redo();
     if (!command) return null;
-    return { label: command.label, change: await refresh(before) };
+    const change = await refresh(before);
+    return { label: command.label, change, components: changedComponentIds(componentsBefore, components()) };
   }
 
   async function edit(label: string, change: DocumentEdit): Promise<TimelineChange> {

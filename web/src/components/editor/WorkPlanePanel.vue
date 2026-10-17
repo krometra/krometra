@@ -111,24 +111,22 @@ const statusText = computed(() => {
         </div>
       </div>
 
-      <div v-if="kind === 'offset'" :class="$style.field">
+      <div v-if="kind === 'offset'" :class="$style.field" data-testid="work-plane-distance">
         <CsInput
           :model-value="tool.distanceField.text.value"
           label="Расстояние, мм"
           :error="tool.distanceField.error.value ?? undefined"
           hint="Можно выражение: 30/2, width + 5 mm. Знак задаёт сторону."
-          data-testid="work-plane-distance"
           @update:model-value="updateField(tool.distanceField, $event)"
         />
       </div>
 
-      <div v-if="kind === 'angle'" :class="$style.field">
+      <div v-if="kind === 'angle'" :class="$style.field" data-testid="work-plane-angle">
         <CsInput
           :model-value="tool.angleField.text.value"
           label="Угол, °"
           :error="tool.angleField.error.value ?? undefined"
           hint="0° — параллельно опоре, 90° — перпендикулярно."
-          data-testid="work-plane-angle"
           @update:model-value="updateField(tool.angleField, $event)"
         />
       </div>

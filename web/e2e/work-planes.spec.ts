@@ -36,6 +36,11 @@ async function bodyBox(cad: CadEditor, bodyId: string) {
   return (await cad.control<Topo>("topology", { bodyId })).bbox;
 }
 
+async function bottomOf(cad: CadEditor, bodyId: string): Promise<number> {
+  const reply = await cad.request("topology", { bodyId });
+  return reply.ok ? (reply.result as Topo).bbox.min[2] : Number.NaN;
+}
+
 async function topFace(cad: CadEditor, bodyId: string): Promise<string> {
   return (await cad.control<{ faces: { id: string }[] }>("face.find", { bodyId, normal: [0, 0, 1] })).faces[0].id;
 }
@@ -84,17 +89,18 @@ test("плоскость из ленты: смещение от грани, эс
   await expect(page.getByTestId("work-plane-panel")).toBeVisible();
   await page.getByTestId("work-plane-distance").locator("input").fill("8");
   await page.getByTestId("work-plane-apply").dispatchEvent("click");
-  await expect.poll(async () => (await bodyBox(cad, boss)).min[2], { message: "бобышка переехала с плоскостью", timeout: 60_000 }).toBeCloseTo(18, 3);
+  await expect.poll(() => bottomOf(cad, boss), { message: "бобышка переехала с плоскостью", timeout: 60_000 }).toBeCloseTo(18, 3);
 
-  await page.getByTestId("timeline-node").filter({ hasText: "Выдавливание" }).first().click();
+  await expect(page.getByTestId("work-plane-panel")).toHaveCount(0, { timeout: 60_000 });
+  await page.getByTestId("timeline-node").filter({ hasText: "Выдавить 1" }).click();
   await page.locator('aside [inputmode="decimal"]').first().fill("30");
-  await expect.poll(async () => (await bodyBox(cad, boss)).min[2], { message: "плоскость поднялась с торцом коробки", timeout: 60_000 }).toBeCloseTo(38, 3);
-  expect((await planes(cad)).planes[0].planeOffset).toBeCloseTo(38, 3);
+  await expect.poll(() => bottomOf(cad, boss), { message: "плоскость поднялась с торцом коробки", timeout: 60_000 }).toBeCloseTo(38, 3);
+  await expect.poll(async () => (await planes(cad)).planes[0].planeOffset, { message: "плоскость в документе пересчитана" }).toBeCloseTo(38, 3);
 
   await cad.control("history.undo");
-  await expect.poll(async () => (await bodyBox(cad, boss)).min[2], { message: "отмена правки высоты" }).toBeCloseTo(18, 3);
+  await expect.poll(() => bottomOf(cad, boss), { message: "отмена правки высоты" }).toBeCloseTo(18, 3);
   await cad.control("history.undo");
-  await expect.poll(async () => (await bodyBox(cad, boss)).min[2], { message: "отмена правки плоскости" }).toBeCloseTo(15, 3);
+  await expect.poll(() => bottomOf(cad, boss), { message: "отмена правки плоскости" }).toBeCloseTo(15, 3);
 
   await page.getByTestId("work-plane-visibility").click();
   await expect.poll(async () => (await planes(cad)).planeIds, { message: "скрытая плоскость пропала из сцены" }).toEqual([]);
@@ -106,7 +112,7 @@ test("плоскость из ленты: смещение от грани, эс
   await expect(page.getByTestId("work-plane-delete-dialog")).toBeVisible();
   await page.getByTestId("work-plane-delete-confirm").dispatchEvent("click");
   await expect.poll(async () => (await planes(cad)).planes.length).toBe(0);
-  expect((await bodyBox(cad, boss)).min[2], "эскиз остался на месте").toBeCloseTo(15, 3);
+  await expect.poll(() => bottomOf(cad, boss), { message: "эскиз остался на месте" }).toBeCloseTo(15, 3);
 
   expect(pageErrors).toEqual([]);
 });
@@ -133,9 +139,9 @@ test("канал: плоскость под углом, по трём точка
   const pad = (await cad.control<Feature>("extrude", { sketchId: sketch.sketchId, distance: 2 })).feature.bodyId;
   expect((await bodyBox(cad, pad)).min[2]).toBeCloseTo(40, 3);
   await cad.control("plane.update", { planeId: lifted.id, kind: "offset", plane: "XY", distance: 50 });
-  await expect.poll(async () => (await bodyBox(cad, pad)).min[2], { message: "тело от эскиза на плоскости пересобрано" }).toBeCloseTo(50, 3);
+  await expect.poll(() => bottomOf(cad, pad), { message: "тело от эскиза на плоскости пересобрано" }).toBeCloseTo(50, 3);
   await cad.control("history.undo");
-  await expect.poll(async () => (await bodyBox(cad, pad)).min[2], { message: "отмена правки плоскости" }).toBeCloseTo(40, 3);
+  await expect.poll(() => bottomOf(cad, pad), { message: "отмена правки плоскости" }).toBeCloseTo(40, 3);
 
   const three = await cad.control<PlaneInfo>("plane.create", { kind: "three_points", bodyId: source, points: [{ vertex: [0, 0, 10] }, { vertex: [20, 0, 10] }, { vertex: [0, 10, 0] }] });
   expect(Math.abs(three.planeBasis.n[2])).toBeGreaterThan(0.5);
