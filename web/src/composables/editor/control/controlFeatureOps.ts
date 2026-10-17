@@ -1,6 +1,7 @@
 import { nextTick } from "vue";
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { extrudeCaps } from "@/lib/control/extrudeCaps";
+import { combineToolIds, cutTargetIds } from "@/lib/control/combineParams";
 import { param } from "@/lib/control/params";
 import { describeBodyTopology } from "@/lib/control/topology";
 import { browserPlaneFrame } from "@/lib/browserExtrudeFrame";
@@ -88,7 +89,10 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           param.oneOf(["new_body", "join", "cut"], "new_body — новое тело (по умолчанию), join — приклеить к телу, cut — вырезать из тела."),
         ),
         targetBodyId: param.optional(
-          param.id("Тело для join и cut. У эскиза на грани цель — тело этой грани, иначе по умолчанию берётся первое тело документа."),
+          param.id("Одно тело для join и cut. Для join без него цель — тело грани эскиза, иначе первое тело документа."),
+        ),
+        targetBodyIds: param.optional(
+          param.list(param.id("Тело."), "Тела для cut одной операцией («Objects to Cut»). Без него и без targetBodyId cut идёт по всем видимым телам; тела, которых инструмент не касается, пропускаются без ошибки, ошибка — только если не задето ни одно. Задетые тела записываются в params.target_body_ids, результаты — в body_ids записи."),
         ),
         direction: param.optional(
           param.oneOf(
@@ -122,7 +126,9 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           throw fail("invalid_params", "Для extent = up_to_body задайте upToBodyId.");
         }
         context.requireSketch(params.sketchId);
+        const targetBodyIds = cutTargetIds(params.operation, params.targetBodyId, params.targetBodyIds);
         if (params.targetBodyId !== undefined) context.bodyMesh(params.targetBodyId);
+        targetBodyIds?.forEach((bodyId) => requireVisibleBody(context, bodyId));
         const upToFace =
           extentType === "up_to_face" && params.upToBodyId !== undefined && params.upToFaceId !== undefined
             ? { bodyId: params.upToBodyId, faceId: context.bodyFace(params.upToBodyId, params.upToFaceId).faceId }
@@ -135,6 +141,7 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
           distance: params.distance,
           operation: params.operation,
           targetBodyId: params.targetBodyId,
+          targetBodyIds,
           direction: params.direction,
           backDistance: params.backDistance,
           reversed: params.reversed,
@@ -243,22 +250,24 @@ export function featureOps(context: EditorControlContext): ControlOp[] {
 
     defineOp({
       op: "boolean",
-      description: `Булева операция над двумя телами — панель «Boolean». Исходные тела скрываются, результат — новое тело. ${FEATURE_RESULT}`,
+      description: `Булева операция над целевым телом и одним или несколькими телами-инструментами — панель «Комбинировать», одна запись истории. Цель скрывается, результат — новое тело; инструменты скрываются, если не задан keepTools. В записи tool_body_ids — все инструменты, params.keep_tools — сохранены ли они. ${FEATURE_RESULT}`,
       mutates: true,
       params: {
-        operation: param.oneOf(["union", "subtract", "intersect"], "union — объединить, subtract — вычесть tool из target, intersect — оставить пересечение."),
+        operation: param.oneOf(["union", "subtract", "intersect"], "union — объединить, subtract — вычесть все инструменты из target, intersect — оставить общий объём цели и всех инструментов."),
         targetBodyId: param.id("Тело-цель из op state."),
-        toolBodyId: param.id("Тело-инструмент из op state."),
+        toolBodyIds: param.optional(param.list(param.id("Тело-инструмент."), "Тела-инструменты из op state.")),
+        toolBodyId: param.optional(param.id("Одно тело-инструмент — краткая форма toolBodyIds.")),
+        keepTools: param.optional(param.boolean("Сохранить инструменты: после операции они остаются отдельными видимыми телами. По умолчанию false.")),
       },
-      run: async ({ operation, targetBodyId, toolBodyId }) => {
-        if (targetBodyId === toolBodyId) throw fail("invalid_params", "Цель и инструмент должны быть разными телами.");
-        context.bodyMesh(targetBodyId);
-        context.bodyMesh(toolBodyId);
+      run: async ({ operation, targetBodyId, toolBodyId, toolBodyIds, keepTools }) => {
+        const tools = combineToolIds(targetBodyId, toolBodyId, toolBodyIds);
+        [targetBodyId, ...tools].forEach((bodyId) => requireVisibleBody(context, bodyId));
         context.leaveTools();
         booleanMode.enter();
         booleanMode.setOperation(operation);
+        booleanMode.setKeepTools(keepTools === true);
         booleanMode.selectTarget(targetBodyId);
-        booleanMode.selectTool(toolBodyId);
+        tools.forEach(booleanMode.selectTool);
         return applyFeature(booleanMode.apply, () => booleanMode.error.value, booleanMode.exit);
       },
     }),

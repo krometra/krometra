@@ -1,50 +1,155 @@
 <script setup lang="ts">
-import BooleanToolbar from "@/components/toolbar/BooleanToolbar.vue";
+import { computed } from "vue";
 import CsButton from "@/components/ui/CsButton.vue";
-import PropsPanelShell from "./PropsPanelShell.vue";
+import CsCheckbox from "@/components/ui/CsCheckbox.vue";
+import CsSelect from "@/components/ui/CsSelect.vue";
+import { useDisplayNames } from "@/composables/useDisplayNames";
 import type { BooleanModeApi } from "@/composables/editor/useBooleanMode";
+import type { BooleanOperation } from "@/types/api";
+import BodyPickList from "./BodyPickList.vue";
+import PropsPanelShell from "./PropsPanelShell.vue";
 
-defineProps<{ boolean: BooleanModeApi }>();
+const props = defineProps<{ boolean: BooleanModeApi }>();
+
+const names = useDisplayNames();
+
+const OPERATIONS: { value: BooleanOperation; label: string }[] = [
+  { value: "union", label: "Объединить" },
+  { value: "subtract", label: "Вычесть" },
+  { value: "intersect", label: "Пересечь" },
+];
+
+const targetOptions = computed(() => props.boolean.availableBodies.value.map((body) => ({ value: body.id, label: body.label })));
+
+const toolOptions = computed(() =>
+  targetOptions.value.filter((option) => option.value !== props.boolean.targetId.value && !props.boolean.toolIds.value.includes(option.value)),
+);
+
+const canApply = computed(() => props.boolean.targetId.value !== null && props.boolean.toolIds.value.length > 0 && !props.boolean.loading.value);
+
+const statusText = computed(() => {
+  const target = props.boolean.targetId.value;
+  if (!target) return "Кликните целевое тело в сцене или в дереве";
+  if (props.boolean.toolIds.value.length === 0) return `${names.bodyLabel(target)}: кликните одно или несколько тел-инструментов`;
+  return "Клик по выбранному телу снимает его с выбора";
+});
+
+function addTool(bodyId: string) {
+  if (bodyId) props.boolean.selectTool(bodyId);
+}
 </script>
 
 <template>
-  <PropsPanelShell title="Boolean" kind="CSG" dot-color="oklch(0.65 0.14 300)">
-    <BooleanToolbar
-      :available-bodies="boolean.availableBodies.value"
-      :selected-target-id="boolean.targetId.value"
-      :selected-tool-id="boolean.toolId.value"
-      :selected-operation="boolean.operation.value"
-      :loading="boolean.loading.value"
-      :error="boolean.error.value"
-      @select-target="boolean.selectTarget"
-      @select-tool="boolean.selectTool"
-      @set-operation="boolean.setOperation"
-      @apply="boolean.apply"
-      @cancel="boolean.exit"
-      @clear="boolean.clear"
-    />
+  <PropsPanelShell title="Комбинировать" kind="CSG" dot-color="oklch(0.65 0.14 300)">
+    <div :class="$style.body" data-testid="boolean-panel">
+      <p :class="$style.status" data-testid="boolean-status">{{ statusText }}</p>
+
+      <div :class="$style.field">
+        <span :class="$style.label">Операция</span>
+        <div :class="$style.operations">
+          <CsButton
+            v-for="op in OPERATIONS"
+            :key="op.value"
+            size="sm"
+            :variant="boolean.operation.value === op.value ? 'primary' : 'secondary'"
+            :data-testid="`boolean-op-${op.value}`"
+            @click="boolean.setOperation(op.value)"
+          >
+            {{ op.label }}
+          </CsButton>
+        </div>
+      </div>
+
+      <CsSelect
+        :model-value="boolean.targetId.value ?? ''"
+        :options="targetOptions"
+        label="Целевое тело"
+        placeholder="Кликните тело"
+        data-testid="boolean-target"
+        @update:model-value="$event && boolean.selectTarget($event)"
+      />
+
+      <div :class="$style.field">
+        <span :class="$style.label">Тела-инструменты · {{ boolean.toolIds.value.length }}</span>
+        <BodyPickList
+          :body-ids="boolean.toolIds.value"
+          empty="Кликните тела-инструменты в сцене или в дереве"
+          test-id="boolean-tools"
+          @remove="boolean.removeTool"
+        />
+        <CsSelect
+          v-if="toolOptions.length > 0"
+          :key="boolean.toolIds.value.join()"
+          model-value=""
+          :options="toolOptions"
+          placeholder="Добавить инструмент"
+          data-testid="boolean-add-tool"
+          @update:model-value="addTool"
+        />
+      </div>
+
+      <CsCheckbox
+        :model-value="boolean.keepTools.value"
+        label="Сохранить инструменты"
+        data-testid="boolean-keep-tools"
+        @update:model-value="boolean.setKeepTools"
+      />
+      <span :class="$style.hint">
+        {{ boolean.keepTools.value ? "Инструменты останутся отдельными видимыми телами" : "Инструменты будут поглощены результатом" }}
+      </span>
+
+      <p v-if="boolean.error.value" :class="$style.error" data-testid="boolean-error">{{ boolean.error.value }}</p>
+    </div>
+
     <template #foot>
-      <CsButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="boolean.exit">
-        Закрыть
+      <CsButton variant="primary" :disabled="!canApply" data-testid="boolean-apply" @click="boolean.apply">
+        {{ boolean.loading.value ? "Строю…" : "Применить" }}
       </CsButton>
+      <CsButton variant="ghost" data-testid="boolean-clear" @click="boolean.clear">Сбросить</CsButton>
+      <CsButton variant="ghost" @click="boolean.exit">Закрыть</CsButton>
     </template>
   </PropsPanelShell>
 </template>
 
 <style module>
-.cancelBtn.cancelBtn {
-  flex: 1;
-  height: auto;
-  border: 1px solid var(--cs-border-strong);
-  font-size: 13px;
-  padding: 9px;
-  border-radius: 7px;
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cs-spacing-md);
+  padding: var(--cs-spacing-md);
+}
+
+.status {
+  margin: 0;
+  font-size: var(--cs-font-size-xs);
+  line-height: 1.45;
   color: var(--cs-text-secondary);
 }
 
-.cancelBtn.cancelBtn:hover {
-  background: transparent;
-  border-color: var(--cs-text-muted);
-  color: var(--cs-text);
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: var(--cs-font-size-xs);
+  color: var(--cs-text-secondary);
+}
+
+.operations {
+  display: flex;
+  gap: 4px;
+}
+
+.hint {
+  font-size: var(--cs-font-size-xs);
+  color: var(--cs-text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--cs-font-size-xs);
+  color: var(--cs-red-strong);
 }
 </style>

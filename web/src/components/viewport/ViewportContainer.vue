@@ -35,8 +35,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   faceSelected: [payload: { bodyId: string; faceId: string | number; brepTopo: import("@/types/api").BrepTopo; point?: [number, number, number] }];
   selectionCleared: [];
-  bodySelected: [payload: { bodyId: string }];
-  bodyDeselected: [payload: { bodyId: string }];
+  bodyPicked: [bodyId: string];
   edgeSelectionChanged: [snapshot: import("@/composables/viewport/useEdgeSelection").EdgeSelectionSnapshot];
   planePicked: [payload: { plane: import("@/types/api").SketchPlane }];
   faceContextMenu: [payload: { bodyId: string; faceId: string | number; x: number; y: number }];
@@ -83,8 +82,7 @@ const measure = useMeasurePicking({ context, onPicked: (pick) => emit("measurePi
 
 const bodies = useBodySelection({
   context,
-  onSelected: (bodyId) => emit("bodySelected", { bodyId }),
-  onDeselected: (bodyId) => emit("bodyDeselected", { bodyId }),
+  onPicked: (bodyId) => emit("bodyPicked", bodyId),
   onCleared: () => emit("selectionCleared"),
 });
 
@@ -274,8 +272,7 @@ defineExpose({
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,
   getSelectedBodyIds: bodies.getSelected,
-  selectBodyAsTarget: bodies.selectAsTarget,
-  selectBodyAsTool: bodies.selectAsTool,
+  setBodyRoles: bodies.setRoles,
   highlightFace: faces.highlightFace,
   markFaces: faces.markFaces,
   clearMarkedFaces: faces.clearMarkedFaces,

@@ -6,7 +6,7 @@ import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
 import { holeDetail } from "@/lib/holeFeature";
 import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
-import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
+import { booleanToolsOf, isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { entryStateHint, timelineSlots } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
 
@@ -66,7 +66,7 @@ function timelineDetail(entry: TimelineEntry): string {
       return `${p.distance ?? '?'} мм · ${dir}`;
     }
     case "boolean":
-      return `${entry.operation ?? '?'} · ${entry.target_body_id ? names.bodyLabel(entry.target_body_id) : '?'} + ${entry.tool_body_id ? names.bodyLabel(entry.tool_body_id) : '?'}`;
+      return `${entry.operation ?? '?'} · ${entry.target_body_id ? names.bodyLabel(entry.target_body_id) : '?'} + ${booleanToolsOf(entry).map(names.bodyLabel).join(', ') || '?'}`;
     case "revolve": {
       const p = entry.params ?? {};
       const dir = p.direction === 'symmetric' ? 'симм.' : 'одност.';

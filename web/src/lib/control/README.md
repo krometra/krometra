@@ -66,6 +66,7 @@ lib/control/                       чистая логика, без DOM и Thre
 ├── base64.ts                      байты → base64 для снимков и файлов экспорта
 ├── sketchEntities.ts              разбор сущностей эскиза, выдача id
 └── measureRefs.ts                 разбор объектов измерения { bodyId, faceId | edgeId | point }
+└── combineParams.ts               инструменты boolean (toolBodyIds) и цели выреза extrude (targetBodyIds)
 └── patternParams.ts               ось массива в параметрах body.pattern
 
 composables/editor/

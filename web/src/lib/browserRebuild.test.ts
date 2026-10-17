@@ -31,7 +31,7 @@ describe("browserRebuildPlan", () => {
     expect(steps.map((step) => step.entryId)).toEqual(["e1", "f1", "bo"]);
     expect(steps[0].request).toMatchObject({ kind: "extrude", featureKey: "k1", distance: 20, planeOffset: 2, extentType: "distance" });
     expect(steps[1]).toMatchObject({ outputBodyId: "b2", inputBodyIds: ["b1"], request: { kind: "fillet", bodyId: "b1", edgeNames: ["e-a"], radius: 1 } });
-    expect(steps[2]).toMatchObject({ outputBodyId: "b4", inputBodyIds: ["b2", "b3"], request: { operation: "union", targetBodyId: "b2", toolBodyId: "b3" } });
+    expect(steps[2]).toMatchObject({ outputBodyId: "b4", inputBodyIds: ["b2", "b3"], request: { operation: "union", targetBodyId: "b2", toolBodyIds: ["b3"] } });
   });
 
   it("не трогает параллельную ветку и берёт ключ записи для старых операций", () => {

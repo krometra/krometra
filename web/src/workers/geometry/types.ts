@@ -32,10 +32,17 @@ export interface ExtrudeRequest extends SketchPlacement {
   offset: number;
   operation: BrowserExtrudeOperation;
   targetBodyId: string | null;
+  targetBodyIds?: string[];
+  instance?: number | null;
   upToBodyId: string | null;
   upToFaceId: string | number | null;
   upToFacePoints: Vector3[] | null;
   featureKey: string;
+}
+
+export interface ExtrudeCutsRequest extends Omit<ExtrudeRequest, "kind"> {
+  kind: "extrude-cuts";
+  targetBodyIds: string[];
 }
 
 export interface RevolveRequest extends SketchPlacement {
@@ -53,7 +60,7 @@ export interface BooleanRequest {
   kind: "boolean";
   operation: BrowserBooleanOperation;
   targetBodyId: string;
-  toolBodyId: string;
+  toolBodyIds: string[];
   featureKey: string;
 }
 

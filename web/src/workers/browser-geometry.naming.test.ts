@@ -101,7 +101,7 @@ describe("persistent naming в browser worker (реальный OCCT/WASM)", () 
   it("булева операция тело-тело сохраняет имена обоих тел", async () => {
     const left = await buildBody(extrudeRequest(box, "k-left"), "body-left");
     const right = await buildBody(extrudeRequest([rectangle("r2", 10, -5, 30, 5)], "k-right", { planeOffset: 5 }), "body-right");
-    const union = await sendOk({ kind: "boolean", operation: "union", targetBodyId: "body-left", toolBodyId: "body-right", featureKey: "k-union" });
+    const union = await sendOk({ kind: "boolean", operation: "union", targetBodyId: "body-left", toolBodyIds: ["body-right"], featureKey: "k-union" });
     const faces = faceNames(union);
 
     expect(faces).toContain(generatedFaceName("k-left", "start:r1.0"));

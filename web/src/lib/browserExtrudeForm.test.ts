@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BrowserExtrudeOptions } from "@/composables/editor/useBrowserGeometry";
-import { browserExtrudeForm, browserExtrudeLabel } from "./browserExtrudeForm";
+import { browserExtrudeCutsForm, browserExtrudeForm, browserExtrudeLabel } from "./browserExtrudeForm";
 
 const options = (patch: Partial<BrowserExtrudeOptions>): BrowserExtrudeOptions => ({
   distance: 10,
@@ -31,6 +31,14 @@ describe("browserExtrudeForm", () => {
     }))).toEqual({
       distance: "10", direction: "two_sided", operation: "cut", extent_type: "up_to_face",
       back_distance: "3", offset: "1.5", target_body_id: "body-a", up_to_body_id: "body-b", up_to_face_id: "7",
+    });
+  });
+});
+
+describe("browserExtrudeCutsForm", () => {
+  it("заменяет одну цель списком задетых тел и не шлёт операцию", () => {
+    expect(browserExtrudeCutsForm(options({ operation: "cut", targetBodyId: "body-a", extentType: "through_all" }), ["body-a", "body-b"])).toEqual({
+      distance: "10", direction: "one_side", extent_type: "through_all", target_body_ids: "[\"body-a\",\"body-b\"]",
     });
   });
 });

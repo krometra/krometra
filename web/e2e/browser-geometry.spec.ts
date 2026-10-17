@@ -134,12 +134,11 @@ test("браузерное ядро: отверстие, вырез, прикл�
     const slot = visible.find((b) => b.operation === "new_body")!;
 
     await page.getByTestId("ribbon-boolean").click();
-    const selects = page.locator("select").filter({ has: page.locator('option[value=""]') });
-    await selects.nth(0).selectOption(plate.id);
-    await selects.nth(1).selectOption(slot.id);
-    await page.getByRole("button", { name: "Subtract (−)" }).click();
-    await page.getByRole("button", { name: "Apply" }).click();
-    await expect(page.getByRole("button", { name: "Apply" })).toBeVisible({ timeout: 60_000 });
+    await page.locator(`[data-tree-body="${plate.id}"]`).click();
+    await page.locator(`[data-tree-body="${slot.id}"]`).click();
+    await page.getByTestId("boolean-op-subtract").click();
+    await page.getByTestId("boolean-apply").click();
+    await expect(page.getByTestId("boolean-apply")).toBeVisible({ timeout: 60_000 });
     await page.waitForTimeout(2500);
     await cad.install();
 

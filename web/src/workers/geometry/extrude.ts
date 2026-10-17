@@ -28,8 +28,12 @@ function upToFacePoints(request: ExtrudeRequest, lookup: BodyLookup): Vector3[] 
   return request.upToFacePoints;
 }
 
+function throughAllTargets(request: Pick<ExtrudeRequest, "targetBodyId" | "targetBodyIds">): (string | null)[] {
+  return request.targetBodyIds?.length ? request.targetBodyIds : [request.targetBodyId];
+}
+
 function extentPoints(request: ExtrudeRequest, lookup: BodyLookup): Vector3[] | null {
-  if (request.extentType === "through_all") return boundingBoxPoints(lookup(request.targetBodyId));
+  if (request.extentType === "through_all") return throughAllTargets(request).flatMap((bodyId) => boundingBoxPoints(lookup(bodyId)));
   if (request.extentType === "up_to_body") return flatPoints(shapeMesh(lookup(request.upToBodyId).shape).vertices);
   if (request.extentType === "up_to_face") return upToFacePoints(request, lookup);
   return null;
@@ -57,7 +61,7 @@ export function combineWithTarget(
   }
 }
 
-export function extrudeNamed(request: ExtrudeRequest, lookup: BodyLookup): NamedShape {
+export function extrudeTool(request: ExtrudeRequest, lookup: BodyLookup): NamedShape {
   const span = browserSpanFromPoints(request, request, extentPoints(request, lookup));
   const tool = sweepSketchProfiles(request.entities, (center) => {
     const frame = browserExtrudeFrame({ ...request, center }, span);
@@ -69,5 +73,9 @@ export function extrudeNamed(request: ExtrudeRequest, lookup: BodyLookup): Named
     direction: frame.n,
     length: frame.length,
   });
-  return combineWithTarget(namedFromSweep(tool, request.featureKey, probes), request, lookup);
+  return namedFromSweep(tool, request.featureKey, probes);
+}
+
+export function extrudeNamed(request: ExtrudeRequest, lookup: BodyLookup): NamedShape {
+  return combineWithTarget(extrudeTool(request, lookup), request, lookup);
 }

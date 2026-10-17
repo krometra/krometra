@@ -4,6 +4,13 @@ import { useApi } from "@/composables/useApi";
 import { browserBodyForm, newFeatureKey } from "./browserUpload";
 import { RecordedCommand } from "./RecordedCommand";
 
+export interface BrowserBooleanInput {
+  operation: BrowserBooleanOperation;
+  targetBodyId: string;
+  toolBodyIds: string[];
+  keepTools: boolean;
+}
+
 export class BrowserBooleanCommand extends RecordedCommand {
   label = "Булева операция в браузере";
 
@@ -13,9 +20,7 @@ export class BrowserBooleanCommand extends RecordedCommand {
 
   constructor(
     projectId: string,
-    private operation: BrowserBooleanOperation,
-    private targetBodyId: string,
-    private toolBodyId: string,
+    private input: BrowserBooleanInput,
     private getDoc: () => Document | null,
   ) {
     super(projectId);
@@ -23,12 +28,15 @@ export class BrowserBooleanCommand extends RecordedCommand {
 
   protected async perform(): Promise<void> {
     const { buildBrowserBoolean, discardBrowserShape, retainBrowserShape } = await import("@/composables/editor/useBrowserGeometry");
-    const browserResult = await buildBrowserBoolean(this.operation, this.targetBodyId, this.toolBodyId, this.featureKey);
+    const { operation, targetBodyId, toolBodyIds, keepTools } = this.input;
+    const browserResult = await buildBrowserBoolean(operation, targetBodyId, toolBodyIds, this.featureKey);
     try {
       const form = browserBodyForm(browserResult, "browser-boolean.step", this.featureKey, {
-        operation: this.operation,
-        target_body_id: this.targetBodyId,
-        tool_body_id: this.toolBodyId,
+        operation,
+        target_body_id: targetBodyId,
+        tool_body_id: toolBodyIds[0],
+        tool_body_ids: JSON.stringify(toolBodyIds),
+        keep_tools: String(keepTools),
         document_version: String(this.getDoc()?.version ?? 0),
       });
       const result = await useApi().multipartPost<BooleanResponse>(
@@ -43,7 +51,6 @@ export class BrowserBooleanCommand extends RecordedCommand {
       throw error;
     }
   }
-
 
   getResult(): { bodyId: string; mesh: MeshData } | null {
     if (!this.resultBodyId || !this.resultMesh) return null;

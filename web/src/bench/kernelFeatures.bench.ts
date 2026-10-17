@@ -33,7 +33,7 @@ async function retainBooleanPair() {
 }
 
 function booleanRequest(operation: "union" | "subtract" | "intersect") {
-  return { kind: "boolean", operation, targetBodyId: "plate", toolBodyId: "tool", featureKey: `k-${operation}` };
+  return { kind: "boolean", operation, targetBodyId: "plate", toolBodyIds: ["tool"], featureKey: `k-${operation}` };
 }
 
 const browser = (params: Record<string, unknown>) => ({ ...params, engine: "browser_wasm" });

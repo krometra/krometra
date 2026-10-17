@@ -179,7 +179,7 @@ function onFaceSelected(payload: { bodyId: string; faceId: string | number; brep
     return;
   }
   if (tools.onFaceSelected(payload)) return;
-  if (extrude.pickExtentFace(payload)) return;
+  if (extrude.pickFace(payload)) return;
   selection.selectFace(payload.bodyId, payload.faceId, payload.brepTopo);
 }
 
@@ -340,8 +340,7 @@ const selectionLabel = useSelectionLabel();
           @face-selected="onFaceSelected"
           @plane-picked="sketchFlow.onPlanePicked"
           @selection-cleared="onSelectionCleared"
-          @body-selected="booleanMode.handleBodySelected"
-          @body-deselected="booleanMode.handleBodyDeselected"
+          @body-picked="booleanMode.handleBodyPicked"
           @edge-selection-changed="filletChamfer.onEdgeSelectionChanged($event); pattern.onEdgeSelectionChanged($event)"
           @face-context-menu="inspect.openFaceMenu"
           @measure-picked="measure.onPicked"

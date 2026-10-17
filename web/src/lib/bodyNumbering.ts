@@ -1,4 +1,5 @@
 import type { TimelineEntry } from "@/types/api";
+import { booleanToolsOf } from "./timelineFlags";
 
 /**
  * Стабильные порядковые номера тел.
@@ -25,7 +26,7 @@ export function bodyNumbering(timeline: TimelineEntry[], bodyIds: string[]): Map
   for (const entry of timeline) {
     // Порядок внутри записи: сначала то, что операция взяла, потом что создала.
     push(entry.target_body_id);
-    push(entry.tool_body_id);
+    booleanToolsOf(entry).forEach(push);
     push(entry.body_id);
     push(entry.result_body_id);
   }

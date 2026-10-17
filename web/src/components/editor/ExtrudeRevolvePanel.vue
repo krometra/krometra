@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
+import BodyPickList from "./BodyPickList.vue";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { ExtrudeRevolveApi } from "@/composables/editor/useExtrudeRevolve";
 
@@ -13,6 +14,7 @@ const {
   panelMode,
   extrudeOperation,
   extrudeTargetBodyId,
+  cutTargets,
   extrudePreviewError,
   extrudeDistance,
   distanceField,
@@ -93,7 +95,19 @@ function cancel() {
         </select>
       </div>
     </div>
-    <div v-if="extrudeOperation !== 'new_body' && !lastSavedSketchTargetId" :class="$style.field">
+    <div v-if="extrudeOperation === 'cut'" :class="$style.field">
+      <div :class="$style.fieldLabel">
+        <span>Тела для выреза · {{ cutTargets.targetIds.value.length }}</span>
+      </div>
+      <BodyPickList
+        :body-ids="cutTargets.targetIds.value"
+        empty="Кликните тела в сцене или в дереве"
+        test-id="extrude-cut-targets"
+        @remove="cutTargets.remove"
+      />
+      <div :class="$style.note">Клик по телу добавляет или снимает его. Тела, которых вырез не касается, пропускаются.</div>
+    </div>
+    <div v-if="extrudeOperation === 'join' && !lastSavedSketchTargetId" :class="$style.field">
       <div :class="$style.fieldLabel">
         <span>Целевое тело</span>
       </div>
@@ -401,6 +415,13 @@ function cancel() {
   font-size: 13px;
   color: var(--cs-text);
   cursor: pointer;
+}
+
+.note {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--cs-text-muted);
 }
 
 .hint {

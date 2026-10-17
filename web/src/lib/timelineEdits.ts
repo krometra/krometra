@@ -1,7 +1,7 @@
 import type { TimelineEntry } from "@/types/api";
 import { HistoryEditError, removeEntries, type ModelDocument } from "./bodyHistory";
-import { outputBodiesOf, outputBodyOf, type RegenSeeds } from "./browserRebuildPlan";
-import { fallbackBodyOf, isRolledBack, rollbackIndex } from "./timelineFlags";
+import type { RegenSeeds } from "./browserRebuildPlan";
+import { isRolledBack, outputBodyOf, outputFallbacks, rollbackIndex } from "./timelineFlags";
 
 export interface TimelineEditResult {
   document: ModelDocument;
@@ -10,8 +10,8 @@ export interface TimelineEditResult {
 }
 
 const NO_SEEDS: RegenSeeds = { roots: [], bodies: [] };
-const ENTRY_REFS = ["target_body_id", "tool_body_id"] as const;
-const PARAM_REFS = ["target_body_id", "up_to_body_id"];
+const ENTRY_REFS = ["target_body_id", "tool_body_id", "tool_body_ids"] as const;
+const PARAM_REFS = ["target_body_id", "target_body_ids", "up_to_body_id"];
 const SOURCE_REFS = ["target_body_id", "tool_body_id", "up_to_body_id", "body_id"];
 
 type Rewire = { from: string; to: string };
@@ -20,10 +20,18 @@ function record(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
 
+function refers(value: unknown, bodyId: string): boolean {
+  return Array.isArray(value) ? value.includes(bodyId) : value === bodyId;
+}
+
+function rewired(value: unknown, rewire: Rewire): unknown {
+  return Array.isArray(value) ? value.map((item) => (item === rewire.from ? rewire.to : item)) : rewire.to;
+}
+
 function swapped(values: Record<string, unknown>, keys: readonly string[], rewire: Rewire): Record<string, unknown> {
-  const changed = keys.filter((key) => values[key] === rewire.from);
+  const changed = keys.filter((key) => refers(values[key], rewire.from));
   if (changed.length === 0) return values;
-  return { ...values, ...Object.fromEntries(changed.map((key) => [key, rewire.to])) };
+  return { ...values, ...Object.fromEntries(changed.map((key) => [key, rewired(values[key], rewire)])) };
 }
 
 function rewiredEntry(entry: TimelineEntry, rewire: Rewire): TimelineEntry {
@@ -69,18 +77,18 @@ function deleteSketchEntry(document: ModelDocument, entry: TimelineEntry): Timel
 }
 
 function deleteFeatureEntry(document: ModelDocument, entry: TimelineEntry): TimelineEditResult {
-  const [output, ...copies] = outputBodiesOf(entry);
-  const fallback = fallbackBodyOf(entry);
+  const outputs = outputFallbacks(entry);
   const index = document.timeline.indexOf(entry);
   let components = { ...document.components };
-  for (const id of [output, ...copies]) if (id) delete components[id];
+  for (const { output } of outputs) delete components[output];
   let timeline = document.timeline.filter((item) => item !== entry);
-  if (output && fallback) {
+  for (const { output, fallback } of outputs) {
+    if (!fallback) continue;
     const rewire = { from: output, to: fallback };
     timeline = timeline.map((item, position) => (position >= index ? rewiredEntry(item, rewire) : item));
     components = rewiredComponents(components, Object.keys(components), rewire);
   }
-  const bodies = fallback ? [fallback, ...copies] : [output, ...copies].filter((id): id is string => Boolean(id));
+  const bodies = outputs.map(({ output, fallback }) => fallback ?? output);
   return { document: { components, timeline }, seeds: { roots: [], bodies }, restoreSeeds: { roots: [entry.id], bodies } };
 }
 
@@ -132,7 +140,7 @@ function rewiredRollback(document: ModelDocument, rolledBack: TimelineEntry[], r
 function referencesBody(document: ModelDocument, entry: TimelineEntry, bodyId: string): boolean {
   const sketch = record(entry.sketch_id ? document.components[entry.sketch_id] : null);
   const refs = [...ENTRY_REFS.map((key) => entry[key]), ...PARAM_REFS.map((key) => entry.params?.[key]), sketch?.ref_body_id];
-  return refs.includes(bodyId);
+  return refs.some((value) => refers(value, bodyId));
 }
 
 export function placeAtRollbackMarker(knownEntryIds: string[], after: ModelDocument): TimelineEditResult | null {
@@ -144,19 +152,18 @@ export function placeAtRollbackMarker(knownEntryIds: string[], after: ModelDocum
   let document: ModelDocument = { components: after.components, timeline: [...after.timeline.slice(0, marker), ...inserted, ...rolledBack] };
   const roots = new Set<string>();
   const bodies = new Set<string>();
-  for (const entry of inserted) {
-    const output = outputBodyOf(entry);
-    const fallback = fallbackBodyOf(entry);
-    if (!output || !fallback) continue;
+  const outputs = new Set<string>();
+  for (const { output, fallback } of inserted.flatMap(outputFallbacks)) {
+    if (!fallback) continue;
     rolledBack.filter((item) => item.kind !== "sketch" && referencesBody(document, item, fallback)).forEach((item) => roots.add(item.id));
     document = rewiredRollback(document, rolledBack, { from: fallback, to: output });
     bodies.add(fallback);
     bodies.add(output);
+    outputs.add(output);
   }
-  const outputs = [...bodies].filter((id) => inserted.some((entry) => outputBodyOf(entry) === id));
   return {
     document,
-    seeds: { roots: [...roots], bodies: outputs },
+    seeds: { roots: [...roots], bodies: [...outputs] },
     restoreSeeds: { roots: inserted.map((entry) => entry.id), bodies: [...bodies] },
   };
 }

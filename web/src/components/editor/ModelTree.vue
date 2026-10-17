@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
+import { useBodyPick } from "@/composables/shared/useBodyPick";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const selection = useSelection();
+const bodyPick = useBodyPick();
 const names = useDisplayNames();
 const { timelineEntries, sketches, bodies } = useDocumentModel();
 
@@ -53,6 +55,7 @@ function selectSketchRow(sketchId: string) {
 }
 
 function selectBodyRow(bodyId: string) {
+  if (bodyPick.pick(bodyId)) return;
   const entry = timelineEntries.value.find(
     (e) => e.body_id === bodyId || e.result_body_id === bodyId || e.body_ids?.includes(bodyId),
   );
@@ -154,6 +157,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
           v-for="b in bodies"
           :key="b.id"
           :class="$style.treeRow"
+          :data-tree-body="b.id"
           :title="'Двойной клик — переименовать, правый — меню'"
           @click="selectBodyRow(b.id)"
           @dblclick="startRename(b.id, names.bodyLabel(b.id))"

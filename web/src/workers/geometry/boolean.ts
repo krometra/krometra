@@ -32,15 +32,43 @@ export function shape3DOf(raw: TopoDS_Shape, failure: string): Shape3D {
   return shape;
 }
 
-function booleanAlgorithm(operation: BrowserBooleanOperation, target: TopoDS_Shape, tool: TopoDS_Shape) {
+export function shapeList(shapes: NamedShape[]) {
+  const list = new (getOC().NCollection_List_TopoDS_Shape)();
+  shapes.forEach((named) => list.Append(named.shape.wrapped));
+  return list;
+}
+
+function booleanAlgorithm(operation: BrowserBooleanOperation) {
   const oc = getOC();
+  if (operation === "union") return new oc.BRepAlgoAPI_Fuse();
+  if (operation === "subtract") return new oc.BRepAlgoAPI_Cut();
+  return new oc.BRepAlgoAPI_Common();
+}
+
+function namedBooleanOfAll(
+  target: NamedShape,
+  tools: NamedShape[],
+  operation: BrowserBooleanOperation,
+  featureKey: string,
+): NamedShape {
+  const oc = getOC();
+  const algorithm = booleanAlgorithm(operation);
+  const objects = shapeList([target]);
+  const toolList = shapeList(tools);
   const progress = new oc.Message_ProgressRange();
   try {
-    if (operation === "union") return new oc.BRepAlgoAPI_Fuse(target, tool, progress);
-    if (operation === "subtract") return new oc.BRepAlgoAPI_Cut(target, tool, progress);
-    return new oc.BRepAlgoAPI_Common(target, tool, progress);
+    algorithm.SetArguments(objects);
+    algorithm.SetTools(toolList);
+    algorithm.Build(progress);
+    if (algorithm.HasErrors()) throw new Error("Браузерное ядро не смогло выполнить булеву операцию.");
+    algorithm.SimplifyResult(true, true, 1e-3);
+    const result = shape3DOf(algorithm.Shape(), "Результат булевой операции не является телом.");
+    return namedFromHistory({ algorithm, inputs: [target, ...tools], result, featureKey });
   } finally {
     progress.delete();
+    toolList.delete();
+    objects.delete();
+    algorithm.delete();
   }
 }
 
@@ -50,21 +78,38 @@ export function namedBoolean(
   operation: BrowserBooleanOperation,
   featureKey: string,
 ): NamedShape {
-  const algorithm = booleanAlgorithm(operation, target.shape.wrapped, tool.shape.wrapped);
+  return namedBooleanOfAll(target, [tool], operation, featureKey);
+}
+
+function commonOfAll(target: NamedShape, tools: NamedShape[], featureKey: string): NamedShape {
+  let current = target;
   try {
-    if (algorithm.HasErrors()) throw new Error("Браузерное ядро не смогло выполнить булеву операцию.");
-    algorithm.SimplifyResult(true, true, 1e-3);
-    const result = shape3DOf(algorithm.Shape(), "Результат булевой операции не является телом.");
-    return namedFromHistory({ algorithm, inputs: [target, tool], result, featureKey });
-  } finally {
-    algorithm.delete();
+    for (const tool of tools) {
+      const next = namedBoolean(current, tool, "intersect", featureKey);
+      if (current !== target) current.shape.delete();
+      current = next;
+    }
+    return current;
+  } catch (error) {
+    if (current !== target) current.shape.delete();
+    throw error;
   }
 }
 
+export function combineBodies(
+  target: NamedShape,
+  tools: NamedShape[],
+  operation: BrowserBooleanOperation,
+  featureKey: string,
+): NamedShape {
+  if (tools.length === 0) throw new Error("Выберите хотя бы одно тело-инструмент.");
+  return operation === "intersect" ? commonOfAll(target, tools, featureKey) : namedBooleanOfAll(target, tools, operation, featureKey);
+}
+
 export function booleanNamed(request: BooleanRequest, lookup: BodyLookup): NamedShape {
-  const result = namedBoolean(
+  const result = combineBodies(
     lookup(request.targetBodyId),
-    lookup(request.toolBodyId),
+    request.toolBodyIds.map((bodyId) => lookup(bodyId)),
     request.operation,
     request.featureKey,
   );

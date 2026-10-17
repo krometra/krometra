@@ -11,6 +11,7 @@ import type { ExtrudeOperation, PlaneBasis, SketchEntity, SketchPlane } from "@/
 import type { BodyMeshesApi } from "./useBodyMeshes";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { ViewportRef } from "./types";
+import { useCutTargets } from "./useCutTargets";
 import { useExtrudeExtent, type ExtrudeExtentSettings } from "./useExtrudeExtent";
 import { useQuantityField } from "./useQuantityField";
 
@@ -20,6 +21,7 @@ export interface ExtrudeSettings extends ExtrudeExtentSettings {
   direction?: "one_side" | "symmetric" | "two_sided";
   reversed?: boolean;
   targetBodyId?: string | null;
+  targetBodyIds?: string[];
 }
 
 export interface RevolveSettings {
@@ -59,6 +61,11 @@ export function useExtrudeRevolve(deps: {
   const extrudeOperation = ref<ExtrudeOperation>("new_body");
   const extrudeTargetBodyId = ref<string | null>(null);
   const extent = useExtrudeExtent(meshes);
+  const cutTargets = useCutTargets({
+    viewportRef,
+    bodies: model.bodies,
+    active: computed(() => lastSavedSketchId.value !== null && panelMode.value === "extrude" && extrudeOperation.value === "cut" && !sketch.sketchMode.value),
+  });
   const extrudeLoading = ref(false);
   const extrudeError = ref<string | null>(null);
 
@@ -119,12 +126,17 @@ export function useExtrudeRevolve(deps: {
     };
   }
 
+  function baseTargetId(): string | null {
+    if (extrudeOperation.value === "cut") return cutTargets.targetIds.value[0] ?? null;
+    return extrudeOperation.value === "new_body" ? null : extrudeEffectiveTargetId.value;
+  }
+
   function extrudeBase() {
     return {
       distance: extrudeSignedDistance.value,
       direction: extrudeDirection.value,
       operation: extrudeOperation.value,
-      targetBodyId: extrudeOperation.value === "new_body" ? null : extrudeEffectiveTargetId.value,
+      targetBodyId: baseTargetId(),
     };
   }
 
@@ -161,6 +173,8 @@ export function useExtrudeRevolve(deps: {
   function configureExtrude(settings: ExtrudeSettings) {
     if (settings.operation !== undefined) extrudeOperation.value = settings.operation;
     if (settings.targetBodyId !== undefined) extrudeTargetBodyId.value = settings.targetBodyId;
+    if (extrudeOperation.value === "cut" && settings.targetBodyId) cutTargets.set([settings.targetBodyId]);
+    if (settings.targetBodyIds !== undefined) cutTargets.set(settings.targetBodyIds);
     if (settings.direction !== undefined) extrudeDirection.value = settings.direction;
     if (settings.reversed !== undefined) extrudeReversed.value = settings.reversed;
     if (settings.distance !== undefined) distanceField.set(settings.distance);
@@ -181,7 +195,7 @@ export function useExtrudeRevolve(deps: {
   }
 
   watch(extrudeOperation, (op) => {
-    if (op !== "new_body" && !lastSavedSketchTargetId.value && !extrudeTargetBodyId.value) {
+    if (op === "join" && !lastSavedSketchTargetId.value && !extrudeTargetBodyId.value) {
       extrudeTargetBodyId.value = model.bodies.value[0]?.id ?? null;
     }
   });
@@ -194,63 +208,94 @@ export function useExtrudeRevolve(deps: {
     return null;
   }
 
-  function pickExtentFace(payload: { bodyId: string; faceId: string | number }): boolean {
+  function pickFace(payload: { bodyId: string; faceId: string | number }): boolean {
     if (!lastSavedSketchId.value || panelMode.value !== "extrude") return false;
-    return extent.pickFace(payload);
+    return extent.pickFace(payload) || cutTargets.pickFromScene(payload.bodyId);
   }
 
-  async function handleExtrude() {
-    if (!lastSavedSketchId.value) return;
-    if (extrudeOperation.value !== "new_body" && !extrudeEffectiveTargetId.value) {
-      extrudeError.value = "Выберите целевое тело для операции";
-      return;
-    }
-    const browserTarget = extrudeOperation.value !== "new_body" && isBrowserBody(extrudeEffectiveTargetId.value);
-    const validationError = extrudeValidationError(browserTarget);
-    if (validationError) {
-      extrudeError.value = validationError;
-      return;
-    }
+  function cutValidationError(): string | null {
+    if (cutTargets.targetIds.value.length === 0) return "Выберите тела для выреза: кликните их в сцене или в дереве.";
+    return cutTargets.targetIds.value.every(isBrowserBody) ? null : "Тело для выреза не загружено в браузерное ядро.";
+  }
+
+  async function runExtrude(execute: () => Promise<void>, failure: string) {
     extrudeLoading.value = true;
     extrudeError.value = null;
     const opStart = performance.now();
-
     try {
-      const savedSketch = previewSketchData.value;
-      if (!savedSketch) throw new Error("Эскиз не найден в документе.");
-      const [{ BrowserExtrudeCommand }, { disposeBrowserGeometry }] = await Promise.all([
-        import("@/core/commands/BrowserExtrudeCommand"),
-        import("./useBrowserGeometry"),
-      ]);
+      const { disposeBrowserGeometry } = await import("./useBrowserGeometry");
       stopBrowserGeometry = disposeBrowserGeometry;
-      const command = new BrowserExtrudeCommand(
-        projectId,
-        lastSavedSketchId.value,
-        sketchPlacement(savedSketch),
-        extent.options({ ...extrudeBase(), targetBodyId: browserTarget ? extrudeEffectiveTargetId.value : null }),
-        documentStore.version.value,
-        () => documentStore.document.value,
-        (bodyId) => meshes.untrackMesh(bodyId),
-      );
-
-      await undoRedo.execute(command);
-
-      const result = command.getResult();
-      if (result) {
-        meshes.trackMesh(result.bodyId, result.mesh);
-      }
-
+      await execute();
       clearSketchContext();
       documentStore.markDirty();
       await documentStore.load(projectId);
       lastOpMs.value = Math.round(performance.now() - opStart);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Ошибка выдавливания";
-      extrudeError.value = msg;
+      extrudeError.value = err instanceof Error ? err.message : failure;
       console.error("Extrude failed:", err);
     } finally {
       extrudeLoading.value = false;
     }
+  }
+
+  async function handleExtrude() {
+    const sketchId = lastSavedSketchId.value;
+    if (!sketchId) return;
+    if (extrudeOperation.value === "cut" && cutTargets.targetIds.value.length > 1) {
+      await handleMultiCut(sketchId);
+      return;
+    }
+    if (extrudeOperation.value === "join" && !extrudeEffectiveTargetId.value) {
+      extrudeError.value = "Выберите целевое тело для операции";
+      return;
+    }
+    const browserTarget = extrudeOperation.value !== "new_body" && isBrowserBody(baseTargetId());
+    const validationError = (extrudeOperation.value === "cut" ? cutValidationError() : null) ?? extrudeValidationError(browserTarget);
+    if (validationError) {
+      extrudeError.value = validationError;
+      return;
+    }
+    await runExtrude(async () => {
+      const savedSketch = previewSketchData.value;
+      if (!savedSketch) throw new Error("Эскиз не найден в документе.");
+      const { BrowserExtrudeCommand } = await import("@/core/commands/BrowserExtrudeCommand");
+      const command = new BrowserExtrudeCommand(
+        projectId,
+        sketchId,
+        sketchPlacement(savedSketch),
+        extent.options({ ...extrudeBase(), targetBodyId: browserTarget ? baseTargetId() : null }),
+        documentStore.version.value,
+        () => documentStore.document.value,
+        (bodyId) => meshes.untrackMesh(bodyId),
+      );
+      await undoRedo.execute(command);
+      const result = command.getResult();
+      if (result) meshes.trackMesh(result.bodyId, result.mesh);
+    }, "Ошибка выдавливания");
+  }
+
+  async function handleMultiCut(sketchId: string) {
+    const validationError = cutValidationError() ?? extrudeValidationError(true);
+    if (validationError) {
+      extrudeError.value = validationError;
+      return;
+    }
+    await runExtrude(async () => {
+      const savedSketch = previewSketchData.value;
+      if (!savedSketch) throw new Error("Эскиз не найден в документе.");
+      const { BrowserExtrudeCutsCommand } = await import("@/core/commands/BrowserExtrudeCutsCommand");
+      const command = new BrowserExtrudeCutsCommand(
+        projectId,
+        sketchId,
+        sketchPlacement(savedSketch),
+        extent.options(extrudeBase()),
+        cutTargets.targetIds.value,
+        () => documentStore.document.value,
+        (bodyId) => meshes.untrackMesh(bodyId),
+      );
+      await undoRedo.execute(command);
+      command.getResult().forEach((body) => meshes.trackMesh(body.bodyId, body.mesh));
+    }, "Ошибка выреза");
   }
 
   async function handleRevolve() {
@@ -350,9 +395,10 @@ export function useExtrudeRevolve(deps: {
     extrudeSignedDistance,
     extrudeOperation,
     extrudeTargetBodyId,
+    cutTargets,
     extent,
     extrudePreviewError,
-    pickExtentFace,
+    pickFace,
     extrudeLoading,
     extrudeError,
     revolveAngleField,

@@ -37,7 +37,7 @@ describe("экспорт из browser worker (реальный OCCT/WASM)", () =
       const alone = await sendOk({ kind: "export", format: "stl", bodyIds: [bodyId] });
       expect(stlTriangles(alone.file), bodyId).toBe(12);
     }
-    const joined = await send({ kind: "boolean", operation: "union", targetBodyId: "export-a", toolBodyId: "export-b", featureKey: "k-export-union" });
+    const joined = await send({ kind: "boolean", operation: "union", targetBodyId: "export-a", toolBodyIds: ["export-b"], featureKey: "k-export-union" });
     expect(joined.error, "тела живы для булевой операции").toBeUndefined();
   });
 
