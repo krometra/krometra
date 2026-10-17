@@ -15,6 +15,7 @@ import LoftPanel from "./LoftPanel.vue";
 import HolePanel from "./HolePanel.vue";
 import MeasurePanel from "./MeasurePanel.vue";
 import PatternPanel from "./PatternPanel.vue";
+import WorkPlanePanel from "./WorkPlanePanel.vue";
 import type { ExtrudeRevolveApi } from "@/composables/editor/useExtrudeRevolve";
 import type { BooleanModeApi } from "@/composables/editor/useBooleanMode";
 import type { FilletChamferApi } from "@/composables/editor/useFilletChamfer";
@@ -28,6 +29,7 @@ import type { LoftApi } from "@/composables/editor/useLoft";
 import type { HoleApi } from "@/composables/editor/useHole";
 import type { MeasureApi } from "@/composables/editor/useMeasure";
 import type { PatternApi } from "@/composables/editor/usePattern";
+import type { WorkPlanesApi } from "@/composables/editor/useWorkPlanes";
 import type { MeshData } from "@/types/api";
 
 export interface OperationPanels {
@@ -44,6 +46,7 @@ export interface OperationPanels {
   hole: HoleApi;
   measure: MeasureApi;
   pattern: PatternApi;
+  workPlanes: WorkPlanesApi;
 }
 
 defineProps<{ panels: OperationPanels }>();
@@ -72,5 +75,6 @@ const sketch = useSketch();
   <SweepPanel v-else-if="panels.sweep.sweepMode.value" :sweep="panels.sweep" />
   <LoftPanel v-else-if="panels.loft.loftMode.value" :loft="panels.loft" />
   <MeasurePanel v-else-if="panels.measure.active.value" :measure="panels.measure" />
+  <WorkPlanePanel v-else-if="panels.workPlanes.panel.active.value" :tool="panels.workPlanes.panel" />
   <PropertiesPanel v-else @edit-sketch="emit('edit-sketch', $event)" @rebuilt="emit('rebuilt', $event)" />
 </template>

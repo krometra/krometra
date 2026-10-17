@@ -24,6 +24,7 @@ import { draftOps } from "./control/controlDraftOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { sketchConstraintOps } from "./control/controlSketchConstraintOps";
 import { viewportOps } from "./control/controlViewportOps";
+import { workPlaneOps } from "./control/controlWorkPlaneOps";
 
 declare global {
   interface Window {
@@ -58,6 +59,7 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...inspectOps(context),
     ...measureOps(context),
     ...pressPullOps(context),
+    ...workPlaneOps(context),
     ...imageOps(),
   ]);
 

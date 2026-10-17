@@ -1,5 +1,6 @@
 """Document schemas."""
 
+import math
 from datetime import datetime
 from typing import Optional
 
@@ -9,6 +10,10 @@ from app.schemas.ids import is_body_id, is_component_id
 
 BODY_REFERENCE_FIELDS = ("body_id", "result_body_id", "target_body_id", "tool_body_id", "up_to_body_id")
 COMPONENT_REFERENCE_FIELDS = ("id", "sketch_id", "feature_key")
+WORK_PLANE_TYPE = "work_plane"
+WORK_PLANE_KINDS = ("offset", "angle", "three_points", "midplane")
+WORK_PLANE_BASES = ("XY", "XZ", "YZ")
+BASIS_AXES = ("origin", "u", "v", "n")
 
 
 class DocumentResponse(BaseModel):
@@ -35,6 +40,30 @@ def _check_references(record: dict, where: str) -> None:
             raise ValueError(f"{where}: некорректный идентификатор в поле {field}.")
 
 
+def _is_number(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def _is_vector(value: object) -> bool:
+    return isinstance(value, list) and len(value) == 3 and all(_is_number(item) for item in value)
+
+
+def _check_work_plane(key: str, component: dict) -> None:
+    definition, basis = component.get("definition"), component.get("plane_basis")
+    if (
+        not isinstance(definition, dict)
+        or definition.get("kind") not in WORK_PLANE_KINDS
+        or component.get("plane") not in WORK_PLANE_BASES
+        or not _is_number(component.get("plane_offset"))
+        or not isinstance(basis, dict)
+        or not all(_is_vector(basis.get(axis)) for axis in BASIS_AXES)
+    ):
+        raise ValueError(f"Рабочая плоскость {key}: некорректные определение или базис.")
+    owner = component.get("ref_body_id")
+    if owner is not None and not is_body_id(owner):
+        raise ValueError(f"Рабочая плоскость {key}: некорректное тело-опора.")
+
+
 def _check_component(key: object, component: object) -> None:
     if not is_component_id(key):
         raise ValueError("Ключ компонента должен состоять из латиницы, цифр, '-' или '_' (до 64 символов).")
@@ -42,6 +71,11 @@ def _check_component(key: object, component: object) -> None:
         raise ValueError(f"Компонент {key} должен быть объектом.")
     if component.get("type") == "body" and not is_body_id(key):
         raise ValueError(f"Тело {key} должно иметь идентификатор вида body-<12 hex>.")
+    if component.get("type") == WORK_PLANE_TYPE:
+        _check_work_plane(key, component)
+    plane_id = component.get("ref_plane_id")
+    if plane_id is not None and not is_component_id(plane_id):
+        raise ValueError(f"Компонент {key}: некорректная ссылка на рабочую плоскость.")
     source = component.get("source")
     if isinstance(source, dict):
         _check_references(source, f"Компонент {key}")

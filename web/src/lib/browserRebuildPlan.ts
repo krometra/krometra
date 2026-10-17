@@ -6,6 +6,7 @@ import { patternModeOf, patternSpecFromParams } from "./bodyPatternParams";
 import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browserSketchSeat";
 import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
 import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
+import { workPlaneSeatSteps, type WorkPlaneSeatStep } from "./workPlaneSeat";
 
 export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft" | "press_pull";
 
@@ -36,7 +37,7 @@ export interface FailStep {
   message: string;
 }
 
-export type RebuildPlanStep = RebuildStep | SketchSeatStep | AliasStep | FailStep;
+export type RebuildPlanStep = RebuildStep | SketchSeatStep | WorkPlaneSeatStep | AliasStep | FailStep;
 
 export interface RegenSeeds {
   roots: string[];
@@ -309,6 +310,10 @@ export function browserRegenPlan(
     dirty.add(bodyId);
     for (const seat of sketchSeatSteps(document, bodyId)) {
       seated.add(seat.sketchId);
+      steps.push(seat);
+    }
+    for (const seat of workPlaneSeatSteps(document, bodyId)) {
+      seat.seated.forEach((sketch) => seated.add(sketch.sketchId));
       steps.push(seat);
     }
   };

@@ -47,9 +47,16 @@ export function sketchFaceRef(sketch: Record<string, unknown> | null): SketchFac
   return { bodyId, faceName };
 }
 
+function workPlaneOwner(document: SeatDocument, sketch: Record<string, unknown> | null): string | null {
+  const planeId = sketch?.ref_plane_id;
+  const plane = typeof planeId === "string" ? (document.components[planeId] as Record<string, unknown> | undefined) : undefined;
+  return plane?.type === "work_plane" && typeof plane.ref_body_id === "string" ? plane.ref_body_id : null;
+}
+
 export function sketchOwnerBody(document: SeatDocument, entry: TimelineEntry): string | null {
   if (!SKETCH_FEATURES.has(entry.kind)) return null;
-  return sketchFaceRef(sketchOf(document, entry.sketch_id))?.bodyId ?? null;
+  const sketch = sketchOf(document, entry.sketch_id);
+  return sketchFaceRef(sketch)?.bodyId ?? workPlaneOwner(document, sketch);
 }
 
 function placementOf(sketch: Record<string, unknown>): SketchSeatPlacement {

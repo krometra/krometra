@@ -15,6 +15,7 @@ import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { shellNamed, type ShellRequest } from "./shell";
 import { seatSketchOnFace } from "./sketchSeat";
+import { seatWorkPlane } from "./workPlane";
 import { sweepNamed, type SweepRequest } from "./sweep";
 import { threadNamed, type ThreadBuildRequest } from "./thread";
 import { transformNamed, type TransformRequest } from "./transform";
@@ -61,6 +62,7 @@ const backend: RebuildBackend<NamedShape> = {
     return builders[step.kind]({ id: 0, ...step.request } as never, bodyLookup);
   },
   seat: seatSketchOnFace,
+  workPlane: seatWorkPlane,
   load: (bodyId) => namedBodyShape(bodyId),
   revision: bodyRevision,
   dispose: (named) => named.shape.delete(),

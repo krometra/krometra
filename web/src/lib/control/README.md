@@ -29,13 +29,13 @@ type ControlErrorCode =
 
 - **`ready`** разрешается один раз, когда одновременно: вьюпорт смонтирован, документ этого проекта загружен, первая загрузка тел в сцену и ядро завершена (`useBodyMeshes.hydrated`), фаза браузерного ядра — `ready`. В тот же момент на `window` летит событие `cad-control-ready`. Промис не отклоняется: если ядро не запустилось, причина видна в `state` (`kernel: "failed"`, `kernelError`).
 - До готовности и при перезапуске ядра операции отвечают `not_ready` с причиной в `message`. `capabilities` и `state` доступны всегда.
-- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `pattern` → `boolean` → `sweep` → `loft` → `measure` → `press_pull` → `model` (`mode.ts`).
+- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `pattern` → `boolean` → `sweep` → `loft` → `measure` → `press_pull` → `plane` → `model` (`mode.ts`).
 - **Мутирующие операции выполняются по одной.** Вторая во время первой получает `busy`; так же отвечает запрос, пришедший, пока редактор сам занят операцией из интерфейса, сохранением или перезагрузкой тел. Операции чтения проходят всегда и видят `state.busy = true`.
 - Операции модели (`extrude`, `fillet`, …) закрывают открытую панель инструмента, как это делает лента, но в открытом эскизе отвечают `wrong_mode`: эскиз нужно завершить (`sketch.finish`) или отменить (`sketch.cancel`). После операции — успешной или отклонённой ядром — редактор в режиме `model`.
 
 ## Операции
 
-Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `sketch.regions`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `sketch.regions`, `viewport.project`, `viewport.capture`, `export`, `measure`, `plane.list`.
 
 `sketch.regions { sketchId }` делит сохранённый эскиз на регионы: замкнутые области, на которые его режут пересекающиеся отрезки, дуги и окружности, с отверстиями (`lib/sketchRegions.ts`). У региона `key`, площадь, точка внутри и число отверстий. Ключи передаются в `extrude` и `revolve` параметром `profileRegions`: строится только объединение выбранных регионов (смежные сливаются в одну грань), без параметра берётся весь эскиз, как раньше. Ключ — хеш набора рёбер-источников региона со стороной каждого (`id сущности` + по какую сторону от её направления лежит регион), поэтому он переживает правку размеров, пока пересечения те же; пропавший после правки регион роняет пересборку операции с понятной ошибкой.
 
@@ -47,7 +47,7 @@ type ControlErrorCode =
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.deleteConstraint`, `sketch.setConstruction`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `loft`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `draft`, `pressPull`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.deleteConstraint`, `sketch.setConstruction`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `loft`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `draft`, `pressPull`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `plane.create`, `plane.update`, `plane.delete`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
 
 Правка истории (`controlTimelineOps.ts`) идёт тем же путём, что контекстное меню дерева и шкалы: `useModelHistory.editTimeline` → `TimelineEditCommand` → пересборка зависимых браузерным ядром (`browserRegenPlan`) и сохранение одним `browser-regen`. Зависимая операция, которая без удалённой или подавленной не строится, не роняет правку: она остаётся в истории со `status: "error"` и текстом в `error`, остальная модель достраивается. В `state.timeline` у записи есть `suppressed`, `rolledBack` и `error`. Каждая правка отменяется одним `history.undo`.
 
@@ -72,6 +72,7 @@ lib/control/                       чистая логика, без DOM и Thre
 ├── sketchEntities.ts              разбор сущностей эскиза, выдача id
 └── measureRefs.ts                 разбор объектов измерения { bodyId, faceId | edgeId | point }
 └── patternParams.ts               ось массива в параметрах body.pattern
+└── workPlaneRequest.ts            параметры plane.create/plane.update → определение плоскости
 
 composables/editor/
 ├── useEditorControl.ts            собирает операции, публикует window.cadControl, следит за ready
@@ -89,6 +90,7 @@ composables/editor/
     ├── controlShellOps.ts         shell: оболочка с открытыми гранями
     ├── controlPressPullOps.ts     pressPull: сдвиг граней со знаком или выдавливание грани в новое тело
     ├── controlPatternOps.ts       body.pattern: массив тела
+    ├── controlWorkPlaneOps.ts     plane.list/create/update/delete: рабочие плоскости
     └── controlHoleOps.ts          hole: отверстия на плоской грани по точкам или окружностям эскиза
 
 composables/viewport/

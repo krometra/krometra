@@ -10,7 +10,7 @@ import {
 } from "@/lib/browserSketchSeat";
 import { faceByName, type NamedShape } from "./naming";
 
-function planeOf(face: Face): SeatSurface {
+export function planeOf(face: Face): SeatSurface {
   if (face.geomType !== "PLANE") return { planar: false };
   const adaptor = new (getOC().BRepAdaptor_Surface)(face.wrapped, false);
   try {

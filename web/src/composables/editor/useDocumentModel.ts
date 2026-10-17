@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { featureSketchIds } from "@/lib/browserRebuildPlan";
+import { workPlaneEntries, type WorkPlaneEntry } from "@/lib/workPlaneDocument";
 import type { TimelineEntry } from "@/types/api";
 
 export interface ComponentEntry {
@@ -34,6 +35,8 @@ export function useDocumentModel() {
       .map(([id, data]) => ({ id, ...(data as Record<string, unknown>) }));
   });
 
+  const workPlanes = computed<WorkPlaneEntry[]>(() => workPlaneEntries(documentStore.document.value?.components ?? {}));
+
   function sketchHasFeature(sketchId: string): boolean {
     return timelineEntries.value.some((e) => featureSketchIds(e).includes(sketchId));
   }
@@ -44,5 +47,5 @@ export function useDocumentModel() {
     );
   }
 
-  return { timelineEntries, sketches, bodies, sketchHasFeature, dependentFeatures };
+  return { timelineEntries, sketches, bodies, workPlanes, sketchHasFeature, dependentFeatures };
 }

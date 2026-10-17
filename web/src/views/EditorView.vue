@@ -38,6 +38,7 @@ import { useTimelineEdits } from "@/composables/editor/useTimelineEdits";
 import { useProjectThumbnail } from "@/composables/editor/useProjectThumbnail";
 import { useEditorControl } from "@/composables/editor/useEditorControl";
 import { useViewInspect } from "@/composables/editor/useViewInspect";
+import { useWorkPlanes } from "@/composables/editor/useWorkPlanes";
 import { apiErrorMessage, toast } from "@/composables/useToast";
 import ViewportContainer from "@/components/viewport/ViewportContainer.vue";
 import ViewCube from "@/components/viewport/ViewCube.vue";
@@ -59,6 +60,8 @@ import LegacyProjectNotice from "@/components/editor/LegacyProjectNotice.vue";
 import WatchModeBanner from "@/components/editor/WatchModeBanner.vue";
 import AiControlBadge from "@/components/editor/AiControlBadge.vue";
 import ViewInspectOverlay from "@/components/editor/ViewInspectOverlay.vue";
+import SketchPlanePickBanner from "@/components/editor/SketchPlanePickBanner.vue";
+import WorkPlaneDeleteDialog from "@/components/editor/WorkPlaneDeleteDialog.vue";
 import { pluralize } from "@/lib/plural";
 import type { RenderingMode, RibbonAction, SelectionMode } from "@/composables/editor/types";
 import type { BrepTopo, Project } from "@/types/api";
@@ -113,9 +116,10 @@ const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, 
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const pressPull = usePressPull({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const workPlanes = useWorkPlanes({ viewportRef, viewportSelectionMode, meshes, model, history, bodyPresentation, sketchFlow, leaveActiveTools });
 const tools = useEditorTools([
   filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool, draft.tool,
-  pressPull.tool,
+  pressPull.tool, workPlanes.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -185,7 +189,7 @@ function onSelectionCleared() {
 }
 
 const timelineEdits = useTimelineEdits({ model, history });
-const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation, exportApi, timelineEdits });
+const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extrude, history, bodyPresentation, exportApi, timelineEdits, workPlanes });
 
 // --- Undo / Redo ---
 
@@ -212,7 +216,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, loft, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
-      measure, draft, pressPull,
+      measure, draft, pressPull, workPlanes,
     });
 
 // --- Горячие клавиши ---
@@ -325,6 +329,7 @@ const selectionLabel = useSelectionLabel();
         @toggle-visibility="contextMenu.toggleVisibility"
         @toggle-sketch-visibility="contextMenu.toggleSketchVisibility"
         @plane-context-menu="inspect.openPlaneMenu"
+        @toggle-plane-visibility="workPlanes.toggleVisibility"
       />
 
       <div :class="$style.viewport">
@@ -340,14 +345,11 @@ const selectionLabel = useSelectionLabel();
           @body-deselected="booleanMode.handleBodyDeselected"
           @edge-selection-changed="filletChamfer.onEdgeSelectionChanged($event); pattern.onEdgeSelectionChanged($event)"
           @face-context-menu="inspect.openFaceMenu"
-          @measure-picked="measure.onPicked"
+          @measure-picked="measure.onPicked($event); workPlanes.panel.onPicked($event)"
+          @work-plane-picked="sketchFlow.onWorkPlanePicked"
         />
 
-        <div v-if="sketchFlow.facePickMode.value" :class="$style.facePickBanner">
-          <span>Кликните базовую плоскость или плоскую грань тела</span>
-          <span v-if="sketchFlow.facePickError.value" :class="$style.facePickError">{{ sketchFlow.facePickError.value }}</span>
-          <button :class="$style.cancelBtn" @click="sketchFlow.cancelFacePick">Отмена (Esc)</button>
-        </div>
+        <SketchPlanePickBanner v-if="sketchFlow.facePickMode.value" :error="sketchFlow.facePickError.value" @cancel="sketchFlow.cancelFacePick" />
 
         <OnboardingHint
           v-if="onboarding.hint.value && !props.watch && !control?.relay.attached.value"
@@ -411,7 +413,7 @@ const selectionLabel = useSelectionLabel();
 
       <aside :class="$style.props" :inert="watchInert">
         <EditorOperationPanels
-          :panels="{ extrude, booleanMode, filletChamfer, thread, shell, draft, pressPull, mirror, sweep, loft, hole, measure, pattern }"
+          :panels="{ extrude, booleanMode, filletChamfer, thread, shell, draft, pressPull, mirror, sweep, loft, hole, measure, pattern, workPlanes }"
           @sketch-ok="sketchFlow.handleSketchOk"
           @sketch-cancel="sketchFlow.handleSketchCancel"
           @edit-sketch="sketchFlow.editSketch"
@@ -439,6 +441,7 @@ const selectionLabel = useSelectionLabel();
     <ShortcutsDialog v-model:open="showShortcuts" />
     <MeshExportDialog :export-api="exportApi" />
     <SketchDeleteDialog :pending="timelineEdits.pendingSketchDelete.value" @confirm="timelineEdits.confirmSketchDelete" @cancel="timelineEdits.cancelSketchDelete" />
+    <WorkPlaneDeleteDialog :pending="workPlanes.pendingDelete.value" @confirm="workPlanes.confirmRemove" @cancel="workPlanes.cancelRemove" />
     <LegacyProjectNotice v-if="meshes.legacyProject.value" />
 
     <TreeContextMenu
@@ -471,45 +474,6 @@ const selectionLabel = useSelectionLabel();
   position: relative;
   min-width: 0;
   overflow: hidden;
-}
-
-.facePickBanner {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 90%;
-  padding: 10px 16px;
-  background: var(--cs-surface-raised, #252535);
-  border: 1px solid var(--cs-primary, #4a7dff);
-  border-radius: 10px;
-  color: var(--cs-text, #eee);
-  font-size: 13px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-.facePickError {
-  color: var(--cs-error, oklch(0.65 0.2 25));
-  font-size: 12px;
-}
-
-.cancelBtn {
-  cursor: pointer;
-  background: transparent;
-  border: 1px solid var(--cs-border-strong);
-  font-size: 13px;
-  padding: 6px 12px;
-  border-radius: 7px;
-  color: var(--cs-text-secondary);
-  transition: border-color var(--cs-transition-fast);
-}
-
-.cancelBtn:hover {
-  border-color: var(--cs-text-muted);
 }
 
 .busyBadge {

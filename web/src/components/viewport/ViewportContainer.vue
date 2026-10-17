@@ -29,6 +29,7 @@ import { useMeasurePicking } from "@/composables/viewport/useMeasurePicking";
 import { useViewportNavigation } from "@/composables/viewport/useViewportNavigation";
 import { useNavigationSettings } from "@/composables/shared/useNavigationSettings";
 import { useRegionPicking } from "@/composables/viewport/useRegionPicking";
+import { useWorkPlaneView } from "@/composables/viewport/useWorkPlaneView";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -46,6 +47,7 @@ const emit = defineEmits<{
   planePicked: [payload: { plane: import("@/types/api").SketchPlane }];
   faceContextMenu: [payload: { bodyId: string; faceId: string | number; x: number; y: number }];
   measurePicked: [pick: import("@/lib/measure").MeasureRef | null];
+  workPlanePicked: [planeId: string];
 }>();
 
 const RENDERING_MODE_LABELS: Record<RenderingMode, string> = {
@@ -80,6 +82,7 @@ const navigation = useViewportNavigation({
   beforeMove: core.stopCameraAnimation,
 });
 const regionPicking = useRegionPicking(context);
+const workPlaneView = useWorkPlaneView(context);
 
 const faces = useFaceSelection({
   context,
@@ -122,7 +125,7 @@ const registry = useBodyRegistry({
 onMounted(() => {
   if (!canvasContainer.value) return;
   core.init(canvasContainer.value, { onClick: onCanvasClick, onMove: onCanvasMouseMove, onContextMenu: onCanvasContextMenu });
-  context.scene().add(planes.group);
+  context.scene().add(planes.group, workPlaneView.group);
   navigation.attach(canvasContainer.value);
 });
 
@@ -141,11 +144,18 @@ onUnmounted(() => {
   meshGhost.hide();
   regionPicking.hide();
   measure.dispose();
+  workPlaneView.dispose();
 });
 
 function onCanvasClick(event: MouseEvent) {
   if (!context.ready()) return;
   core.updatePointer(event);
+
+  const workPlaneId = planes.isVisible() ? workPlaneView.pick() : null;
+  if (workPlaneId) {
+    emit("workPlanePicked", workPlaneId);
+    return;
+  }
 
   // Хелпер базовой плоскости забирает клик только мимо тел (lib/pickPriority)
   const quad = planes.pick();
@@ -158,7 +168,7 @@ function onCanvasClick(event: MouseEvent) {
   if (selectionMode.value === "body") bodies.handleClick();
   else if (selectionMode.value === "face") faces.handleClick();
   else if (selectionMode.value === "edge") edges.handleClick();
-  else if (selectionMode.value === "measure") measure.handleClick();
+  else if (selectionMode.value === "measure" || selectionMode.value === "pick") measure.handleClick();
 }
 
 function onCanvasMouseMove(event: MouseEvent) {
@@ -174,17 +184,18 @@ function onCanvasMouseMove(event: MouseEvent) {
     core.setCursor(edges.handleHover() ? "pointer" : "crosshair");
     return;
   }
-  if (selectionMode.value === "measure") {
+  if (selectionMode.value === "measure" || selectionMode.value === "pick") {
     core.setCursor(measure.handleHover() ? "pointer" : "crosshair");
     return;
   }
   if (selectionMode.value !== "face" && !planes.isVisible()) return;
 
-  const quad = planes.pick();
+  const workPlaneHovered = planes.isVisible() && workPlaneView.hover();
+  const quad = workPlaneHovered ? null : planes.pick();
   planes.setHovered(quad);
-  const faceHovered = quad ? (faces.restoreSelected(), false) : faces.handleHover();
+  const faceHovered = quad || workPlaneHovered ? (faces.restoreSelected(), false) : faces.handleHover();
 
-  core.setCursor(quad || faceHovered ? "pointer" : idleCursor());
+  core.setCursor(quad || workPlaneHovered || faceHovered ? "pointer" : idleCursor());
 }
 
 function onCanvasContextMenu(event: MouseEvent) {
@@ -247,7 +258,7 @@ watch(
 watch(
   () => props.selectionMode,
   (mode) => {
-    if (mode !== "measure") measure.clearHover();
+    if (mode !== "measure" && mode !== "pick") measure.clearHover();
     if (mode === "edge") edges.ensureAll();
     else {
       edges.clearHover();
@@ -283,6 +294,7 @@ defineExpose({
   showPlaneHelpers: planes.show,
   hidePlaneHelpers: () => {
     planes.hide();
+    workPlaneView.clearHover();
     core.setCursor("");
   },
   showExtrudePreview: previews.showExtrude,
@@ -295,6 +307,10 @@ defineExpose({
   hideMirrorPreview: mirrorPreview.hide,
   showProfileRegions: regionPicking.show,
   hideProfileRegions: regionPicking.hide,
+  setWorkPlanes: workPlaneView.setPlanes,
+  showWorkPlanePreview: workPlaneView.showPreview,
+  hideWorkPlanePreview: workPlaneView.hidePreview,
+  workPlaneScene: () => ({ planeIds: workPlaneView.planeIds(), preview: workPlaneView.previewSnapshot() }),
   showHolePreview: holePreview.showHoles,
   hideHolePreview: holePreview.hideHoles,
   showMeshGhost: meshGhost.show,
@@ -343,6 +359,9 @@ defineExpose({
     </div>
     <div v-else-if="selectionMode === 'measure'" :class="$style.selectionModeBadge">
       Измерение
+    </div>
+    <div v-else-if="selectionMode === 'pick'" :class="$style.selectionModeBadge">
+      Выбор опоры плоскости
     </div>
   </div>
 </template>

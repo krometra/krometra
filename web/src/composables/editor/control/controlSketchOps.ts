@@ -15,9 +15,13 @@ interface SketchPlacement {
   offset?: number;
   bodyId?: string;
   faceId?: string;
+  planeId?: string;
 }
 
-type SketchTarget = { kind: "plane"; plane: SketchPlane; offset: number } | { kind: "face"; bodyId: string; faceId: string | number };
+type SketchTarget =
+  | { kind: "plane"; plane: SketchPlane; offset: number }
+  | { kind: "face"; bodyId: string; faceId: string | number }
+  | { kind: "work_plane"; planeId: string };
 
 const placementParams = {
   plane: param.optional(param.oneOf(["XY", "XZ", "YZ"], "Базовая плоскость эскиза. Задаётся вместо bodyId и faceId.")),
@@ -26,6 +30,7 @@ const placementParams = {
   ),
   bodyId: param.optional(param.id("Тело, на плоской грани которого строится эскиз. Задаётся вместе с faceId.")),
   faceId: param.optional(param.id("Плоская грань тела из op topology (поле planar). Задаётся вместе с bodyId.")),
+  planeId: param.optional(param.id("Рабочая плоскость из op plane.list — вместо plane и bodyId + faceId. Эскиз следует за плоскостью при её правке и пересборке.")),
 };
 
 const ENTITIES_HELP = `Сущности эскиза: массив, элемент — ${SKETCH_ENTITY_FORMAT}. Замкнутый контур даёт профиль для выдавливания и вращения.`;
@@ -43,6 +48,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
       planeBasis: sketch.sketchMode.value ? sketch.planeBasis.value ?? basePlaneBasis() : null,
       refBodyId: sketch.refBodyId.value,
       refFaceId: sketch.refFaceId.value === null ? null : String(sketch.refFaceId.value),
+      refPlaneId: sketch.refPlaneId.value,
       tool: sketch.currentTool.value,
       entities: sketch.entities.value,
       constraints: sketch.constraints.value,
@@ -78,6 +84,15 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
   }
 
   function pickPlacement(placement: SketchPlacement): SketchTarget {
+    if (placement.planeId !== undefined) {
+      if (placement.plane !== undefined || placement.offset !== undefined || placement.bodyId !== undefined || placement.faceId !== undefined) {
+        throw fail("invalid_params", "planeId задаётся без plane, offset, bodyId и faceId: эскиз лежит в рабочей плоскости.");
+      }
+      if (!context.workPlanes.planes.value.some((plane) => plane.id === placement.planeId)) {
+        throw fail("not_found", `Рабочей плоскости «${placement.planeId}» нет. Список — op "plane.list".`);
+      }
+      return { kind: "work_plane", planeId: placement.planeId };
+    }
     const onFace = placement.bodyId !== undefined || placement.faceId !== undefined;
     if (placement.plane !== undefined && onFace) {
       throw fail("invalid_params", "Задайте либо plane, либо пару bodyId и faceId, но не всё сразу.");
@@ -96,6 +111,8 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     sketchFlow.beginPlanePick();
     if (target.kind === "plane") {
       sketchFlow.onPlanePicked({ plane: target.plane, offset: target.offset });
+    } else if (target.kind === "work_plane") {
+      sketchFlow.startOnWorkPlane(target.planeId);
     } else {
       sketchFlow.handleFaceSketchStart({ bodyId: target.bodyId, faceId: target.faceId });
       if (sketchFlow.facePickMode.value) {
@@ -147,7 +164,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.get",
       description:
-        "Открытый эскиз. Возвращает { active, id, loaded, plane, planeOffset, planeBasis, refBodyId, refFaceId, tool, entities, constraints, canUndo, canRedo }. planeBasis { origin, u, v, n } — система координат эскиза и на базовой плоскости, и на грани: мировая точка = origin + x·u + y·v. Вне режима эскиза active = false, id = null, planeBasis = null, entities пуст. loaded = true, когда канвас загрузил эскиз и готов к вводу. Сущности: line { start, end }, rectangle { corner1, corner2 }, circle { center, radius }, arc { center, radius, startAngle, endAngle }; construction = true у вспомогательной геометрии: контур грани под эскизом и то, что нарисовано в режиме «Вспомогательная» (клавиша X).",
+        "Открытый эскиз. Возвращает { active, id, loaded, plane, planeOffset, planeBasis, refBodyId, refFaceId, refPlaneId, tool, entities, constraints, canUndo, canRedo }. planeBasis { origin, u, v, n } — система координат эскиза и на базовой плоскости, и на грани: мировая точка = origin + x·u + y·v. Вне режима эскиза active = false, id = null, planeBasis = null, entities пуст. loaded = true, когда канвас загрузил эскиз и готов к вводу. Сущности: line { start, end }, rectangle { corner1, corner2 }, circle { center, radius }, arc { center, radius, startAngle, endAngle }; construction = true у вспомогательной геометрии: контур грани под эскизом и то, что нарисовано в режиме «Вспомогательная» (клавиша X).",
       run: snapshot,
     }),
 
@@ -187,7 +204,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.start",
       description:
-        "Открывает новый эскиз на базовой плоскости (plane, при необходимости смещённой на offset мм) или на плоской грани тела (bodyId + faceId) — то же, что кнопка «Эскиз» и клик по плоскости. Открытая панель инструмента закрывается. У эскиза на грани в сущностях появляются сущности построения (construction = true) по кромкам грани: прямая кромка — line, круглая — circle, дуга — arc. Возвращает то же, что sketch.get. Дальше — sketch.addEntities и sketch.finish.",
+        "Открывает новый эскиз на базовой плоскости (plane, при необходимости смещённой на offset мм) на плоской грани тела (bodyId + faceId) или на рабочей плоскости (planeId) — то же, что кнопка «Эскиз» и клик по плоскости. Открытая панель инструмента закрывается. У эскиза на грани в сущностях появляются сущности построения (construction = true) по кромкам грани: прямая кромка — line, круглая — circle, дуга — arc. Возвращает то же, что sketch.get. Дальше — sketch.addEntities и sketch.finish.",
       mutates: true,
       params: placementParams,
       run: start,
@@ -237,7 +254,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.create",
       description:
-        "Создаёт эскиз целиком: открывает его на базовой плоскости (с offset — на смещённой) или плоской грани, добавляет сущности, сохраняет и возвращается в режим модели. Тело на высоте Z = h: plane XY, offset h, затем extrude. Возвращает { sketchId, entityCount, mode }. При ошибке эскиз закрывается без сохранения.",
+        "Создаёт эскиз целиком: открывает его на базовой плоскости (с offset — на смещённой), плоской грани или рабочей плоскости (planeId), добавляет сущности, сохраняет и возвращается в режим модели. Тело на высоте Z = h: plane XY, offset h, затем extrude. Возвращает { sketchId, entityCount, mode }. При ошибке эскиз закрывается без сохранения.",
       mutates: true,
       params: { ...placementParams, entities: sketchEntitiesParam(ENTITIES_HELP) },
       run: ({ entities, ...placement }) => create(placement, entities),

@@ -1568,6 +1568,8 @@ export interface components {
             ref_body_id?: string | null;
             /** Ref Face Id */
             ref_face_id?: string | number | null;
+            /** Ref Plane Id */
+            ref_plane_id?: string | null;
             /** Entities */
             entities?: (components["schemas"]["SketchLine"] | components["schemas"]["SketchCircle"] | components["schemas"]["SketchArc"] | components["schemas"]["SketchRectangle"] | components["schemas"]["SketchInfiniteLine"])[];
             /** Constraints */

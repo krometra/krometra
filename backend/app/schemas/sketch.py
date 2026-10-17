@@ -121,6 +121,7 @@ class SketchData(BaseModel):
     plane_basis: PlaneBasis | None = None
     ref_body_id: str | None = None
     ref_face_id: str | int | None = None  # logical name (str) or physical index (int, legacy)
+    ref_plane_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_-]{1,64}$")
     entities: list[SketchEntity] = Field(default_factory=list)
     constraints: list[SketchConstraint] = Field(default_factory=list)
 

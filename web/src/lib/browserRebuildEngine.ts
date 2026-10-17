@@ -1,10 +1,12 @@
 import { stableHash } from "./browserNaming";
 import type { RebuildPlanStep, RebuildStep } from "./browserRebuildPlan";
 import type { SketchSeatPlacement, SketchSeatStep } from "./browserSketchSeat";
+import type { WorkPlaneSeatStep } from "./workPlaneSeat";
 
 export interface RebuildBackend<T> {
   build(step: RebuildStep, lookup: (bodyId: string) => T): T;
   seat(step: SketchSeatStep, owner: T): SketchSeatPlacement;
+  workPlane?(step: WorkPlaneSeatStep, owner: T, seatOf: (sketchId: string) => SketchSeatPlacement | undefined): SketchSeatPlacement;
   load(bodyId: string): T;
   revision(bodyId: string): number;
   dispose(shape: T): void;
@@ -125,6 +127,28 @@ class RebuildRun<T> {
     }
   }
 
+  workPlane(step: WorkPlaneSeatStep) {
+    try {
+      if (!this.backend.workPlane) throw new Error("Ядро не умеет пересобирать рабочие плоскости.");
+      const placement = this.backend.workPlane(step, this.lookup(step.bodyId), (sketchId) => this.seats.get(sketchId));
+      this.seats.set(step.planeId, placement);
+      this.failures.delete(step.planeId);
+      for (const sketch of step.seated) {
+        this.seats.set(sketch.sketchId, placement);
+        this.seatFailures.delete(sketch.sketchId);
+        this.failures.delete(sketch.entryId);
+      }
+    } catch (error) {
+      this.seats.delete(step.planeId);
+      this.failures.set(step.planeId, messageOf(error));
+      for (const sketch of step.seated) {
+        this.seats.delete(sketch.sketchId);
+        this.seatFailures.set(sketch.sketchId, messageOf(error));
+        this.failures.set(sketch.entryId, messageOf(error));
+      }
+    }
+  }
+
   private shapeOf(step: RebuildStep, key: string): T {
     const cached = this.cache.get(key);
     if (cached === undefined) return this.backend.build(step, this.lookup);
@@ -165,6 +189,7 @@ export function runRebuild<T>(steps: RebuildPlanStep[], backend: RebuildBackend<
     if (step.kind === "alias") run.alias(step.bodyId, step.fallbackBodyId);
     else if (step.kind === "fail") run.fail(step.entryId, step.outputBodyId, step.fallbackBodyId, step.message);
     else if (step.kind === "sketch_plane") run.seat(step);
+    else if (step.kind === "work_plane") run.workPlane(step);
     else run.build(step);
   }
   return run.outcome();

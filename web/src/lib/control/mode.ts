@@ -16,7 +16,8 @@ export type EditorMode =
   | "sweep"
   | "loft"
   | "measure"
-  | "press_pull";
+  | "press_pull"
+  | "plane";
 
 export interface EditorModeFlags {
   sketch: boolean;
@@ -34,6 +35,7 @@ export interface EditorModeFlags {
   loft: boolean;
   measure: boolean;
   pressPull: boolean;
+  plane?: boolean;
 }
 
 export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
@@ -52,5 +54,6 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.loft) return "loft";
   if (flags.measure) return "measure";
   if (flags.pressPull) return "press_pull";
+  if (flags.plane) return "plane";
   return "model";
 }

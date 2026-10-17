@@ -155,6 +155,7 @@ export interface SketchData {
   plane_basis?: PlaneBasis | null;
   ref_body_id?: string | null;
   ref_face_id?: string | number | null;
+  ref_plane_id?: string | null;
   entities: SketchEntity[];
   constraints: SketchConstraint[];
 }
