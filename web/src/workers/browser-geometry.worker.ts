@@ -1,11 +1,14 @@
 import { booleanNamed } from "./geometry/boolean";
+import { draftNamed, type DraftRequest } from "./geometry/draft";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
 import { extrudeNamed } from "./geometry/extrude";
 import { holeNamed } from "./geometry/hole";
 import { importStepBodies, type ImportStepRequest } from "./geometry/importStep";
+import { loftNamed, type LoftRequest } from "./geometry/loft";
 import { mirrorNamed, type MirrorRequest } from "./geometry/mirror";
 import { runFilletMerge, type FilletMergeRequest } from "./geometry/filletMerge";
 import { patternNamed, type PatternRequest } from "./geometry/pattern";
+import { pressPullNamed, type PressPullRequest } from "./geometry/pressPull";
 import { revolveNamed } from "./geometry/revolve";
 import { runRebuildRequest, type RebuildRequest } from "./geometry/rebuild";
 import { estimateTriangles, exportBodies, type ExportEstimateRequest } from "./geometry/exportFile";
@@ -27,7 +30,7 @@ import { transformNamed, type TransformRequest } from "./geometry/transform";
 import type { ShapeRequest, WorkerRequest } from "./geometry/types";
 
 type Request = WorkerRequest | RebuildRequest | FilletMergeRequest | ImportStepRequest | TransformRequest | SectionRequest | ExportEstimateRequest | ShellRequest | MirrorRequest | SweepRequest
-  | MeasureRequest | PatternRequest;
+  | MeasureRequest | PatternRequest | LoftRequest | DraftRequest | PressPullRequest;
 
 const worker = globalThis as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -38,6 +41,7 @@ function buildShape(data: Request) {
   if (data.kind === "extrude") return publishNamed(() => extrudeNamed(data, namedBodyShape));
   if (data.kind === "revolve") return publishNamed(() => revolveNamed(data));
   if (data.kind === "sweep") return publishNamed(() => sweepNamed(data, namedBodyShape));
+  if (data.kind === "loft") return publishNamed(() => loftNamed(data, namedBodyShape));
   if (data.kind === "boolean") return publishNamed(() => booleanNamed(data, namedBodyShape));
   if (data.kind === "fillet" || data.kind === "chamfer") return publishNamed(() => edgeFeatureNamed(data, namedBodyShape));
   if (data.kind === "transform") return publishNamed(() => transformNamed(data, namedBodyShape));
@@ -45,6 +49,8 @@ function buildShape(data: Request) {
   if (data.kind === "mirror") return publishNamed(() => mirrorNamed(data, namedBodyShape));
   if (data.kind === "hole") return publishNamed(() => holeNamed(data, namedBodyShape));
   if (data.kind === "pattern") return publishNamed(() => patternNamed(data, namedBodyShape));
+  if (data.kind === "draft") return publishNamed(() => draftNamed(data, namedBodyShape));
+  if (data.kind === "press_pull") return publishNamed(() => pressPullNamed(data, namedBodyShape));
   return null;
 }
 

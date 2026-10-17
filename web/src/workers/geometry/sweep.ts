@@ -13,7 +13,8 @@ import {
 } from "@/lib/browserSweepPath";
 import { combineWithTarget } from "./extrude";
 import { namedFromSweep, type NamedShape } from "./naming";
-import { sweepSketchProfiles } from "./profile";
+import { browserProfilesOf } from "@/lib/browserProfile";
+import { sweepProfiles } from "./profile";
 import type { BodyLookup, SketchPlacement } from "./types";
 
 export interface SweepRequest extends SketchPlacement {
@@ -43,7 +44,7 @@ function spineWire(spine: BrowserSweepSpine): Wire {
   }
 }
 
-function isValidSolid(shape: Shape3D): boolean {
+export function isValidSolid(shape: Shape3D): boolean {
   const analyzer = new (getOC().BRepCheck_Analyzer)(shape.wrapped, true, false, false);
   try {
     return analyzer.IsValid();
@@ -55,7 +56,7 @@ function isValidSolid(shape: Shape3D): boolean {
 function sweptProfiles(request: SweepRequest, spine: BrowserSweepSpine): Shape3D {
   const wire = spineWire(spine);
   try {
-    return sweepSketchProfiles(request.entities, (center) => ({
+    return sweepProfiles(browserProfilesOf(request.entities), (center) => ({
       ...browserPlaneFrame({ ...request, center }),
       sweep: (sketch) => genericSweep(sketch.wire, wire, { frenet: request.orientation === "frenet", transitionMode: "right" }),
     }));

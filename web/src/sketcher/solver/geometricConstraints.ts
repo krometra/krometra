@@ -4,6 +4,8 @@ import {
   constraintSegments,
   getEntity,
   getPoint,
+  movingPoints,
+  shiftPoints,
   updateArcPoints,
   type PointMap,
   type Segment,
@@ -53,17 +55,16 @@ export function applyVertical(constraint: SketchConstraint, points: PointMap): n
   return alignAxis(constraint, points, "x");
 }
 
-export function applyCoincident(constraint: SketchConstraint, points: PointMap): number {
+export function applyCoincident(constraint: SketchConstraint, entities: SketchEntity[], points: PointMap): number {
   if (constraint.anchors.length < 2) return 0;
   const p0 = getPoint(points, constraint.anchors[0]);
   const p1 = getPoint(points, constraint.anchors[1]);
   if (!p0 || !p1) return 0;
   const dx = p1.x - p0.x;
   const dy = p1.y - p0.y;
-  p0.x += dx * 0.5 * LEARNING_RATE;
-  p0.y += dy * 0.5 * LEARNING_RATE;
-  p1.x -= dx * 0.5 * LEARNING_RATE;
-  p1.y -= dy * 0.5 * LEARNING_RATE;
+  const k = 0.5 * LEARNING_RATE;
+  shiftPoints(movingPoints(points, entities, constraint.anchors[0]), dx * k, dy * k);
+  shiftPoints(movingPoints(points, entities, constraint.anchors[1]), -dx * k, -dy * k);
   return Math.hypot(dx, dy);
 }
 

@@ -6,14 +6,17 @@ const idle: EditorModeFlags = {
   planePick: false,
   sweepPanel: null,
   sweep: false,
+  loft: false,
   edgeFeature: null,
   thread: false,
   shell: false,
+  draft: false,
   mirror: false,
   hole: false,
   pattern: false,
   boolean: false,
   measure: false,
+  pressPull: false,
 };
 
 describe("resolveEditorMode", () => {
@@ -30,12 +33,15 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, edgeFeature: "chamfer" })).toBe("chamfer");
     expect(resolveEditorMode({ ...idle, thread: true })).toBe("thread");
     expect(resolveEditorMode({ ...idle, shell: true })).toBe("shell");
+    expect(resolveEditorMode({ ...idle, draft: true })).toBe("draft");
     expect(resolveEditorMode({ ...idle, mirror: true })).toBe("mirror");
     expect(resolveEditorMode({ ...idle, hole: true })).toBe("hole");
     expect(resolveEditorMode({ ...idle, pattern: true })).toBe("pattern");
     expect(resolveEditorMode({ ...idle, boolean: true })).toBe("boolean");
     expect(resolveEditorMode({ ...idle, sweep: true })).toBe("sweep");
+    expect(resolveEditorMode({ ...idle, loft: true })).toBe("loft");
     expect(resolveEditorMode({ ...idle, measure: true })).toBe("measure");
+    expect(resolveEditorMode({ ...idle, pressPull: true })).toBe("press_pull");
   });
 
   it("эскиз перекрывает панель операции так же, как правая панель редактора", () => {

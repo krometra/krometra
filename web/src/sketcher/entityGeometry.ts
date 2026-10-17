@@ -1,34 +1,4 @@
-import type { SketchEntity, SketchPoint } from "@/types/api";
-import { entityRefPoint } from "./sketchPoints";
-
-/**
- * Геометрические характеристики сущностей эскиза, нужные и рендеру,
- * и подгонке вида: центр, характерная точка, угол, bbox.
- */
-
-export function entityCenter(entity: SketchEntity): SketchPoint | null {
-  switch (entity.type) {
-    case "infline":
-      return { x: entity.point.x, y: entity.point.y };
-    case "line":
-      return {
-        x: (entity.start.x + entity.end.x) / 2,
-        y: (entity.start.y + entity.end.y) / 2,
-      };
-    case "rectangle":
-      return {
-        x: (entity.corner1.x + entity.corner2.x) / 2,
-        y: (entity.corner1.y + entity.corner2.y) / 2,
-      };
-    case "circle":
-    case "arc":
-      return entity.center ? { x: entity.center.x, y: entity.center.y } : null;
-  }
-}
-
-export function entityPoint(entity: SketchEntity, subIndex: number): SketchPoint | null {
-  return entityRefPoint(entity, subIndex);
-}
+import type { SketchEntity } from "@/types/api";
 
 export interface BBox {
   x1: number;

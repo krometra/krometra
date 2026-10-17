@@ -32,7 +32,7 @@ interface SeatDocument {
 const SAME_PLANE_TOLERANCE = 1e-7;
 const DEGENERATE = 1e-9;
 const NOISE = 1e-12;
-const SKETCH_FEATURES = new Set(["extrude", "revolve", "sweep"]);
+const SKETCH_FEATURES = new Set(["extrude", "revolve", "sweep", "loft"]);
 
 function sketchOf(document: SeatDocument, sketchId: string | null | undefined): Record<string, unknown> | null {
   const sketch = sketchId ? document.components[sketchId] : null;

@@ -9,7 +9,10 @@ from app.api.routes import api_keys, auth, projects, documents, geometry, sketch
 from app.api.routes import browser_shell
 from app.api.routes import browser_mirror
 from app.api.routes import browser_sweep
+from app.api.routes import browser_loft
 from app.api.routes import browser_hole
+from app.api.routes import browser_draft
+from app.api.routes import browser_press_pull
 from app.config import get_settings
 
 settings = get_settings()
@@ -53,7 +56,10 @@ app.include_router(browser_import.router, prefix="/api")
 app.include_router(browser_shell.router, prefix="/api")
 app.include_router(browser_mirror.router, prefix="/api")
 app.include_router(browser_sweep.router, prefix="/api")
+app.include_router(browser_loft.router, prefix="/api")
 app.include_router(browser_pattern.router, prefix="/api")
+app.include_router(browser_draft.router, prefix="/api")
+app.include_router(browser_press_pull.router, prefix="/api")
 
 
 @app.get("/api/health")

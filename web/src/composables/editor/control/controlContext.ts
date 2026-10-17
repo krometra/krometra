@@ -23,11 +23,14 @@ import type { MirrorApi } from "../useMirror";
 import type { HoleApi } from "../useHole";
 import type { ModelHistoryApi } from "../useModelHistory";
 import type { PatternApi } from "../usePattern";
+import type { PressPullApi } from "../usePressPull";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { SweepApi } from "../useSweep";
+import type { LoftApi } from "../useLoft";
 import type { ThreadApi } from "../useThread";
 import type { ShellApi } from "../useShell";
+import type { DraftApi } from "../useDraft";
 import type { MeasureApi } from "../useMeasure";
 import type { ViewportRef } from "../types";
 
@@ -44,6 +47,7 @@ export interface EditorControlDeps {
   thread: ThreadApi;
   mirror: MirrorApi;
   sweep: SweepApi;
+  loft: LoftApi;
   hole: HoleApi;
   pattern: PatternApi;
   exportApi: ExportApi;
@@ -53,7 +57,9 @@ export interface EditorControlDeps {
   bodyTransform: BodyTransformApi;
   leaveActiveTools: () => void;
   shell: ShellApi;
+  draft: DraftApi;
   measure: MeasureApi;
+  pressPull: PressPullApi;
 }
 
 const KERNEL_WAITING: Record<string, string> = {
@@ -78,12 +84,15 @@ export function createControlContext(deps: EditorControlDeps) {
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
       shell: deps.shell.shellMode.value,
+      draft: deps.draft.draftMode.value,
       mirror: deps.mirror.mirrorMode.value,
       hole: deps.hole.holeMode.value,
       pattern: deps.pattern.patternMode.value,
       boolean: deps.booleanMode.booleanMode.value,
       sweep: deps.sweep.sweepMode.value,
+      loft: deps.loft.loftMode.value,
       measure: deps.measure.active.value,
+      pressPull: deps.pressPull.pressPullMode.value,
     });
   }
 
@@ -102,13 +111,16 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.filletChamfer.loading.value) return "Идёт построение скругления или фаски.";
     if (deps.thread.loading.value) return "Идёт нарезка резьбы.";
     if (deps.shell.loading.value) return "Идёт построение оболочки.";
+    if (deps.draft.loading.value) return "Идёт построение уклона.";
     if (deps.mirror.loading.value) return "Идёт зеркальное отражение тела.";
     if (deps.hole.loading.value) return "Идёт сверление отверстий.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
     if (deps.sweep.loading.value) return "Идёт протяжка по траектории.";
+    if (deps.loft.loading.value) return "Идёт построение лофта.";
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
     if (deps.pattern.loading.value) return "Идёт построение массива.";
+    if (deps.pressPull.loading.value) return "Идёт сдвиг грани.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";
     if (deps.sketchFlow.finishing.value || sketch.isLoading.value) return "Эскиз сохраняется или загружается.";
     if (deps.meshes.hydrating.value) return "Тела перезагружаются в сцену.";

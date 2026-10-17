@@ -35,6 +35,7 @@ export interface ExtrudeRequest extends SketchPlacement {
   upToBodyId: string | null;
   upToFaceId: string | number | null;
   upToFacePoints: Vector3[] | null;
+  profileRegions?: string[] | null;
   featureKey: string;
 }
 
@@ -45,6 +46,7 @@ export interface RevolveRequest extends SketchPlacement {
   axis: "x" | "y";
   angle: number;
   direction: "one_side" | "symmetric";
+  profileRegions?: string[] | null;
   featureKey: string;
 }
 

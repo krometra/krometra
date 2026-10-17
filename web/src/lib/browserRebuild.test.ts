@@ -34,6 +34,14 @@ describe("browserRebuildPlan", () => {
     expect(steps[2]).toMatchObject({ outputBodyId: "b4", inputBodyIds: ["b2", "b3"], request: { operation: "union", targetBodyId: "b2", toolBodyId: "b3" } });
   });
 
+  it("передаёт выбранные регионы профиля, а без них оставляет весь эскиз", () => {
+    const doc = document();
+    doc.timeline[1].params = { ...doc.timeline[1].params, profile_regions: ["rabc", 7, ""] };
+
+    expect(browserRebuildPlan(doc, "e1", {}).filter(isBodyStep)[0].request.profileRegions).toEqual(["rabc"]);
+    expect(browserRebuildPlan(doc, "e2", {}).filter(isBodyStep)[0].request.profileRegions).toBeNull();
+  });
+
   it("не трогает параллельную ветку и берёт ключ записи для старых операций", () => {
     const steps = browserRebuildPlan(document(), "e2", { distance: 8 }).filter(isBodyStep);
 

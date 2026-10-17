@@ -128,6 +128,19 @@ describe("решатель: оси, бесконечные прямые и рё�
     expect(find(result.entities, "s").start!.y).toBeCloseTo(10, 2);
   });
 
+  it("совпадение конца отрезка с углом ребра грани тянет отрезок, а не ребро", () => {
+    const edge = line("face-edge-3-8", 0, 0, 30, 0, true);
+    const side = line("s", 4, 6, 4, 26);
+    const result = solveSketch([edge, side], [constraint("coincident", [at("s", 0), at("face-edge-3-8", 0)])]);
+    expect(find(result.entities, "face-edge-3-8").start).toEqual({ x: 0, y: 0 });
+    expect(find(result.entities, "s").start).toEqual({ x: 0, y: 0 });
+  });
+
+  it("точка на оси X: point_on_curve с осью", () => {
+    const result = solveSketch([line("a", 5, 7, 25, 9)], [constraint("point_on_curve", [at("a", 0), at(SKETCH_AXIS_IDS.x)])]);
+    expect(find(result.entities, "a").start!.y).toBeCloseTo(0, 2);
+  });
+
   it("радиус окружности-ребра грани не меняется ограничением равенства", () => {
     const hole: SketchEntity = { id: "face-edge-3-9", type: "circle", center: { x: 0, y: 0 }, radius: 10 };
     const drawn: SketchEntity = { id: "c", type: "circle", center: { x: 40, y: 0 }, radius: 4 };

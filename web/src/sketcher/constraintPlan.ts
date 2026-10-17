@@ -8,16 +8,26 @@ import {
   type DimensionDraft,
   type DimensionTarget,
 } from "./dimensionPlan";
+import { WHOLE_ENTITY } from "./solver/fixConstraint";
 
 export type ConstraintPick = DimensionTarget;
 
 const PER_OBJECT = new Set<ConstraintType>(["horizontal", "vertical"]);
-const CHAINED = new Set<ConstraintType>(["coincident", "parallel", "equal"]);
+const CHAINED = new Set<ConstraintType>(["coincident", "parallel", "equal", "collinear"]);
 
 const isPoint = (pick: ConstraintPick) => pick.kind === "point";
 const isLine = (pick: ConstraintPick) => pick.kind === "line";
 const isSegment = (pick: ConstraintPick) => pick.kind === "line" && !pick.infinite;
 const isRound = (pick: ConstraintPick) => pick.kind === "circle" || pick.kind === "arc";
+const isCurve = (pick: ConstraintPick) => isLine(pick) || isRound(pick);
+const objectRef = (pick: ConstraintPick): ConstraintRef => ({ entity_id: pick.ref.entity_id, sub_index: 0 });
+const sameObject = (a: ConstraintPick, b: ConstraintPick) => a.ref.entity_id === b.ref.entity_id;
+
+function pointOf(pick: ConstraintPick): ConstraintRef | null {
+  if (isPoint(pick)) return { ...pick.ref };
+  if (isRound(pick) || isSegment(pick)) return objectRef(pick);
+  return null;
+}
 
 function exactCountBlocker(picks: ConstraintPick[], count: number, noun: string): string | null {
   return picks.length === count ? null : `только для ${noun}, выбрано ${picks.length}`;
@@ -32,7 +42,10 @@ function linesOnlyBlocker(picks: ConstraintPick[]): string | null {
 }
 
 function pointsOnlyBlocker(picks: ConstraintPick[]): string | null {
-  return picks.every(isPoint) ? null : "только точки: концы, середины, центры, начало координат";
+  if (picks.every(isPoint)) return null;
+  return picks.some(isPoint) && picks.some(isCurve)
+    ? "точку с кривой связывает «На кр» (точка на кривой)"
+    : "только точки: концы, середины, центры, начало координат";
 }
 
 function sameKindBlocker(picks: ConstraintPick[]): string | null {
@@ -47,6 +60,35 @@ function alignmentBlocker(picks: ConstraintPick[]): string | null {
   if (picks.every(isLine)) return null;
   if (!isPointPair(picks)) return "только отрезки или две точки";
   return sameTarget(picks[0], picks[1]) ? "это та же точка" : null;
+}
+
+function midpointRoles(picks: ConstraintPick[]): [ConstraintPick, ConstraintPick] | null {
+  if (picks.length !== 2) return null;
+  const [first, second] = picks;
+  if (isSegment(second) && pointOf(first)) return [first, second];
+  if (isSegment(first) && (isPoint(second) || isRound(second))) return [second, first];
+  return null;
+}
+
+function midpointBlocker(picks: ConstraintPick[]): string | null {
+  const count = exactCountBlocker(picks, 2, "точки и отрезка");
+  if (count) return count;
+  const roles = midpointRoles(picks);
+  if (!roles) return picks.some(isSegment) ? "вторым нужен отрезок, первым точка, отрезок или окружность" : "нужен отрезок";
+  return sameObject(roles[0], roles[1]) ? "точка и отрезок должны быть разными объектами" : null;
+}
+
+function pointOnCurveBlocker(picks: ConstraintPick[]): string | null {
+  const count = exactCountBlocker(picks, 2, "точки и кривой");
+  if (count) return count;
+  const [first, second] = picks;
+  if (!pointOf(first)) return "первой нужна точка, отрезок или окружность";
+  if (!isCurve(second)) return "второй нужна кривая: отрезок, прямая, окружность или дуга";
+  return sameObject(first, second) ? "точка и кривая должны быть разными объектами" : null;
+}
+
+function fixBlocker(picks: ConstraintPick[]): string | null {
+  return picks.every((pick) => isPoint(pick) || isRound(pick) || isSegment(pick)) ? null : "закрепляются точки, отрезки, окружности и дуги";
 }
 
 function distanceBlocker(picks: ConstraintPick[]): string | null {
@@ -73,7 +115,14 @@ export function constraintBlocker(type: ConstraintType, picks: ConstraintPick[])
     case "coincident":
       return minCountBlocker(picks) ?? pointsOnlyBlocker(picks);
     case "parallel":
+    case "collinear":
       return minCountBlocker(picks) ?? linesOnlyBlocker(picks);
+    case "midpoint":
+      return midpointBlocker(picks);
+    case "point_on_curve":
+      return pointOnCurveBlocker(picks);
+    case "fix":
+      return fixBlocker(picks);
     case "equal":
       return minCountBlocker(picks) ?? sameKindBlocker(picks);
     case "perpendicular":
@@ -88,7 +137,27 @@ export function constraintBlocker(type: ConstraintType, picks: ConstraintPick[])
   }
 }
 
+function fixRef(pick: ConstraintPick): ConstraintRef {
+  return isPoint(pick) ? { ...pick.ref } : { entity_id: pick.ref.entity_id, sub_index: WHOLE_ENTITY };
+}
+
+function incidenceGroups(type: ConstraintType, picks: ConstraintPick[]): ConstraintRef[][] | null {
+  if (type === "fix") return picks.map((pick) => [fixRef(pick)]);
+  if (type === "midpoint") {
+    const roles = midpointRoles(picks);
+    const point = roles && pointOf(roles[0]);
+    return roles && point ? [[point, objectRef(roles[1])]] : [];
+  }
+  if (type === "point_on_curve") {
+    const point = picks[0] && pointOf(picks[0]);
+    return point && picks[1] ? [[point, objectRef(picks[1])]] : [];
+  }
+  return null;
+}
+
 function anchorGroups(type: ConstraintType, picks: ConstraintPick[]): ConstraintRef[][] {
+  const incidence = incidenceGroups(type, picks);
+  if (incidence) return incidence;
   const refs = picks.map((pick) => ({ ...pick.ref }));
   if (PER_OBJECT.has(type)) return isPointPair(picks) ? [refs] : refs.map((ref) => [ref]);
   if (CHAINED.has(type)) return refs.slice(1).map((ref, i) => [refs[i], ref]);

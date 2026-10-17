@@ -27,6 +27,8 @@ export const ICONS = {
   home: [{ d: "M12 3.5 3.5 10v10.5h6v-6h5v6h6V10z" }],
   fitAll: [{ d: "M4 9V4h5 M20 9V4h-5 M4 15v5h5 M20 15v5h-5 M9 9h6v6H9z" }],
   arrowRight: [{ d: "M5 12h14 M13 6l6 6-6 6" }],
+  arrowUp: [{ d: "M12 19V5 M6 11l6-6 6 6" }],
+  arrowDown: [{ d: "M12 5v14 M6 13l6 6 6-6" }],
   lightbulb: [
     { d: "M9.5 17h5 M10 20h4" },
     { d: "M12 3a6 6 0 0 0-3.5 10.9V17h7v-3.1A6 6 0 0 0 12 3z" },
@@ -48,6 +50,7 @@ export const ICONS = {
     { d: "M3.5 19.5h17 M6 16h12", faded: true },
     { d: "M12 3v9.5 M8.5 9 12 12.5 15.5 9" },
   ],
+  mouse: [{ d: "M12 3a5.5 5.5 0 0 0-5.5 5.5v7a5.5 5.5 0 0 0 11 0v-7A5.5 5.5 0 0 0 12 3z M12 6.5v3.5" }],
 } satisfies Record<string, IconPath[]>;
 
 export type IconName = keyof typeof ICONS;

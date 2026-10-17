@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import type { SketchEntity, SketchPoint } from "@/types/api";
+import type { SketchPoint } from "@/types/api";
 import type { BrowserExtrudeSpan } from "@/lib/browserExtrudeExtent";
-import { profileFaces } from "@/sketcher/contours";
+import type { ProfileFace } from "@/sketcher/contours";
 import type { SceneContext, SketchFrame } from "./types";
 import { findByBody } from "./types";
 import { frameNormal, resolveFrame } from "./useSketchOutlines";
@@ -170,7 +170,7 @@ export function usePreviews(context: SceneContext) {
   let threadGroup: THREE.Group | null = null;
 
   function showExtrude(
-    entities: SketchEntity[],
+    faces: ProfileFace[],
     sketchFrame: SketchFrame,
     span: BrowserExtrudeSpan,
     color = PREVIEW_COLOR,
@@ -180,7 +180,7 @@ export function usePreviews(context: SceneContext) {
     if (!context.ready() || !(depth > 0)) return;
 
     const toVectors = (points: SketchPoint[]) => points.map((p) => new THREE.Vector2(p.x, p.y));
-    const shapes = profileFaces(entities).map((face) => {
+    const shapes = faces.map((face) => {
       const shape = new THREE.Shape(toVectors(face.outer));
       shape.holes = face.holes.map((hole) => new THREE.Path(toVectors(hole)));
       return shape;

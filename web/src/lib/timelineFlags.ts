@@ -30,6 +30,7 @@ export function consumedBodiesOf(entry: TimelineEntry): string[] {
   if (entry.kind === "transform" && params.copy === true) return [];
   if (entry.kind === "mirror" && params.merge !== true) return [];
   if (entry.kind === "pattern" && params.mode === "separate") return [];
+  if (entry.kind === "press_pull" && params.new_body === true) return [];
   const target = text(params.target_body_id);
   return target ? [target] : [];
 }

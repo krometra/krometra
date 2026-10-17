@@ -7,7 +7,7 @@ from fastapi import status
 from .browser_extrude import _error
 
 STABLE_FACE_PREFIX = "f-"
-SKETCH_FEATURES = ("extrude", "revolve", "sweep")
+SKETCH_FEATURES = ("extrude", "revolve", "sweep", "loft")
 PLANES = ("XY", "XZ", "YZ")
 BASIS_AXES = ("origin", "u", "v", "n")
 

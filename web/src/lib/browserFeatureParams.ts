@@ -1,6 +1,7 @@
 import type { TimelineEntry } from "@/types/api";
 import { editableBrowserParams, isBrowserFeature } from "./browserRebuildPlan";
 import { MIRROR_BASE_PLANES } from "./mirrorPlane";
+import { DEFAULT_DRAFT_ANGLE_DEG, draftAngleError } from "./browserDraft";
 import { holeParamFields, holeParamsOf } from "./holeFeature";
 import { DEFAULT_HOLE_SPEC } from "./holeGeometry";
 
@@ -36,11 +37,13 @@ const DEFAULTS: Record<string, FeatureParamValue> = {
   thickness: 1,
   plane: "XY",
   orientation: "corrected",
+  transition: "smooth",
   ...holeParamsOf(DEFAULT_HOLE_SPEC),
   count: 2,
   spacing: 10,
   count2: 1,
   spacing2: 10,
+  angle_deg: DEFAULT_DRAFT_ANGLE_DEG,
 };
 
 const SHELL_DIRECTION_OPTIONS = [
@@ -96,6 +99,12 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
       { label: "По Френе", value: "frenet" },
     ] }];
   }
+  if (entry.kind === "loft") {
+    return [{ key: "transition", label: "Переход", kind: "select", options: [
+      { label: "Гладкий", value: "smooth" },
+      { label: "Линейный", value: "ruled" },
+    ] }];
+  }
   if (entry.kind === "fillet") return [{ key: "radius", label: "Радиус", kind: "number", suffix: "мм", min: 0.01 }];
   if (entry.kind === "chamfer") {
     return [
@@ -125,6 +134,8 @@ export function featureParamFields(entry: TimelineEntry, values: Record<string, 
     ];
   }
   if (entry.kind === "hole") return holeParamFields(values);
+  if (entry.kind === "draft") return [{ key: "angle_deg", label: "Угол уклона", kind: "number", suffix: "°", min: 0.01, max: 89.99 }];
+  if (entry.kind === "press_pull") return [{ key: "distance", label: "Смещение", kind: "number", suffix: "мм" }];
   return [];
 }
 
@@ -146,6 +157,7 @@ export function isValidParams(values: Record<string, FeatureParamValue>): boolea
     if (!Number.isFinite(value)) return false;
     if (key === "distance") return Math.abs(value) > 1e-9;
     if (key === "angle") return value > 0 && value <= 360;
+    if (key === "angle_deg") return draftAngleError(value) === null;
     if (key === "offset") return true;
     if (key === "count") return Number.isInteger(value) && value >= 2;
     if (key === "count2") return Number.isInteger(value) && value >= 1;

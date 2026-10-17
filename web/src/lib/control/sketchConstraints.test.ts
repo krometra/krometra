@@ -26,15 +26,15 @@ function errorOf(run: () => unknown): ControlError {
 describe("constraintAnchorsParam", () => {
   it("читает якоря, point по умолчанию 0, origin — начало координат", () => {
     expect(anchors.read([{ entityId: "l1" }, { entityId: "origin", point: 0 }])).toEqual([
-      { entityId: "l1", point: 0 },
+      { entityId: "l1", point: 0, whole: true },
       { entityId: SKETCH_ORIGIN_ID, point: 0 },
     ]);
   });
 
   it("axis-x и axis-y — оси эскиза", () => {
     expect(anchors.read([{ entityId: "axis-x" }, { entityId: "axis-y" }])).toEqual([
-      { entityId: SKETCH_AXIS_IDS.x, point: 0 },
-      { entityId: SKETCH_AXIS_IDS.y, point: 0 },
+      { entityId: SKETCH_AXIS_IDS.x, point: 0, whole: true },
+      { entityId: SKETCH_AXIS_IDS.y, point: 0, whole: true },
     ]);
   });
 
@@ -124,6 +124,40 @@ describe("buildSketchConstraint: точки, оси и вспомогатель�
     const parallel = buildSketchConstraint({ type: "parallel", anchors: [{ entityId: "i", point: 0 }, { entityId: "face-edge-2-3", point: 0 }] }, withAux, "k");
     expect(parallel.anchors.map((a) => a.entity_id)).toEqual(["i", "face-edge-2-3"]);
     expect(errorOf(() => buildSketchConstraint({ type: "equal", anchors: [{ entityId: "i", point: 0 }, { entityId: "l1", point: 0 }] }, withAux, "k")).code).toBe("invalid_params");
+  });
+});
+
+describe("buildSketchConstraint: коллинеарность, середина, точка на кривой, фиксация", () => {
+  const read = (value: unknown) => anchors.read(value) as Exclude<ReturnType<typeof anchors.read>, typeof INVALID>;
+
+  it("collinear — два отрезка", () => {
+    const c = buildSketchConstraint({ type: "collinear", anchors: read([{ entityId: "l1" }, { entityId: "l2" }]) }, entities, "k");
+    expect(c).toEqual({ id: "k", type: "collinear", anchors: [{ entity_id: "l1", sub_index: 0 }, { entity_id: "l2", sub_index: 0 }], value: null });
+    expect(errorOf(() => buildSketchConstraint({ type: "collinear", anchors: read([{ entityId: "l1" }, { entityId: "c" }]) }, entities, "k")).message).toMatch(/отрезок/);
+  });
+
+  it("midpoint — явная точка и отрезок, центр окружности или начало координат", () => {
+    const end = buildSketchConstraint({ type: "midpoint", anchors: read([{ entityId: "l2", point: 1 }, { entityId: "l1" }]) }, entities, "k");
+    expect(end.anchors).toEqual([{ entity_id: "l2", sub_index: 1 }, { entity_id: "l1", sub_index: 0 }]);
+    const origin = buildSketchConstraint({ type: "midpoint", anchors: read([{ entityId: "origin" }, { entityId: "l1" }]) }, entities, "k");
+    expect(origin.anchors[0]).toEqual({ entity_id: SKETCH_ORIGIN_ID, sub_index: 0 });
+    expect(errorOf(() => buildSketchConstraint({ type: "midpoint", anchors: read([{ entityId: "l1" }, { entityId: "c" }]) }, entities, "k")).message).toMatch(/якорь 2/);
+  });
+
+  it("point_on_curve — точка на отрезке, окружности или дуге", () => {
+    const onCircle = buildSketchConstraint({ type: "point_on_curve", anchors: read([{ entityId: "l1", point: 1 }, { entityId: "c" }]) }, entities, "k");
+    expect(onCircle.anchors).toEqual([{ entity_id: "l1", sub_index: 1 }, { entity_id: "c", sub_index: 0 }]);
+    const onLine = buildSketchConstraint({ type: "point_on_curve", anchors: read([{ entityId: "c", point: 0 }, { entityId: "l2" }]) }, entities, "k");
+    expect(onLine.anchors).toEqual([{ entity_id: "c", sub_index: 0 }, { entity_id: "l2", sub_index: 0 }]);
+    expect(errorOf(() => buildSketchConstraint({ type: "point_on_curve", anchors: read([{ entityId: "l1" }, { entityId: "origin" }]) }, entities, "k")).message).toMatch(/кривая|отрезок, окружность или дуга/);
+  });
+
+  it("fix — без point объект целиком, с point только точка", () => {
+    const whole = buildSketchConstraint({ type: "fix", anchors: read([{ entityId: "c" }]) }, entities, "k");
+    expect(whole.anchors).toEqual([{ entity_id: "c", sub_index: -1 }]);
+    const point = buildSketchConstraint({ type: "fix", anchors: read([{ entityId: "l1", point: 0 }]) }, entities, "k");
+    expect(point.anchors).toEqual([{ entity_id: "l1", sub_index: 0 }]);
+    expect(errorOf(() => buildSketchConstraint({ type: "fix", anchors: read([{ entityId: "l1" }]), value: 1 }, entities, "k")).message).toMatch(/не задаётся/);
   });
 });
 

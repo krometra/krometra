@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import CsIcon from "@/components/ui/CsIcon.vue";
 import type { RibbonAction } from "@/composables/editor/types";
+import { LOFT_ICON } from "@/lib/loftFeature";
 
 interface Tool {
   label?: string;
@@ -34,6 +35,7 @@ const tools = computed<Tool[]>(() => {
     { label: "Выдавить", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M12 3v18", action: "extrude", hint: "Выдавить эскиз в тело — E", testId: "ribbon-extrude" },
     { label: "Вращать", icon: "M4 12a8 8 0 1 1 8 8 M12 4v8l5 3", action: "revolve", hint: "Тело вращения из эскиза — R", testId: "ribbon-revolve" },
     { label: "По траект.", icon: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z", action: "sweep", hint: "Протянуть профиль одного эскиза по пути из другого", testId: "ribbon-sweep" },
+    { label: "Лофт", icon: LOFT_ICON, action: "loft", hint: "Тело по двум и более профилям из эскизов на разных плоскостях", testId: "ribbon-loft" },
     { divider: true },
     {
       label: "Комбинировать",
@@ -51,6 +53,8 @@ const tools = computed<Tool[]>(() => {
     { label: "Резьба", icon: "M6 4h12 M6 8h12 M6 12h12 M6 16h12 M6 20h12 M8 2v20 M16 2v20", action: "thread", disabled: bodies < 1, testId: "ribbon-thread", hint: bodies < 1 ? "Сначала постройте тело" : "Резьба на цилиндрической грани — внешняя или внутренняя" },
     { label: "Отверстие", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", action: "hole", disabled: bodies < 1, testId: "ribbon-hole", hint: bodies < 1 ? "Сначала постройте тело" : "Отверстие на плоской грани: простое, цековка или зенковка" },
     { label: "Оболочка", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4", action: "shell", disabled: bodies < 1, testId: "ribbon-shell", hint: bodies < 1 ? "Сначала постройте тело" : "Полое тело с открытыми гранями и стенкой заданной толщины" },
+    { label: "Уклон", icon: "M8 4h8l3 16H5z M12 4v16", action: "draft", disabled: bodies < 1, testId: "ribbon-draft", hint: bodies < 1 ? "Сначала постройте тело" : "Наклон боковых граней на угол от нейтральной плоскости" },
+    { label: "Сдвиг грани", icon: "M4 14h16 M12 14V4 M8 8l4-4 4 4 M4 20h16", action: "press_pull", disabled: bodies < 1, testId: "ribbon-press-pull", hint: bodies < 1 ? "Сначала постройте тело" : "Сдвинуть грани тела со знаком (зазор под посадку) или выдавить грань в новое тело" },
     { divider: true },
     { label: "Массив", icon: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z", action: "pattern", disabled: bodies < 1, testId: "ribbon-pattern", hint: bodies < 1 ? "Сначала постройте тело" : "Линейный или круговой массив тела" },
     { label: "Зеркало", icon: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5", action: "mirror", disabled: bodies < 1, testId: "ribbon-mirror", hint: bodies < 1 ? "Сначала постройте тело" : "Отразить тело относительно плоскости XY, XZ, YZ или плоской грани" },

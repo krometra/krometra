@@ -15,10 +15,10 @@ export interface MirrorRequest {
   featureKey: string;
 }
 
-function faceFrame(source: NamedShape, faceId: string): MirrorFrame {
+export function planarFaceFrame(source: NamedShape, faceId: string, notPlanar: string): MirrorFrame {
   const face = faceByName(source, faceId);
   try {
-    if (face.geomType !== "PLANE") throw new Error("Зеркалить можно только относительно плоской грани.");
+    if (face.geomType !== "PLANE") throw new Error(notPlanar);
     const point = face.pointOnSurface(0.5, 0.5);
     const normal = face.normalAt(point);
     try {
@@ -33,7 +33,7 @@ function faceFrame(source: NamedShape, faceId: string): MirrorFrame {
 }
 
 export function mirrorFrame(source: NamedShape, plane: MirrorPlane): MirrorFrame {
-  return plane.kind === "base" ? basePlaneFrame(plane.plane, plane.offset) : faceFrame(source, plane.faceId);
+  return plane.kind === "base" ? basePlaneFrame(plane.plane, plane.offset) : planarFaceFrame(source, plane.faceId, "Зеркалить можно только относительно плоской грани.");
 }
 
 function mirrorTrsf(frame: MirrorFrame): gp_Trsf {

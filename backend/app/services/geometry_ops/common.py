@@ -12,6 +12,7 @@ _LABELS = {
     "boolean": "Boolean",
     "revolve": "Вращение",
     "sweep": "По траектории",
+    "loft": "Лофт",
     "fillet": "Скругление",
     "chamfer": "Фаска",
     "thread": "Резьба",
@@ -21,6 +22,8 @@ _LABELS = {
     "mirror": "Зеркало",
     "hole": "Отверстие",
     "pattern": "Массив",
+    "draft": "Уклон",
+    "press_pull": "Сдвиг грани",
 }
 
 

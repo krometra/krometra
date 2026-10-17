@@ -10,13 +10,17 @@ import { inspectOps } from "./control/controlInspectOps";
 import { measureOps } from "./control/controlMeasureOps";
 import { importOps } from "./control/controlImportOps";
 import { mirrorOps } from "./control/controlMirrorOps";
+import { loftOps } from "./control/controlLoftOps";
 import { featureOps } from "./control/controlFeatureOps";
 import { holeOps } from "./control/controlHoleOps";
 import { historyOps } from "./control/controlHistoryOps";
 import { patternOps } from "./control/controlPatternOps";
+import { pressPullOps } from "./control/controlPressPullOps";
 import { timelineOps } from "./control/controlTimelineOps";
 import { readOps } from "./control/controlReadOps";
+import { regionOps } from "./control/controlRegionOps";
 import { shellOps } from "./control/controlShellOps";
+import { draftOps } from "./control/controlDraftOps";
 import { sketchOps } from "./control/controlSketchOps";
 import { sketchConstraintOps } from "./control/controlSketchConstraintOps";
 import { sketchSelectionOps } from "./control/controlSketchSelectionOps";
@@ -41,8 +45,10 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...sketchOps(context),
     ...sketchConstraintOps(context),
     ...sketchSelectionOps(context),
+    ...regionOps(context),
     ...featureOps(context),
     ...shellOps(context),
+    ...draftOps(context),
     ...holeOps(context),
     ...historyOps(context),
     ...timelineOps(context),
@@ -50,8 +56,10 @@ export function useEditorControl(deps: EditorControlDeps) {
     ...patternOps(context),
     ...importOps(context),
     ...mirrorOps(context),
+    ...loftOps(context),
     ...inspectOps(context),
     ...measureOps(context),
+    ...pressPullOps(context),
     ...imageOps(),
   ]);
 

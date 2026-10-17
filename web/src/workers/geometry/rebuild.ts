@@ -1,13 +1,16 @@
 import { RebuildCache, runRebuild, type RebuildBackend } from "@/lib/browserRebuildEngine";
 import type { RebuildKind, RebuildPlanStep } from "@/lib/browserRebuildPlan";
 import { booleanNamed } from "./boolean";
+import { draftNamed, type DraftRequest } from "./draft";
 import { edgeFeatureNamed } from "./edgeOps";
 import { extrudeNamed } from "./extrude";
 import { mirrorNamed, type MirrorRequest } from "./mirror";
 import { holeNamed, type HoleBuildRequest } from "./hole";
+import { loftNamed, type LoftRequest } from "./loft";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
 import { patternNamed, type PatternRequest } from "./pattern";
+import { pressPullNamed, type PressPullRequest } from "./pressPull";
 import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { shellNamed, type ShellRequest } from "./shell";
@@ -35,6 +38,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   extrude: (request: ExtrudeRequest, lookup) => extrudeNamed(request, lookup),
   revolve: (request: RevolveRequest) => revolveNamed(request),
   sweep: (request: SweepRequest, lookup) => sweepNamed(request, lookup),
+  loft: (request: LoftRequest, lookup) => loftNamed(request, lookup),
   boolean: (request: BooleanRequest, lookup) => booleanNamed(request, lookup),
   fillet: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
   chamfer: (request: EdgeFeatureRequest, lookup) => edgeFeatureNamed(request, lookup),
@@ -44,6 +48,8 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   mirror: (request: MirrorRequest, lookup) => mirrorNamed(request, lookup),
   hole: (request: HoleBuildRequest, lookup) => holeNamed(request, lookup),
   pattern: (request: PatternRequest, lookup) => patternNamed(request, lookup),
+  draft: (request: DraftRequest, lookup) => draftNamed(request, lookup),
+  press_pull: (request: PressPullRequest, lookup) => pressPullNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
 import PropsPanelShell from "./PropsPanelShell.vue";
+import ProfileRegionsField from "./ProfileRegionsField.vue";
 import type { ExtrudeRevolveApi } from "@/composables/editor/useExtrudeRevolve";
 
 const props = defineProps<{ extrude: ExtrudeRevolveApi }>();
@@ -78,6 +79,7 @@ function cancel() {
         <span :class="$style.fieldValue">{{ names.sketchLabel(lastSavedSketchId ?? '') }}</span>
       </div>
     </div>
+    <ProfileRegionsField :profile="extrude.profile" />
 
     <template v-if="panelMode === 'extrude'">
     <div :class="$style.panelHead">ПАРАМЕТРЫ ВЫДАВЛИВАНИЯ</div>

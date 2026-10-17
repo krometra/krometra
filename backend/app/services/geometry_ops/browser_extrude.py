@@ -16,6 +16,7 @@ from app.schemas.ids import is_body_id, is_component_id
 from app.services.document_service import get_document
 
 from .browser_storage import browser_body_objects, persist_new_body
+from .profile_regions import profile_region_params
 from .common import browser_step_key, new_body_id, next_label
 from .limits import (
     MAX_EDGE_REFERENCES,
@@ -219,6 +220,7 @@ async def save_browser_extrude(
     offset: float = 0.0,
     up_to_body_id: str | None = None,
     up_to_face_id: str | None = None,
+    profile_regions: list[str] | None = None,
 ) -> dict:
     if not is_component_id(sketch_id):
         _error("invalid_sketch_id", "Некорректный идентификатор эскиза.")
@@ -245,6 +247,7 @@ async def save_browser_extrude(
     timeline = list(doc.timeline or [])
     target_params = {"target_body_id": target_body_id} if target_body_id else {}
     key_params = {"feature_key": feature_key} if feature_key else {}
+    region_params = profile_region_params(profile_regions)
     hidden_body_ids = [target_body_id] if target_body_id else []
     for hidden_body_id in hidden_body_ids:
         components[hidden_body_id] = {**components[hidden_body_id], "visible": False}
@@ -259,6 +262,7 @@ async def save_browser_extrude(
             **target_params,
             **key_params,
             **extent_params,
+            **region_params,
         },
         "visible": True,
         "bbox": mesh["bbox"],
@@ -277,6 +281,7 @@ async def save_browser_extrude(
             **target_params,
             **key_params,
             **extent_params,
+            **region_params,
             "engine": "browser_wasm",
         },
         "status": "ok",

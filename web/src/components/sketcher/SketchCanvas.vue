@@ -14,16 +14,20 @@ import {
 import { drawConstraints } from "@/sketcher/renderConstraints";
 import { drawSelectionMarks } from "@/sketcher/renderSelection";
 import type { SelectionMarks } from "@/sketcher/selectionMarks";
+import { drawAutoConstraintHint } from "@/sketcher/renderAutoConstraints";
 
 const props = defineProps<{
   entities: SketchEntity[];
   preview: SketchEntity | null;
   hoveredEntityId: string | null;
   constraints?: SketchConstraint[];
+  hoveredConstraintId?: string | null;
+  selectedConstraintId?: string | null;
   selectedEntityIds?: string[];
   snapPoint?: SketchPoint | null;
   snapLabel?: string | null;
   marks?: SelectionMarks;
+  autoHint?: { at: SketchPoint; symbols: string[] } | null;
 }>();
 
 const emit = defineEmits<{
@@ -61,9 +65,13 @@ function render() {
   if (props.marks) drawSelectionMarks(ctx, view, props.marks);
   if (props.preview) drawEntity(ctx, view, props.preview, false, true);
   if (props.constraints?.length) {
-    drawConstraints(ctx, view, props.constraints, props.entities);
+    drawConstraints(ctx, view, props.constraints, props.entities, {
+      hovered: props.hoveredConstraintId ?? null,
+      selected: props.selectedConstraintId ?? null,
+    });
   }
   if (props.snapPoint) drawSnapMarker(ctx, view, props.snapPoint, props.snapLabel);
+  if (props.autoHint) drawAutoConstraintHint(ctx, view, props.autoHint.at, props.autoHint.symbols);
 
   ctx.restore();
 }
@@ -95,7 +103,7 @@ function onDblClick(e: MouseEvent) {
 
 function onWheel(e: WheelEvent) {
   e.preventDefault();
-  viewport.zoomAt(e);
+  viewport.handleWheel(e);
 }
 
 function onContextMenu(e: MouseEvent) {
@@ -108,10 +116,13 @@ watch(
     props.preview,
     props.hoveredEntityId,
     props.constraints,
+    props.hoveredConstraintId,
+    props.selectedConstraintId,
     props.selectedEntityIds,
     props.snapPoint,
     props.snapLabel,
     props.marks,
+    props.autoHint,
   ],
   render,
   { deep: true }

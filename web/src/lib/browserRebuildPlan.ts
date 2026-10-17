@@ -1,4 +1,5 @@
 import type { TimelineEntry } from "@/types/api";
+import { draftFeatureOfParams } from "./browserDraft";
 import { mirrorPlaneOfParams } from "./mirrorPlane";
 import { patternReferenceBodies } from "./bodyPattern";
 import { patternModeOf, patternSpecFromParams } from "./bodyPatternParams";
@@ -6,7 +7,7 @@ import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browser
 import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
 import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
 
-export type RebuildKind = "extrude" | "revolve" | "sweep" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern";
+export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft" | "press_pull";
 
 export interface RebuildStep {
   entryId: string;
@@ -51,12 +52,13 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "loft", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern", "draft", "press_pull"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
   revolve: ["angle", "direction"],
   sweep: ["orientation"],
+  loft: ["transition"],
   fillet: ["radius"],
   chamfer: ["distance1", "distance2"],
   thread: ["pitch", "length", "offset"],
@@ -64,6 +66,8 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   mirror: ["plane", "offset"],
   hole: [...HOLE_EDITABLE_PARAMS],
   pattern: ["count", "spacing", "angle", "count2", "spacing2"],
+  draft: ["angle_deg"],
+  press_pull: ["distance"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -104,10 +108,24 @@ export function inputBodiesOf(entry: TimelineEntry): string[] {
   return [...new Set(ids.map(text).filter((id): id is string => id !== null))];
 }
 
+function extraSketchIds(entry: TimelineEntry): unknown[] {
+  if (entry.kind === "sweep") return [entry.params?.path_sketch_id];
+  if (entry.kind === "loft") return loftSketchIds(entry.params ?? {});
+  return [];
+}
+
 export function featureSketchIds(entry: TimelineEntry): string[] {
   if (entry.kind === "sketch") return [];
-  const path = entry.kind === "sweep" ? [text(entry.params?.path_sketch_id)] : [];
-  return [...new Set([text(entry.sketch_id), ...path].filter((id): id is string => id !== null))];
+  return [...new Set([entry.sketch_id, ...extraSketchIds(entry)].map(text).filter((id): id is string => id !== null))];
+}
+
+function loftSketchIds(params: Record<string, unknown>): string[] {
+  return Array.isArray(params.profile_sketch_ids) ? params.profile_sketch_ids.map(text).filter((id): id is string => id !== null) : [];
+}
+
+function profileRegionsOf(params: Record<string, unknown>): string[] | null {
+  const keys = Array.isArray(params.profile_regions) ? params.profile_regions.map(text).filter((key): key is string => key !== null) : [];
+  return keys.length > 0 ? keys : null;
 }
 
 function sketchPlacement(document: RebuildDocument, sketchId: string | null | undefined, label: string) {
@@ -134,6 +152,7 @@ function extrudeRequest(document: RebuildDocument, entry: TimelineEntry, params:
     upToBodyId: text(params.up_to_body_id),
     upToFaceId: text(params.up_to_face_id),
     upToFacePoints: null,
+    profileRegions: profileRegionsOf(params),
   };
 }
 
@@ -163,6 +182,15 @@ function shellRequest(params: Record<string, unknown>) {
   };
 }
 
+function pressPullRequest(params: Record<string, unknown>) {
+  return {
+    bodyId: text(params.target_body_id),
+    faceNames: Array.isArray(params.face_ids) ? params.face_ids.map(String) : [],
+    distance: number(params.distance, 1),
+    newBody: params.new_body === true,
+  };
+}
+
 function holeRequest(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>) {
   const placement = entry.sketch_id ? sketchPlacement(document, entry.sketch_id, entry.label) : { entities: null, plane: "XY", planeOffset: 0, planeBasis: null };
   return {
@@ -188,6 +216,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
       axis: params.axis,
       angle: number(params.angle, 360),
       direction: text(params.direction) ?? "one_side",
+      profileRegions: profileRegionsOf(params),
     };
   }
   if (entry.kind === "sweep") {
@@ -201,6 +230,16 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
       targetBodyId: text(params.target_body_id),
     };
   }
+  if (entry.kind === "loft") {
+    return {
+      kind: "loft",
+      featureKey,
+      sections: loftSketchIds(params).map((sketchId) => sketchPlacement(document, sketchId, entry.label)),
+      ruled: params.transition === "ruled",
+      operation: text(params.operation) ?? "new_body",
+      targetBodyId: text(params.target_body_id),
+    };
+  }
   if (entry.kind === "boolean") {
     return { kind: "boolean", featureKey, operation: entry.operation, targetBodyId: entry.target_body_id, toolBodyId: entry.tool_body_id };
   }
@@ -210,6 +249,8 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
   }
   if (entry.kind === "shell") return { kind: "shell", featureKey, ...shellRequest(params) };
+  if (entry.kind === "draft") return { kind: "draft", featureKey, ...draftFeatureOfParams(params) };
+  if (entry.kind === "press_pull") return { kind: "press_pull", featureKey, ...pressPullRequest(params) };
   if (entry.kind === "mirror") {
     return { kind: "mirror", featureKey, bodyId: text(params.target_body_id), plane: mirrorPlaneOfParams(params), merge: params.merge === true };
   }

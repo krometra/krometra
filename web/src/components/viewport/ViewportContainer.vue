@@ -17,13 +17,18 @@ import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
 import { useMirrorPreview } from "@/composables/viewport/useMirrorPreview";
+import { usePressPullPreview } from "@/composables/viewport/usePressPullPreview";
 import { useHolePreview } from "@/composables/viewport/useHolePreview";
+import { useMeshGhost } from "@/composables/viewport/useMeshGhost";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
 import { useSectionView } from "@/composables/viewport/useSectionView";
 import { useCameraLookAt } from "@/composables/viewport/useCameraLookAt";
 import { bodyFaceFrame, visibleBounds } from "@/composables/viewport/bodyGeometry";
 import { raycastFace } from "@/composables/viewport/faceRaycast";
 import { useMeasurePicking } from "@/composables/viewport/useMeasurePicking";
+import { useViewportNavigation } from "@/composables/viewport/useViewportNavigation";
+import { useNavigationSettings } from "@/composables/shared/useNavigationSettings";
+import { useRegionPicking } from "@/composables/viewport/useRegionPicking";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -64,9 +69,17 @@ const outlines = useSketchOutlines(core.sketchGroup);
 const previews = usePreviews(context);
 const mirrorPreview = useMirrorPreview(context);
 const holePreview = useHolePreview(context);
+const meshGhost = useMeshGhost(context);
+const pressPullPreview = usePressPullPreview(context);
 const probe = useViewportProbe(context);
 const section = useSectionView(context);
 const lookAt = useCameraLookAt(context, core.animateCameraTo);
+const navigation = useViewportNavigation({
+  controls: core.orbitControls,
+  settings: useNavigationSettings().current,
+  beforeMove: core.stopCameraAnimation,
+});
+const regionPicking = useRegionPicking(context);
 
 const faces = useFaceSelection({
   context,
@@ -110,9 +123,11 @@ onMounted(() => {
   if (!canvasContainer.value) return;
   core.init(canvasContainer.value, { onClick: onCanvasClick, onMove: onCanvasMouseMove, onContextMenu: onCanvasContextMenu });
   context.scene().add(planes.group);
+  navigation.attach(canvasContainer.value);
 });
 
 onUnmounted(() => {
+  navigation.detach();
   section.dispose();
   core.dispose();
   registry.clearAll();
@@ -123,6 +138,8 @@ onUnmounted(() => {
   previews.hideFillet();
   previews.hideThread();
   holePreview.hideHoles();
+  meshGhost.hide();
+  regionPicking.hide();
   measure.dispose();
 });
 
@@ -136,6 +153,7 @@ function onCanvasClick(event: MouseEvent) {
     emit("planePicked", { plane: planes.planeOf(quad) });
     return;
   }
+  if (regionPicking.handleClick(event.shiftKey)) return;
 
   if (selectionMode.value === "body") bodies.handleClick();
   else if (selectionMode.value === "face") faces.handleClick();
@@ -147,6 +165,11 @@ function onCanvasMouseMove(event: MouseEvent) {
   if (!context.ready()) return;
   core.updatePointer(event);
 
+  if (regionPicking.isActive() && regionPicking.handleHover()) {
+    faces.restoreSelected();
+    core.setCursor("pointer");
+    return;
+  }
   if (selectionMode.value === "edge") {
     core.setCursor(edges.handleHover() ? "pointer" : "crosshair");
     return;
@@ -240,6 +263,7 @@ defineExpose({
   setCameraView: core.setCameraView,
   setHelpersVisible: core.setHelpersVisible,
   animateCameraTo: core.animateCameraTo,
+  orbitBy: navigation.orbitBy,
   lookAt: lookAt.lookAt,
   lookAtFace: lookAt.lookAtFace,
   faceFrame: (bodyId: string, faceId: string | number) => bodyFaceFrame(entries, bodyId, faceId),
@@ -268,8 +292,14 @@ defineExpose({
   hideThreadPreview: previews.hideThread,
   showMirrorPreview: mirrorPreview.show,
   hideMirrorPreview: mirrorPreview.hide,
+  showProfileRegions: regionPicking.show,
+  hideProfileRegions: regionPicking.hide,
   showHolePreview: holePreview.showHoles,
   hideHolePreview: holePreview.hideHoles,
+  showMeshGhost: meshGhost.show,
+  hideMeshGhost: meshGhost.hide,
+  showPressPullPreview: pressPullPreview.show,
+  hidePressPullPreview: pressPullPreview.hide,
   fitAllBodies,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,

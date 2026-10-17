@@ -18,14 +18,15 @@ import {
   applyPerpendicular,
   applyVertical,
 } from "./geometricConstraints";
-import { CONVERGENCE_THRESHOLD, buildPointMap, writePointsBack, type PointMap } from "./pointMap";
-import { createReferenceGuard, touchesReference } from "./settle";
+import { collectPins, restorePins } from "./fixConstraint";
+import { applyCollinear, applyMidpoint, applyPointOnCurve, incidenceResidual } from "./incidenceConstraints";
+import { createMidpointCarry } from "./midpointCarry";
+import { CONVERGENCE_THRESHOLD, buildPointMap, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
 import type { SketchConstraint, SketchEntity, SolverOutput } from "./types";
 
 export type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity, SketchPoint, SolverOutput } from "./types";
 
-const MAX_ITERATIONS = 50;
-const REFERENCE_ITERATIONS = 200;
+const MAX_ITERATIONS = 500;
 
 export function solveSketch(entities: SketchEntity[], constraints: SketchConstraint[]): SolverOutput {
   if (!constraints || constraints.length === 0) {
@@ -34,14 +35,17 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
 
   const workEntities: SketchEntity[] = JSON.parse(JSON.stringify(entities));
   const points = buildPointMap(workEntities);
-  const run = createReferenceGuard(workEntities, points);
+  shareCoincidentPoints(points, constraints, workEntities);
+  const pins = collectPins(constraints, workEntities, points);
+  const run = createMidpointCarry(workEntities, points);
 
   let converged = false;
-  const iterations = constraints.some(touchesReference) ? REFERENCE_ITERATIONS : MAX_ITERATIONS;
-  for (let iter = 0; iter < iterations; iter++) {
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
     let maxDisplacement = 0;
     for (const constraint of constraints) {
       maxDisplacement = Math.max(maxDisplacement, run(constraint, () => applyConstraint(constraint, workEntities, points)));
+      pinOrigin(points);
+      restorePins(pins);
     }
     if (maxDisplacement < CONVERGENCE_THRESHOLD) {
       converged = true;
@@ -58,19 +62,22 @@ function applyConstraint(constraint: SketchConstraint, entities: SketchEntity[],
   switch (constraint.type) {
     case "horizontal": return applyHorizontal(constraint, points);
     case "vertical": return applyVertical(constraint, points);
-    case "coincident": return applyCoincident(constraint, points);
+    case "coincident": return applyCoincident(constraint, entities, points);
     case "parallel": return applyParallel(constraint, points);
     case "perpendicular": return applyPerpendicular(constraint, points);
     case "equal": return applyEqual(constraint, entities, points);
-    case "distance": return applyDistance(constraint, points);
-    case "horizontal_distance": return applyAxisDistance(constraint, points, "x");
-    case "vertical_distance": return applyAxisDistance(constraint, points, "y");
+    case "distance": return applyDistance(constraint, entities, points);
+    case "horizontal_distance": return applyAxisDistance(constraint, entities, points, "x");
+    case "vertical_distance": return applyAxisDistance(constraint, entities, points, "y");
     case "length": return applyLength(constraint, points);
     case "line_distance": return applyLineDistance(constraint, points);
-    case "point_line_distance": return applyPointLineDistance(constraint, points);
+    case "point_line_distance": return applyPointLineDistance(constraint, entities, points);
     case "radius": return applyRadius(constraint, entities, points);
     case "diameter": return applyDiameter(constraint, entities, points);
     case "angle": return applyAngle(constraint, points);
+    case "collinear": return applyCollinear(constraint, points);
+    case "midpoint": return applyMidpoint(constraint, entities, points);
+    case "point_on_curve": return applyPointOnCurve(constraint, entities, points);
     default: return 0;
   }
 }
@@ -89,7 +96,7 @@ function computeResidual(constraints: SketchConstraint[], entities: SketchEntity
   for (const constraint of constraints) {
     const error = constraint.type === "horizontal" || constraint.type === "vertical"
       ? alignmentResidual(constraint, points)
-      : dimensionResidual(constraint, entities, points);
+      : Math.max(dimensionResidual(constraint, entities, points), incidenceResidual(constraint, entities, points));
     maxErr = Math.max(maxErr, error);
   }
   return maxErr;

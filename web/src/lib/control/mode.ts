@@ -10,10 +10,13 @@ export type EditorMode =
   | "pattern"
   | "hole"
   | "shell"
+  | "draft"
   | "mirror"
   | "boolean"
   | "sweep"
-  | "measure";
+  | "loft"
+  | "measure"
+  | "press_pull";
 
 export interface EditorModeFlags {
   sketch: boolean;
@@ -22,12 +25,15 @@ export interface EditorModeFlags {
   edgeFeature: "fillet" | "chamfer" | null;
   thread: boolean;
   shell: boolean;
+  draft: boolean;
   mirror: boolean;
   hole: boolean;
   pattern: boolean;
   boolean: boolean;
   sweep: boolean;
+  loft: boolean;
   measure: boolean;
+  pressPull: boolean;
 }
 
 export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
@@ -37,11 +43,14 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.edgeFeature) return flags.edgeFeature;
   if (flags.thread) return "thread";
   if (flags.shell) return "shell";
+  if (flags.draft) return "draft";
   if (flags.mirror) return "mirror";
   if (flags.hole) return "hole";
   if (flags.pattern) return "pattern";
   if (flags.boolean) return "boolean";
   if (flags.sweep) return "sweep";
+  if (flags.loft) return "loft";
   if (flags.measure) return "measure";
+  if (flags.pressPull) return "press_pull";
   return "model";
 }

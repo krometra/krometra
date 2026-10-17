@@ -8,8 +8,11 @@ import FeatureParamsEditor from "./FeatureParamsEditor.vue";
 import { editableValues, featureParamFields } from "@/lib/browserFeatureParams";
 import { transformParams } from "@/lib/bodyTransform";
 import { mirrorParams } from "@/lib/mirrorPlane";
+import { draftParams } from "@/lib/browserDraft";
 import { holeSummaryRows } from "@/lib/holeFeature";
 import { patternParamRows } from "@/lib/bodyPatternParams";
+import { loftParamRows } from "@/lib/loftFeature";
+import { pressPullParamRows } from "@/lib/browserPressPull";
 import type { MeshData, TimelineEntry } from "@/types/api";
 
 const emit = defineEmits<{
@@ -49,7 +52,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "sweep", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "sweep", "loft", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern", "draft", "press_pull"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -86,6 +89,8 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
         { label: "Путь", value: typeof p.path_sketch_id === "string" ? names.sketchLabel(p.path_sketch_id) : "—" },
         { label: "Ориентация", value: p.orientation === "frenet" ? "По Френе" : "Без закрутки" },
       ];
+    case "loft":
+      return loftParamRows(p, names.sketchLabel);
     case "fillet":
       return [
         { label: "Радиус", value: `${p.radius ?? "?"} мм` },
@@ -119,10 +124,14 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       ];
     case "mirror":
       return mirrorParams(p);
+    case "draft":
+      return draftParams(p);
     case "hole":
       return holeSummaryRows(p);
     case "pattern":
       return patternParamRows(p, names.bodyLabel);
+    case "press_pull":
+      return pressPullParamRows(p);
     case "boolean":
       return [
         { label: "Операция", value: OPERATION_LABELS[entry.operation ?? ""] ?? entry.operation ?? "?" },

@@ -21,7 +21,7 @@ export interface SweepSettings {
   orientation?: BrowserSweepOrientation;
 }
 
-function placementOf(sketch: ComponentEntry): SweepSketchPlacement {
+export function placementOf(sketch: ComponentEntry): SweepSketchPlacement {
   return {
     entities: (sketch.entities as SketchEntity[]) ?? [],
     plane: (sketch.plane as SketchPlane) ?? "XY",

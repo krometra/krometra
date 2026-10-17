@@ -46,7 +46,7 @@ export interface DocumentUpdate {
 export interface TimelineEntry {
   id: string;
   timestamp: string;
-  kind: "sketch" | "extrude" | "boolean" | "revolve" | "sweep" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern";
+  kind: "sketch" | "extrude" | "boolean" | "revolve" | "sweep" | "loft" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft" | "press_pull";
   label: string;
   status: "ok" | "warning" | "error" | "dirty";
   sketch_id?: string;
@@ -135,6 +135,7 @@ export interface SketchRectangle {
   type: "rectangle";
   corner1: SketchPoint;
   corner2: SketchPoint;
+  construction?: boolean;
 }
 
 export type SketchEntity = SketchLine | SketchCircle | SketchArc | SketchRectangle | SketchInfiniteLine;
@@ -169,7 +170,8 @@ export type ConstraintType =
   | "parallel" | "perpendicular" | "equal"
   | "distance" | "radius" | "angle"
   | "length" | "diameter" | "line_distance" | "point_line_distance"
-  | "horizontal_distance" | "vertical_distance";
+  | "horizontal_distance" | "vertical_distance"
+  | "collinear" | "midpoint" | "point_on_curve" | "fix";
 
 export interface ConstraintRef {
   entity_id: string;

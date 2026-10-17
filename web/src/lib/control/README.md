@@ -29,29 +29,34 @@ type ControlErrorCode =
 
 - **`ready`** разрешается один раз, когда одновременно: вьюпорт смонтирован, документ этого проекта загружен, первая загрузка тел в сцену и ядро завершена (`useBodyMeshes.hydrated`), фаза браузерного ядра — `ready`. В тот же момент на `window` летит событие `cad-control-ready`. Промис не отклоняется: если ядро не запустилось, причина видна в `state` (`kernel: "failed"`, `kernelError`).
 - До готовности и при перезапуске ядра операции отвечают `not_ready` с причиной в `message`. `capabilities` и `state` доступны всегда.
-- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `pattern` → `boolean` → `sweep` → `measure` → `model` (`mode.ts`).
+- **`mode`** в `state` повторяет то, что видит пользователь в правой панели: `sketch` → `plane_pick` → `extrude`/`revolve` → `fillet`/`chamfer` → `thread` → `shell` → `mirror` → `hole` → `pattern` → `boolean` → `sweep` → `loft` → `measure` → `press_pull` → `model` (`mode.ts`).
 - **Мутирующие операции выполняются по одной.** Вторая во время первой получает `busy`; так же отвечает запрос, пришедший, пока редактор сам занят операцией из интерфейса, сохранением или перезагрузкой тел. Операции чтения проходят всегда и видят `state.busy = true`.
 - Операции модели (`extrude`, `fillet`, …) закрывают открытую панель инструмента, как это делает лента, но в открытом эскизе отвечают `wrong_mode`: эскиз нужно завершить (`sketch.finish`) или отменить (`sketch.cancel`). После операции — успешной или отклонённой ядром — редактор в режиме `model`.
 
 ## Операции
 
-Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.getSelection`, `sketch.project`, `sketch.capture`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+Чтение: `capabilities`, `state`, `topology`, `mesh.stats`, `scene.get`, `selection.get`, `camera.get`, `sketch.get`, `sketch.getSelection`, `sketch.project`, `sketch.capture`, `sketch.constraintGlyphs`, `sketch.regions`, `viewport.project`, `viewport.capture`, `export`, `measure`.
+
+`sketch.regions { sketchId }` делит сохранённый эскиз на регионы: замкнутые области, на которые его режут пересекающиеся отрезки, дуги и окружности, с отверстиями (`lib/sketchRegions.ts`). У региона `key`, площадь, точка внутри и число отверстий. Ключи передаются в `extrude` и `revolve` параметром `profileRegions`: строится только объединение выбранных регионов (смежные сливаются в одну грань), без параметра берётся весь эскиз, как раньше. Ключ — хеш набора рёбер-источников региона со стороной каждого (`id сущности` + по какую сторону от её направления лежит регион), поэтому он переживает правку размеров, пока пересечения те же; пропавший после правки регион роняет пересборку операции с понятной ошибкой.
 
 `measure { targets, density? }` меряет один или два объекта (тело, грань, ребро, точка с прилипанием к вершине) по точной B-rep геометрии ядра тем же запросом, что инструмент «Измерить»: свойства каждого объекта и для пары минимальное расстояние с двумя точками, угол, межосевое и межцентровое расстояние. Режим `measure` в `state` — открыта панель инструмента; сама операция работает в любом режиме и модель не меняет.
 
 `export { format: "step" | "stl" | "3mf", bodyIds?, quality?, tolerance?, angleDeg? }` отдаёт файл как `{ mime, filename, dataBase64 }` тем же путём, что кнопка «Экспорт» (`useExport.buildFile` → ядро). Без `bodyIds` — все видимые тела одним файлом, с `bodyIds` — ровно названные тела, и их имена попадают в имя файла: отдельный STL на каждое тело получают вызовом на каждое тело. Качество сетки STL и 3MF — пресет `quality` (`draft` | `normal` | `high`, по умолчанию `normal`, прежние 0.01 мм и 0.5 рад) либо свои `tolerance` (мм) и `angleDeg` поверх него. Пока редактор занят операцией, `export` отвечает `busy`, хотя модель не меняет.
 
-Вид и поведение выбора без изменения документа: `camera.set`, `camera.lookAt`, `viewport.setHelpers`, `selection.setEdgeChain`, `sketch.select`.
+Вид и поведение выбора без изменения документа: `camera.set`, `camera.lookAt`, `viewport.setHelpers`, `viewport.navigation`, `selection.setEdgeChain`, `sketch.select`.
 
 `sketch.select { items, append? }` выделяет в открытом эскизе то же, что клики инструментом «Выбор»: объект целиком (`{ entityId }`, в том числе вспомогательную прямую и ребро грани `face-edge-*`), его точку (`{ entityId, point }`: у отрезка 0 и 1 концы, 2 середина; у окружности 0 центр; у дуги 0 центр, 1 и 2 концы), начало координат (`origin`) и оси (`axis-x`, `axis-y`). Модель выделения — `sketcher/sketchSelection.ts`. `sketch.constrainSelection { type, value? }` ставит на выделение ограничение, как кнопка панели: номера точек берутся из выделения, `distance` выбирает тип размера так же, как инструмент «Размер».
 
 `fillet` и `chamfer` берут ровно те рёбра, что перечислены в `edgeIds`: касательная цепочка — настройка кликов мышью (`selection.setEdgeChain`, чекбокс в панели), на операции канала она не действует. Что возьмёт клик в текущей точке, показывает `selection.get.highlightedEdges`.
 
-Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.constrainSelection`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
+Изменение модели: `sketch.start`, `sketch.addEntities`, `sketch.addConstraint`, `sketch.setConstraintValue`, `sketch.deleteConstraint`, `sketch.setConstruction`, `sketch.constrainSelection`, `sketch.finish`, `sketch.cancel`, `sketch.create`, `extrude`, `revolve`, `sweep`, `loft`, `fillet`, `chamfer`, `boolean`, `thread`, `shell`, `draft`, `pressPull`, `body.transform`, `body.mirror`, `hole`, `body.pattern`, `history.undo`, `history.redo`, `timeline.delete`, `timeline.suppress`, `timeline.rollback`, `timeline.deleteAfterMarker`.
 
 Правка истории (`controlTimelineOps.ts`) идёт тем же путём, что контекстное меню дерева и шкалы: `useModelHistory.editTimeline` → `TimelineEditCommand` → пересборка зависимых браузерным ядром (`browserRegenPlan`) и сохранение одним `browser-regen`. Зависимая операция, которая без удалённой или подавленной не строится, не роняет правку: она остаётся в истории со `status: "error"` и текстом в `error`, остальная модель достраивается. В `state.timeline` у записи есть `suppressed`, `rolledBack` и `error`. Каждая правка отменяется одним `history.undo`.
 
 `shell { bodyId, faceIds, thickness, direction? }` открывает перечисленные грани и оставляет стенку `thickness` мм: `inward` (по умолчанию) — внутрь, габарит сохраняется, `outward` — наружу. Слишком толстая стенка отклоняется `operation_failed` с толщиной, которая помещается.
+
+`draft { bodyId, faceIds, neutral: { plane } | { faceId }, angleDeg?, reverse? }` наклоняет грани на `angleDeg` (по умолчанию 3°) от нейтрали: базовой плоскости через начало координат или плоской грани тела. Тело сужается вдоль нормали плоскости (XY - +Z) или от нейтральной грани вглубь тела, `reverse: true` - расширяется. Грань, параллельная нейтрали, неплоская нейтраль и слишком большой угол отклоняются `operation_failed` с причиной (для угла - с углом, который помещается); грани сохраняют id.
+`pressPull { bodyId, faceIds, distance, newBody? }` сдвигает плоские и цилиндрические грани по нормали: `distance` со знаком, плюс наружу, минус внутрь (зазор `-0.07`). `newBody: true` выдавливает грани как профиль в новое тело, исходное остаётся видимым. Сдвинутая грань сохраняет id; неподдержанная грань или слишком глубокий сдвиг внутрь - `operation_failed`.
 
 Параметры и вид результата — в `capabilities`.
 
@@ -84,6 +89,7 @@ composables/editor/
     ├── controlHistoryOps.ts       undo/redo
     ├── controlTimelineOps.ts      удаление, подавление и откат по истории
     ├── controlShellOps.ts         shell: оболочка с открытыми гранями
+    ├── controlPressPullOps.ts     pressPull: сдвиг граней со знаком или выдавливание грани в новое тело
     ├── controlPatternOps.ts       body.pattern: массив тела
     └── controlHoleOps.ts          hole: отверстия на плоской грани по точкам или окружностям эскиза
 

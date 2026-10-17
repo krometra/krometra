@@ -4,8 +4,11 @@ import CsButton from "@/components/ui/CsButton.vue";
 import { useTimelineMarkerDrag } from "@/composables/editor/useTimelineMarkerDrag";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
+import { draftDetail } from "@/lib/browserDraft";
 import { holeDetail } from "@/lib/holeFeature";
+import { LOFT_ICON, loftSummary } from "@/lib/loftFeature";
 import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
+import { pressPullDetail } from "@/lib/browserPressPull";
 import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { entryStateHint, timelineSlots } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
@@ -44,6 +47,7 @@ function timelineIcon(kind: string): string {
     boolean: "M3 3h8v8H3z M13 3h8v8h-8z M8 13h8v8H8z",
     revolve: "M12 3a9 9 0 1 1 0 18 M12 5v9l4 3",
     sweep: "M3 18c6 0 6-12 12-12 M15 6l3-2 0 4z",
+    loft: LOFT_ICON,
     fillet: "M4 20V10a6 6 0 0 1 6-6h10",
     chamfer: "M4 20L20 4 M4 14v6h6",
     hole: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
@@ -51,7 +55,9 @@ function timelineIcon(kind: string): string {
     transform: "M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M21 12l-3-3 M21 12l-3 3",
     shell: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M9 10v4l3 2 3-2v-4",
     mirror: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5",
+    draft: "M8 4h8l3 16H5z M12 4v16",
     pattern: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z",
+    press_pull: "M4 14h16 M12 14V4 M8 8l4-4 4 4 M4 20h16",
   };
   return icons[kind] ?? icons.sketch;
 }
@@ -77,6 +83,8 @@ function timelineDetail(entry: TimelineEntry): string {
       const op = p.operation === 'cut' ? 'вырез' : p.operation === 'join' ? 'приклеить' : 'тело';
       return `${op} · ${typeof p.path_sketch_id === 'string' ? names.sketchLabel(p.path_sketch_id) : '?'}`;
     }
+    case "loft":
+      return loftSummary(entry.params ?? {});
     case "fillet": {
       const p = entry.params ?? {};
       const edges = Array.isArray(p.edge_ids) ? p.edge_ids.length : 0;
@@ -102,8 +110,12 @@ function timelineDetail(entry: TimelineEntry): string {
       return `${entry.params?.thickness ?? '?'}мм · ${entry.params?.direction === 'outward' ? 'наружу' : 'внутрь'}`;
     case "mirror":
       return mirrorDetail(entry.params ?? {});
+    case "draft":
+      return draftDetail(entry.params ?? {});
     case "pattern":
       return patternSummary(patternSpecFromParams(entry.params ?? {}));
+    case "press_pull":
+      return pressPullDetail(entry.params ?? {});
     default:
       return '';
   }

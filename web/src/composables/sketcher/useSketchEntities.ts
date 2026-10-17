@@ -1,6 +1,7 @@
 import { ref, watch } from "vue";
 import type { SketchConstraint, SketchEntity } from "@/types/api";
 import { useSketch } from "@/composables/shared/useSketch";
+import { setConstructionFlag, toggledConstructionFlag } from "@/sketcher/construction";
 import { useSketchSelection } from "./useSketchSelection";
 
 /**
@@ -88,6 +89,11 @@ export function useSketchEntities(onChange: (payload: {
     solveAndApply();
   }
 
+  function removeConstraint(constraintId: string) {
+    constraints.value = constraints.value.filter((c) => c.id !== constraintId);
+    emitChanged();
+  }
+
   function removeSelected() {
     const ids = new Set(selection.entityIds.value);
     selection.clear();
@@ -96,6 +102,14 @@ export function useSketchEntities(onChange: (payload: {
     constraints.value = constraints.value.filter(
       (c) => !c.anchors.some((a) => ids.has(a.entity_id))
     );
+    emitChanged();
+  }
+
+  function toggleConstructionOfSelected() {
+    const ids = selection.entityIds.value;
+    const flag = toggledConstructionFlag(entities.value, ids);
+    if (flag === null) return;
+    entities.value = setConstructionFlag(entities.value, ids, flag);
     emitChanged();
   }
 
@@ -119,7 +133,9 @@ export function useSketchEntities(onChange: (payload: {
     addEntities,
     addConstraint,
     setConstraintValue,
+    removeConstraint,
     removeSelected,
+    toggleConstructionOfSelected,
     clearSelection: selection.clear,
     load,
   };

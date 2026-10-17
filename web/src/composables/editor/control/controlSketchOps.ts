@@ -2,6 +2,7 @@ import { browserPlaneFrame } from "@/lib/browserExtrudeFrame";
 import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { param } from "@/lib/control/params";
 import { fail } from "@/lib/control/protocol";
+import { constructionEdit } from "@/lib/control/sketchConstruction";
 import { assignEntityIds, sketchEntitiesParam, SKETCH_ENTITY_FORMAT, type SketchEntityInput } from "@/lib/control/sketchEntities";
 import type { SketchPlane } from "@/types/api";
 import type { EditorControlContext } from "./controlContext";
@@ -115,6 +116,14 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     return { sketchId: sketch.activeSketchId.value, entityIds: created.map((entity) => entity.id), entityCount: sketch.entities.value.length };
   }
 
+  async function setConstruction(entityIds: string[], construction: boolean | undefined) {
+    context.requireSketchMode();
+    await canvasLoaded();
+    const edit = constructionEdit(sketch.entities.value, entityIds, construction);
+    sketch.applyCanvasEdit(edit.entities, sketch.constraints.value);
+    return { entityIds, construction: edit.construction, entities: sketch.entities.value };
+  }
+
   async function finish() {
     const sketchId = context.requireSketchMode();
     const entityCount = sketch.entities.value.length;
@@ -138,7 +147,7 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     defineOp({
       op: "sketch.get",
       description:
-        "Открытый эскиз. Возвращает { active, id, loaded, plane, planeOffset, planeBasis, refBodyId, refFaceId, tool, entities, constraints, canUndo, canRedo }. planeBasis { origin, u, v, n } — система координат эскиза и на базовой плоскости, и на грани: мировая точка = origin + x·u + y·v. Вне режима эскиза active = false, id = null, planeBasis = null, entities пуст. loaded = true, когда канвас загрузил эскиз и готов к вводу. Сущности: line { start, end }, rectangle { corner1, corner2 }, circle { center, radius }, arc { center, radius, startAngle, endAngle }; construction = true у линий построения (контур грани под эскизом).",
+        "Открытый эскиз. Возвращает { active, id, loaded, plane, planeOffset, planeBasis, refBodyId, refFaceId, tool, entities, constraints, canUndo, canRedo }. planeBasis { origin, u, v, n } — система координат эскиза и на базовой плоскости, и на грани: мировая точка = origin + x·u + y·v. Вне режима эскиза active = false, id = null, planeBasis = null, entities пуст. loaded = true, когда канвас загрузил эскиз и готов к вводу. Сущности: line { start, end }, rectangle { corner1, corner2 }, circle { center, radius }, arc { center, radius, startAngle, endAngle }; construction = true у вспомогательной геометрии: контур грани под эскизом и то, что нарисовано в режиме «Вспомогательная» (клавиша X).",
       run: snapshot,
     }),
 
@@ -194,9 +203,22 @@ export function sketchOps(context: EditorControlContext): ControlOp[] {
     }),
 
     defineOp({
+      op: "sketch.setConstruction",
+      description:
+        "Делает сущности открытого эскиза вспомогательными (construction = true: пунктир, ловятся привязкой, в профиль не входят) или обычными, одним шагом истории - как клавиша X при выделении. " +
+        "Без construction переключает: если среди сущностей есть обычная, все становятся вспомогательными, иначе все обычными. Ограничения сохраняются. Возвращает { entityIds, construction, entities }.",
+      mutates: true,
+      params: {
+        entityIds: param.list(param.id("id сущности из sketch.get."), "Сущности эскиза."),
+        construction: param.optional(param.boolean("true - вспомогательная, false - обычная.")),
+      },
+      run: ({ entityIds, construction }) => setConstruction(entityIds, construction),
+    }),
+
+    defineOp({
       op: "sketch.finish",
       description:
-        "Сохраняет открытый эскиз и выходит из режима эскиза — кнопка «ОК»; зависимые операции перестраиваются. Возвращает { sketchId, entityCount, mode }. sketchId подходит для extrude, revolve и sweep.",
+        "Сохраняет открытый эскиз и выходит из режима эскиза — кнопка «ОК»; зависимые операции перестраиваются. Возвращает { sketchId, entityCount, mode }. sketchId подходит для extrude, revolve, sweep и loft.",
       mutates: true,
       run: finish,
     }),

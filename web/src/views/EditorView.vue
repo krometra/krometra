@@ -15,13 +15,16 @@ import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
 import { useShell } from "@/composables/editor/useShell";
+import { useDraft } from "@/composables/editor/useDraft";
 import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorTools } from "@/composables/editor/useEditorTools";
 import { useSelectionLabel } from "@/composables/editor/useSelectionLabel";
 import { useSweep } from "@/composables/editor/useSweep";
+import { useLoft } from "@/composables/editor/useLoft";
 import { useHole } from "@/composables/editor/useHole";
 import { useMeasure } from "@/composables/editor/useMeasure";
 import { usePattern } from "@/composables/editor/usePattern";
+import { usePressPull } from "@/composables/editor/usePressPull";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -39,25 +42,14 @@ import { apiErrorMessage, toast } from "@/composables/useToast";
 import ViewportContainer from "@/components/viewport/ViewportContainer.vue";
 import ViewCube from "@/components/viewport/ViewCube.vue";
 import SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
-import PropertiesPanel from "@/components/properties/PropertiesPanel.vue";
 import EditorMenuBar from "@/components/editor/EditorMenuBar.vue";
+import EditorOperationPanels from "@/components/editor/EditorOperationPanels.vue";
 import EditorRibbon from "@/components/editor/EditorRibbon.vue";
 import ModelTree from "@/components/editor/ModelTree.vue";
 import TreeContextMenu from "@/components/editor/TreeContextMenu.vue";
 import TimelineStrip from "@/components/editor/TimelineStrip.vue";
 import SketchDeleteDialog from "@/components/editor/SketchDeleteDialog.vue";
 import EditorStatusBar from "@/components/editor/EditorStatusBar.vue";
-import SketchPropsPanel from "@/components/editor/SketchPropsPanel.vue";
-import ExtrudeRevolvePanel from "@/components/editor/ExtrudeRevolvePanel.vue";
-import BooleanPanel from "@/components/editor/BooleanPanel.vue";
-import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
-import ThreadPanel from "@/components/editor/ThreadPanel.vue";
-import ShellPanel from "@/components/editor/ShellPanel.vue";
-import MirrorPanel from "@/components/editor/MirrorPanel.vue";
-import SweepPanel from "@/components/editor/SweepPanel.vue";
-import HolePanel from "@/components/editor/HolePanel.vue";
-import MeasurePanel from "@/components/editor/MeasurePanel.vue";
-import PatternPanel from "@/components/editor/PatternPanel.vue";
 import ViewportControls from "@/components/editor/ViewportControls.vue";
 import OnboardingHint from "@/components/editor/OnboardingHint.vue";
 import ShortcutsDialog from "@/components/editor/ShortcutsDialog.vue";
@@ -113,13 +105,17 @@ const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportS
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const draft = useDraft({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const sweep = useSweep({ projectId: props.id, meshes, model });
+const loft = useLoft({ projectId: props.id, viewportRef, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const pressPull = usePressPull({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([
-  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, hole.tool, measure.tool, pattern.tool,
+  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool, draft.tool,
+  pressPull.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -214,9 +210,9 @@ const handleRedo = () => handleHistory("redo");
 const control = props.watch
   ? null
   : useEditorControl({
-      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, hole, pattern,
+      projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, loft, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
-      measure,
+      measure, draft, pressPull,
     });
 
 // --- Горячие клавиши ---
@@ -383,6 +379,7 @@ const selectionLabel = useSelectionLabel();
           :camera-target="camera.cameraState.value.target"
           @view-change="camera.handleViewChange"
           @view-iso="camera.handleViewIso"
+          @orbit="camera.handleOrbit"
         />
 
         <AxisTriad
@@ -413,35 +410,10 @@ const selectionLabel = useSelectionLabel();
       </div>
 
       <aside :class="$style.props" :inert="watchInert">
-        <SketchPropsPanel
-          v-if="sketch.sketchMode.value"
-          @ok="sketchFlow.handleSketchOk"
-          @cancel="sketchFlow.handleSketchCancel"
-        />
-        <ExtrudeRevolvePanel
-          v-else-if="extrude.lastSavedSketchId.value"
-          :extrude="extrude"
-        />
-        <FilletChamferPanel
-          v-else-if="filletChamfer.filletChamferMode.value"
-          :fillet="filletChamfer"
-        />
-        <ThreadPanel
-          v-else-if="thread.threadMode.value"
-          :thread="thread"
-        />
-        <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
-        <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
-        <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
-        <PatternPanel v-else-if="pattern.patternMode.value" :pattern="pattern" />
-        <BooleanPanel
-          v-else-if="booleanMode.booleanMode.value"
-          :boolean="booleanMode"
-        />
-        <SweepPanel v-else-if="sweep.sweepMode.value" :sweep="sweep" />
-        <MeasurePanel v-else-if="measure.active.value" :measure="measure" />
-        <PropertiesPanel
-          v-else
+        <EditorOperationPanels
+          :panels="{ extrude, booleanMode, filletChamfer, thread, shell, draft, pressPull, mirror, sweep, loft, hole, measure, pattern }"
+          @sketch-ok="sketchFlow.handleSketchOk"
+          @sketch-cancel="sketchFlow.handleSketchCancel"
           @edit-sketch="sketchFlow.editSketch"
           @rebuilt="meshes.refreshMesh($event.bodyId, $event.mesh)"
         />
