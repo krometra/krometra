@@ -16,18 +16,23 @@ const emit = defineEmits<{
   "toggle-visibility": [bodyId: string];
   "toggle-sketch-visibility": [sketchId: string];
   "plane-context-menu": [e: MouseEvent, plane: SectionBase];
+  "toggle-plane-visibility": [planeId: string];
 }>();
 
 const selection = useSelection();
 const names = useDisplayNames();
-const { timelineEntries, sketches, bodies } = useDocumentModel();
+const { timelineEntries, sketches, bodies, workPlanes } = useDocumentModel();
 
 const selectedTimelineId = computed(() => selection.selectedFeatureId.value);
 const sketchCount = computed(() => sketches.value.length);
 const bodyCount = computed(() => bodies.value.length);
 const timelineCount = computed(() => timelineEntries.value.length);
 
-const open = reactive({ origin: false, sketches: true, bodies: true, features: true });
+const open = reactive({ origin: false, planes: true, sketches: true, bodies: true, features: true });
+
+function planeLabel(planeId: string, fallback: string): string {
+  return names.names.value[planeId] ?? fallback;
+}
 
 function isEntryDirty(entry: TimelineEntry): boolean {
   return entry.status === "dirty";
@@ -108,6 +113,43 @@ defineExpose({ startRename, cancelRename, isRenaming });
         >
           <span :class="$style.treeDot" :style="{ background: 'oklch(0.40 0.06 233)' }" />{{ pl }}
         </div>
+      </template>
+
+      <template v-if="workPlanes.length > 0">
+        <div :class="$style.treeGroup" @click="open.planes = !open.planes">
+          <span :class="[$style.caret, open.planes && $style.caretOpen]">▸</span>Плоскости
+          <span :class="$style.treeCount">{{ workPlanes.length }}</span>
+        </div>
+        <template v-if="open.planes">
+          <div
+            v-for="p in workPlanes"
+            :key="p.id"
+            :class="$style.treeRow"
+            :title="'Двойной клик — переименовать, правый — меню'"
+            data-testid="work-plane-row"
+            @dblclick="startRename(p.id, planeLabel(p.id, p.label))"
+            @contextmenu.prevent="emit('context-menu', $event, 'plane', p.id)"
+          >
+            <span :class="$style.treeDot" :style="{ background: 'oklch(0.76 0.13 80)' }" />
+            <input
+              v-if="renamingId === p.id"
+              :ref="focusRenameInput"
+              v-model="renameValue"
+              :class="$style.renameInput"
+              @click.stop
+              @keyup.enter="commitRename"
+              @keyup.escape="cancelRename"
+              @blur="commitRename"
+            />
+            <template v-else>{{ planeLabel(p.id, p.label) }}</template>
+            <span
+              :class="$style.treeMeta"
+              title="Кликните, чтобы скрыть/показать"
+              data-testid="work-plane-visibility"
+              @click.stop="emit('toggle-plane-visibility', p.id)"
+            >{{ p.visible !== false ? 'видимо' : 'скрыто' }}</span>
+          </div>
+        </template>
       </template>
 
       <div :class="$style.treeGroup" @click="open.sketches = !open.sketches">

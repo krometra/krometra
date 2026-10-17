@@ -7,6 +7,7 @@ import { apiErrorMessage, toast } from "@/composables/useToast";
 import { deleteSketch as deleteSketchEntry } from "@/lib/bodyHistory";
 import { browserFaceBoundary, browserFacePlane } from "@/lib/browserFacePlane";
 import { faceBoundaryEntities } from "@/lib/faceBoundary";
+import { workPlaneOf } from "@/lib/workPlaneDocument";
 import type SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
 import type { SketchConstraint, SketchEntity, SketchLine, SketchPlane } from "@/types/api";
 import type { BodyMeshesApi } from "./useBodyMeshes";
@@ -60,6 +61,20 @@ export function useSketchLifecycle(deps: {
     viewportRef.value?.hidePlaneHelpers();
     sketch.setPlane(payload.plane, payload.offset ?? 0);
     sketch.startSketch(`sketch-${Date.now()}`);
+  }
+
+  function startOnWorkPlane(planeId: string) {
+    const plane = workPlaneOf(documentStore.document.value?.components ?? {}, planeId);
+    facePickMode.value = false;
+    facePickError.value = null;
+    viewportRef.value?.hidePlaneHelpers();
+    viewportRef.value?.clearHighlight();
+    sketch.setWorkPlane(plane.plane, plane.plane_offset, plane.plane_basis, planeId);
+    sketch.startSketch(`sketch-${Date.now()}`);
+  }
+
+  function onWorkPlanePicked(planeId: string) {
+    if (facePickMode.value) startOnWorkPlane(planeId);
   }
 
   function boundaryToConstructionLines(boundary: { x: number; y: number }[][], faceId: string | number): SketchLine[] {
@@ -209,6 +224,8 @@ export function useSketchLifecycle(deps: {
     cancelFacePick,
     onPlanePicked,
     handleFaceSketchStart,
+    startOnWorkPlane,
+    onWorkPlanePicked,
     handleSketchOk,
     handleSketchCancel,
     handleSketchChanged,

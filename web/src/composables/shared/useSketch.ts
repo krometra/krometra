@@ -21,6 +21,7 @@ export const useSketch = createSharedComposable(() => {
   const planeBasis: Ref<PlaneBasis | null> = ref(null);
   const refBodyId: Ref<string | null> = ref(null);
   const refFaceId: Ref<string | number | null> = ref(null);
+  const refPlaneId: Ref<string | null> = ref(null);
   const entities: Ref<SketchEntity[]> = ref([]);
   const constraints: Ref<SketchConstraint[]> = ref([]);
   const isLoading = ref(false);
@@ -81,6 +82,7 @@ export const useSketch = createSharedComposable(() => {
     planeBasis.value = null;
     refBodyId.value = null;
     refFaceId.value = null;
+    refPlaneId.value = null;
     if (solver.value) {
       solver.value.terminate();
       solver.value = null;
@@ -97,6 +99,13 @@ export const useSketch = createSharedComposable(() => {
     planeBasis.value = null;
     refBodyId.value = null;
     refFaceId.value = null;
+    refPlaneId.value = null;
+  }
+
+  function setWorkPlane(plane: SketchPlane, offset: number, basis: PlaneBasis, planeId: string) {
+    setPlane(plane, offset);
+    planeBasis.value = basis;
+    refPlaneId.value = planeId;
   }
 
   function setFacePlane(
@@ -111,6 +120,7 @@ export const useSketch = createSharedComposable(() => {
     planeBasis.value = basis;
     refBodyId.value = bodyId;
     refFaceId.value = faceId;
+    refPlaneId.value = null;
   }
 
   function addEntity(entity: SketchEntity) {
@@ -211,6 +221,7 @@ export const useSketch = createSharedComposable(() => {
       planeBasis.value = data.plane_basis ?? null;
       refBodyId.value = data.ref_body_id ?? null;
       refFaceId.value = data.ref_face_id ?? null;
+      refPlaneId.value = data.ref_plane_id ?? null;
       entities.value = data.entities ?? [];
       constraints.value = data.constraints ?? [];
       // Baseline for undo: the sketch as it was loaded.
@@ -250,6 +261,7 @@ export const useSketch = createSharedComposable(() => {
         plane_basis: planeBasis.value,
         ref_body_id: refBodyId.value,
         ref_face_id: refFaceId.value,
+        ref_plane_id: refPlaneId.value,
         entities: entities.value,
         constraints: constraints.value,
       };
@@ -280,6 +292,7 @@ export const useSketch = createSharedComposable(() => {
     planeBasis,
     refBodyId,
     refFaceId,
+    refPlaneId,
     entities,
     constraints,
     isLoading,
@@ -296,6 +309,7 @@ export const useSketch = createSharedComposable(() => {
     setTool,
     setPlane,
     setFacePlane,
+    setWorkPlane,
     addEntity,
     removeEntity,
     setEntities,

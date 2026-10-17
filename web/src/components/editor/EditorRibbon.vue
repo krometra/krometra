@@ -30,6 +30,7 @@ const tools = computed<Tool[]>(() => {
   const bodies = props.bodyCount ?? 0;
   return [
     { label: "Эскиз", icon: "M3 3h18v18H3z M9 3v18", action: "sketch", hint: "Создать эскиз — S", testId: "ribbon-sketch" },
+    { label: "Плоскость", icon: "M3 17l6-10h12l-6 10z M12 3v6", action: "plane", hint: "Рабочая плоскость: со смещением, под углом через ребро или отрезок, по трём точкам, посередине", testId: "ribbon-plane" },
     { divider: true },
     { label: "Выдавить", icon: "M5 8l7-5 7 5 M5 8v8l7 5 7-5V8 M12 3v18", action: "extrude", hint: "Выдавить эскиз в тело — E", testId: "ribbon-extrude" },
     { label: "Вращать", icon: "M4 12a8 8 0 1 1 8 8 M12 4v8l5 3", action: "revolve", hint: "Тело вращения из эскиза — R", testId: "ribbon-revolve" },

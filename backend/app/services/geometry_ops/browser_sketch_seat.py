@@ -1,4 +1,4 @@
-"""Эскизы на гранях browser-тел: тело-владелец и приём плоскостей, пересчитанных браузерным ядром."""
+"""Эскизы на гранях browser-тел и рабочие плоскости: тело-владелец и приём плоскостей, пересчитанных браузерным ядром."""
 
 import math
 
@@ -7,6 +7,7 @@ from fastapi import status
 from .browser_extrude import _error
 
 STABLE_FACE_PREFIX = "f-"
+WORK_PLANE_TYPE = "work_plane"
 SKETCH_FEATURES = ("extrude", "revolve", "sweep")
 PLANES = ("XY", "XZ", "YZ")
 BASIS_AXES = ("origin", "u", "v", "n")
@@ -16,16 +17,34 @@ def _is_sketch(component: object) -> bool:
     return isinstance(component, dict) and isinstance(component.get("entities"), list)
 
 
-def sketch_owner(components: dict, sketch_id: object) -> str | None:
-    sketch = components.get(sketch_id) if isinstance(sketch_id, str) else None
-    if not _is_sketch(sketch):
-        return None
+def _is_work_plane(component: object) -> bool:
+    return isinstance(component, dict) and component.get("type") == WORK_PLANE_TYPE
+
+
+def _work_plane_owner(plane: object) -> str | None:
+    body_id = plane.get("ref_body_id") if _is_work_plane(plane) else None
+    return body_id if isinstance(body_id, str) and body_id else None
+
+
+def _face_owner(sketch: dict) -> str | None:
     body_id, face_name = sketch.get("ref_body_id"), sketch.get("ref_face_id")
     if not isinstance(body_id, str) or not body_id:
         return None
     if not isinstance(face_name, str) or not face_name.startswith(STABLE_FACE_PREFIX) or len(face_name) <= len(STABLE_FACE_PREFIX):
         return None
     return body_id
+
+
+def sketch_owner(components: dict, sketch_id: object) -> str | None:
+    component = components.get(sketch_id) if isinstance(sketch_id, str) else None
+    if _is_work_plane(component):
+        return _work_plane_owner(component)
+    if not _is_sketch(component):
+        return None
+    plane_id = component.get("ref_plane_id")
+    if isinstance(plane_id, str) and plane_id:
+        return _work_plane_owner(components.get(plane_id))
+    return _face_owner(component)
 
 
 def feature_sketch_owner(components: dict, entry: dict) -> str | None:
@@ -41,7 +60,8 @@ def seated_sketches(components: dict, rebuilt_bodies: set[str]) -> set[str]:
 
 def reassign_sketch_owner(components: dict, superseded_bodies: set[str], body_id: str) -> None:
     for sketch_id in seated_sketches(components, superseded_bodies):
-        components[sketch_id] = {**components[sketch_id], "ref_body_id": body_id}
+        if not components[sketch_id].get("ref_plane_id"):
+            components[sketch_id] = {**components[sketch_id], "ref_body_id": body_id}
 
 
 def _is_number(value: object) -> bool:

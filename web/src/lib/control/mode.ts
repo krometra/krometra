@@ -13,7 +13,8 @@ export type EditorMode =
   | "mirror"
   | "boolean"
   | "sweep"
-  | "measure";
+  | "measure"
+  | "plane";
 
 export interface EditorModeFlags {
   sketch: boolean;
@@ -28,6 +29,7 @@ export interface EditorModeFlags {
   boolean: boolean;
   sweep: boolean;
   measure: boolean;
+  plane?: boolean;
 }
 
 export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
@@ -43,5 +45,6 @@ export function resolveEditorMode(flags: EditorModeFlags): EditorMode {
   if (flags.boolean) return "boolean";
   if (flags.sweep) return "sweep";
   if (flags.measure) return "measure";
+  if (flags.plane) return "plane";
   return "model";
 }

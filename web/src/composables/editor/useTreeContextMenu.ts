@@ -13,6 +13,7 @@ import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
 import type { ModelHistoryApi } from "./useModelHistory";
 import type { SketchLifecycleApi } from "./useSketchLifecycle";
 import type { TimelineEditsApi } from "./useTimelineEdits";
+import type { WorkPlanesApi } from "./useWorkPlanes";
 
 interface Renamer {
   startRename(id: string, name: string): void;
@@ -27,6 +28,7 @@ export function useTreeContextMenu(deps: {
   bodyPresentation: BodyPresentationApi;
   exportApi: ExportApi;
   timelineEdits: TimelineEditsApi;
+  workPlanes: WorkPlanesApi;
 }) {
   const { tree, model, sketchFlow, extrude, history, bodyPresentation, exportApi, timelineEdits } = deps;
   const selection = useSelection();
@@ -118,6 +120,7 @@ export function useTreeContextMenu(deps: {
     if (!current) return [];
     if (current.kind === "sketch") return sketchItems(current.id);
     if (current.kind === "body") return bodyItems(current.id);
+    if (current.kind === "plane") return deps.workPlanes.menuItems(current.id, (id, name) => tree.value?.startRename(id, name));
     return featureItems(current.id);
   });
 
