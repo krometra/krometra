@@ -58,6 +58,7 @@ class SketchRectangle(SketchEntityBase):
     type: Literal["rectangle"] = "rectangle"
     corner1: SketchPoint = Field(default_factory=SketchPoint)
     corner2: SketchPoint = Field(default_factory=SketchPoint)
+    construction: bool = False
 
 
 SketchEntity = SketchLine | SketchCircle | SketchArc | SketchRectangle | SketchInfiniteLine

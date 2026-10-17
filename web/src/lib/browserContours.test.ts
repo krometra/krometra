@@ -36,6 +36,17 @@ describe("browserContours", () => {
   it("ignores construction geometry", () => {
     expect(browserContours([...slot, { id: "c", type: "line", start: { x: 0, y: 0 }, end: { x: 1, y: 1 }, construction: true }])).toHaveLength(1);
   });
+
+  it("ignores construction circles, arcs and rectangles drawn inside the profile", () => {
+    const helpers: SketchEntity[] = [
+      { id: "cc", type: "circle", center: { x: 0, y: 0 }, radius: 2, construction: true },
+      { id: "ca", type: "arc", center: { x: 0, y: 0 }, radius: 3, startAngle: 0, endAngle: Math.PI, construction: true },
+      { id: "cr", type: "rectangle", corner1: { x: -4, y: -2 }, corner2: { x: 4, y: 2 }, construction: true },
+    ];
+    expect(browserContours([...slot, ...helpers])).toHaveLength(1);
+    expect(browserRegions([...slot, ...helpers])).toHaveLength(1);
+    expect(browserRegions([...slot, ...helpers])[0].holes).toHaveLength(0);
+  });
 });
 
 describe("browserContourPolygon", () => {

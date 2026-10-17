@@ -1,6 +1,7 @@
 import { ref, watch } from "vue";
 import type { SketchConstraint, SketchEntity } from "@/types/api";
 import { useSketch } from "@/composables/shared/useSketch";
+import { setConstructionFlag, toggledConstructionFlag } from "@/sketcher/construction";
 
 /**
  * Владелец сущностей и ограничений эскиза: локальное состояние канвы плюс
@@ -98,6 +99,13 @@ export function useSketchEntities(onChange: (payload: {
     emitChanged();
   }
 
+  function toggleConstructionOfSelected() {
+    const flag = toggledConstructionFlag(entities.value, selectedEntityIds.value);
+    if (flag === null) return;
+    entities.value = setConstructionFlag(entities.value, selectedEntityIds.value, flag);
+    emitChanged();
+  }
+
   function toggleSelection(entityId: string) {
     const idx = selectedEntityIds.value.indexOf(entityId);
     if (idx >= 0) {
@@ -132,6 +140,7 @@ export function useSketchEntities(onChange: (payload: {
     addConstraint,
     setConstraintValue,
     removeSelected,
+    toggleConstructionOfSelected,
     toggleSelection,
     clearSelection,
     load,

@@ -14,7 +14,7 @@ export type SketchEntityInput =
 export const SKETCH_ENTITY_FORMAT =
   'объект { type: "line", start: {x,y}, end: {x,y} } | { type: "rectangle", corner1: {x,y}, corner2: {x,y} } | ' +
   '{ type: "circle", center: {x,y}, radius } | { type: "arc", center: {x,y}, radius, startAngle, endAngle }; ' +
-  "координаты в мм в системе эскиза, углы в радианах против часовой стрелки; необязательные поля: id, construction (для line, circle и arc). " +
+  "координаты в мм в системе эскиза, углы в радианах против часовой стрелки; необязательные поля: id, construction (true - вспомогательная геометрия: рисуется пунктиром, ловится привязкой, в профиль не входит). " +
   'Массивы: { type: "linear_pattern", entities: [...], count, step: {x,y}, count2?, step2?: {x,y} } — сетка count × count2 копий со сдвигами step и step2; ' +
   '{ type: "circular_pattern", entities: [...], count, center: {x,y}, angle? } — count копий по окружности вокруг center, angle — общий угол в радианах (по умолчанию полный круг). ' +
   "Первая копия — сами entities, у копий с id к нему добавляется -1, -2 и т. д.; массивы можно вкладывать";
@@ -56,9 +56,10 @@ function readLine(raw: Record<string, unknown>): SketchEntityInput | null {
 function readRectangle(raw: Record<string, unknown>): SketchEntityInput | null {
   const corner1 = point(raw.corner1);
   const corner2 = point(raw.corner2);
-  if (!corner1 || !corner2) return null;
+  const flags = construction(raw);
+  if (!corner1 || !corner2 || !flags) return null;
   if (Math.abs(corner2.x - corner1.x) < MIN_SIZE || Math.abs(corner2.y - corner1.y) < MIN_SIZE) return null;
-  return { type: "rectangle", corner1, corner2 };
+  return { type: "rectangle", corner1, corner2, ...flags };
 }
 
 function readCircle(raw: Record<string, unknown>): SketchEntityInput | null {

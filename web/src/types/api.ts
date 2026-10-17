@@ -135,6 +135,7 @@ export interface SketchRectangle {
   type: "rectangle";
   corner1: SketchPoint;
   corner2: SketchPoint;
+  construction?: boolean;
 }
 
 export type SketchEntity = SketchLine | SketchCircle | SketchArc | SketchRectangle | SketchInfiniteLine;

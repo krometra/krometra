@@ -8,6 +8,7 @@ defineProps<{
   canUndo: boolean;
   canRedo: boolean;
   snapEnabled: boolean;
+  constructionMode: boolean;
   auxHint: string | null;
 }>();
 
@@ -16,6 +17,7 @@ const emit = defineEmits<{
   (e: "undo"): void;
   (e: "redo"): void;
   (e: "toggle-snap"): void;
+  (e: "toggle-construction"): void;
 }>();
 
 const DRAW_TOOLS = [
@@ -94,6 +96,20 @@ function select(tool: SketchToolName) {
       <span :class="$style.toolLabel">{{ t.label }}</span>
     </button>
 
+    <button
+      :class="[$style.toolBtn, $style.auxBtn, constructionMode && $style.toolBtnActive]"
+      :aria-pressed="constructionMode"
+      title="Вспомогательная геометрия (X): рисовать пунктиром, вне профиля; с выделением - переключить выбранное"
+      data-testid="sketch-construction-toggle"
+      @click="emit('toggle-construction')"
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="3 3">
+        <path d="M4 20L20 4" />
+        <circle cx="12" cy="12" r="7" />
+      </svg>
+      <span :class="$style.toolLabel">Вспомогат.</span>
+    </button>
+
     <div :class="$style.toolbarDivider" />
 
     <button
@@ -113,6 +129,7 @@ function select(tool: SketchToolName) {
 
     <button
       :class="[$style.toolBtn, snapEnabled && $style.toolBtnActive]"
+      :aria-pressed="snapEnabled"
       title="Привязка к вспомогательным прямым и пересечениям"
       @click="emit('toggle-snap')"
     >

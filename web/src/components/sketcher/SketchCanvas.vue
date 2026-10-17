@@ -12,6 +12,7 @@ import {
   drawSnapMarker,
 } from "@/sketcher/renderEntities";
 import { drawConstraints } from "@/sketcher/renderConstraints";
+import { drawAutoConstraintHint } from "@/sketcher/renderAutoConstraints";
 
 const props = defineProps<{
   entities: SketchEntity[];
@@ -21,6 +22,7 @@ const props = defineProps<{
   selectedEntityIds?: string[];
   snapPoint?: SketchPoint | null;
   snapLabel?: string | null;
+  autoHint?: { at: SketchPoint; symbols: string[] } | null;
 }>();
 
 const emit = defineEmits<{
@@ -60,6 +62,7 @@ function render() {
     drawConstraints(ctx, view, props.constraints, props.entities);
   }
   if (props.snapPoint) drawSnapMarker(ctx, view, props.snapPoint, props.snapLabel);
+  if (props.autoHint) drawAutoConstraintHint(ctx, view, props.autoHint.at, props.autoHint.symbols);
 
   ctx.restore();
 }
@@ -107,6 +110,7 @@ watch(
     props.selectedEntityIds,
     props.snapPoint,
     props.snapLabel,
+    props.autoHint,
   ],
   render,
   { deep: true }

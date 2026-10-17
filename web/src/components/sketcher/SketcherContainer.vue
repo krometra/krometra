@@ -12,7 +12,7 @@ import ConstraintToolbar from "./ConstraintToolbar.vue";
 import ValueInputOverlay from "./ValueInputOverlay.vue";
 import LiveDimensionsOverlay from "./LiveDimensionsOverlay.vue";
 import DimensionInputOverlay from "./DimensionInputOverlay.vue";
-import { isConstruction, isPointNearEntity } from "@/sketcher/geometry";
+import { isPointNearEntity } from "@/sketcher/geometry";
 import { useSketchEntities } from "@/composables/sketcher/useSketchEntities";
 import { useSketchSnapping } from "@/composables/sketcher/useSketchSnapping";
 import { useAuxLines } from "@/composables/sketcher/useAuxLines";
@@ -20,6 +20,8 @@ import { useLiveDimensions } from "@/composables/sketcher/useLiveDimensions";
 import { useEdgeDrag } from "@/composables/sketcher/useEdgeDrag";
 import { useSketchConstraints } from "@/composables/sketcher/useSketchConstraints";
 import { useSketchDimensions } from "@/composables/sketcher/useSketchDimensions";
+import { useAutoConstraints } from "@/composables/sketcher/useAutoConstraints";
+import { useConstructionMode } from "@/composables/sketcher/useConstructionMode";
 import { LineTool } from "./tools/LineTool";
 import { RectangleTool } from "./tools/RectangleTool";
 import { CircleTool } from "./tools/CircleTool";
@@ -117,6 +119,14 @@ const edgeDrag = useEdgeDrag({
   toggleSelection: sketch.toggleSelection,
 });
 
+const construction = useConstructionMode({
+  entities: sketch.entities,
+  selectedEntityIds: sketch.selectedEntityIds,
+  toggleSelected: sketch.toggleConstructionOfSelected,
+  onModeChange: () => updatePreview(),
+});
+const autoConstraints = useAutoConstraints({ entities: sketch.entities, pixelsToWorld });
+
 const dimensions = useSketchDimensions({ sketch, zoom, screenToWorld, canvasRect });
 const dimension = dimensions.tool;
 const dimensionInput = dimensions.input;
@@ -148,20 +158,26 @@ const auxHint = computed(() => {
     : "Укажите точку";
 });
 
+function resolveToolPoint(sx: number, sy: number): SketchPoint {
+  const tool = currentTool.value;
+  const point = snapping.snappedScreenToWorld(sx, sy, tool === circleTool ? circleTool.getCenter() : null);
+  const snap = snapping.snapHint.value;
+  if (!tool.isActive()) {
+    autoConstraints.begin(point, snap);
+    return point;
+  }
+  const refined = autoConstraints.refineEnd(props.tool, point, snap);
+  if (refined.x !== point.x || refined.y !== point.y) snapping.clearSnap();
+  return refined;
+}
+
 function toolContext(): SketchToolContext {
-  return {
-    screenToWorld: (sx, sy) => snapping.snappedScreenToWorld(
-      sx,
-      sy,
-      currentTool.value === circleTool ? circleTool.getCenter() : null,
-    ),
-    nextId: sketch.nextEntityId,
-    pixelsToWorld,
-  };
+  return { screenToWorld: resolveToolPoint, nextId: sketch.nextEntityId, pixelsToWorld };
 }
 
 function updatePreview() {
-  preview.value = aux.isAuxTool.value ? aux.previewEntity() : currentTool.value.getPreview();
+  const drawn = currentTool.value.getPreview();
+  preview.value = aux.isAuxTool.value ? aux.previewEntity() : drawn && construction.mark(drawn);
   toolStepHint.value = aux.isAuxTool.value ? null : currentTool.value.hint?.() ?? null;
 }
 
@@ -169,7 +185,7 @@ function findEntityAt(world: SketchPoint): SketchEntity | null {
   const threshold = PICK_PX / zoom();
   for (let i = sketch.entities.value.length - 1; i >= 0; i--) {
     const entity = sketch.entities.value[i];
-    if (isConstruction(entity)) continue;
+    if (entity.type === "infline") continue;
     if (isPointNearEntity(world, entity, threshold)) return entity;
   }
   return null;
@@ -293,15 +309,16 @@ function applyProduced(
   context: SketchToolContext
 ) {
   if (produced) {
-    sketch.addEntities(Array.isArray(produced) ? produced : [produced]);
+    const created = (Array.isArray(produced) ? produced : [produced]).map((entity) => construction.mark(entity));
+    sketch.addEntities(created);
 
-    if (tool.detectConstraints) {
-      // Без emit: одно действие пользователя — одно событие и один шаг
-      // истории. Иначе прямоугольник давал 8 записей, и Ctrl+Z «не кончался».
-      for (const c of tool.detectConstraints(context, sketch.entities.value)) {
-        sketch.addConstraint(c, { silent: true });
-      }
-    }
+    const detected = [
+      ...(tool.detectConstraints?.(context, sketch.entities.value) ?? []),
+      ...autoConstraints.constraintsFor(props.tool, created, sketch.nextConstraintId),
+    ];
+    // Без emit: одно действие пользователя — одно событие и один шаг
+    // истории. Иначе прямоугольник давал 8 записей, и Ctrl+Z «не кончался».
+    for (const c of detected) sketch.addConstraint(c, { silent: true });
 
     sketch.emitChanged();
     liveDimensions.close();
@@ -328,6 +345,7 @@ function onGlobalMouseUp(e: MouseEvent) {
 
   const context = toolContext();
   const tool = currentTool.value;
+  autoConstraints.setSuppressed(e.shiftKey);
   applyProduced(tool, tool.onMouseUp(e.clientX - rect.left, e.clientY - rect.top, context), context);
   // Клик по канве уводит фокус с поля размеров — возвращаем его,
   // чтобы значение можно было вводить сразу после первого клика.
@@ -349,6 +367,7 @@ function commitLiveDims() {
 
 function cancelLiveDims() {
   currentTool.value.reset();
+  autoConstraints.reset();
   liveDimensions.close();
   updatePreview();
 }
@@ -362,6 +381,7 @@ function resetInteraction() {
   edgeDrag.cancel();
   aux.reset();
   dimensions.reset();
+  autoConstraints.reset();
 }
 
 watch(() => props.tool, resetInteraction, { immediate: true });
@@ -370,7 +390,9 @@ watch(isDimensionTool, (active) => active && dimensions.startFromSelection());
 watch(
   () => props.active,
   (isActive) => {
-    if (!isActive) resetInteraction();
+    if (isActive) return;
+    resetInteraction();
+    construction.reset();
   }
 );
 
@@ -383,6 +405,8 @@ const HOTKEY_TOOLS: Record<string, SketchToolName> = {
   d: "dimension", в: "dimension",
 };
 
+const CONSTRUCTION_KEYS = new Set(["x", "ч"]);
+
 function onSketchKeyDown(e: KeyboardEvent) {
   if (!props.active) return;
   const t = e.target as HTMLElement | null;
@@ -391,6 +415,7 @@ function onSketchKeyDown(e: KeyboardEvent) {
   if (e.key === "Escape") {
     e.preventDefault();
     if (cancelToolStep(currentTool.value)) {
+      autoConstraints.reset();
       liveDimensions.close();
       snapping.clearSnap();
       updatePreview();
@@ -420,6 +445,11 @@ function onSketchKeyDown(e: KeyboardEvent) {
   }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
+  if (CONSTRUCTION_KEYS.has(e.key.toLowerCase())) {
+    e.preventDefault();
+    construction.toggleSelectionOrMode();
+    return;
+  }
   const toolName = HOTKEY_TOOLS[e.key.toLowerCase()];
   if (toolName) {
     e.preventDefault();
@@ -449,17 +479,19 @@ defineExpose({
 </script>
 
 <template>
-  <div v-if="active" :class="$style.container">
+  <div v-if="active" :class="$style.container" :data-auto-constraints="autoConstraints.hint.value?.symbols.join(' ') ?? ''">
     <SketcherToolbar
       :tool="tool"
       :can-undo="sketch.sketchStore.canUndo.value"
       :can-redo="sketch.sketchStore.canRedo.value"
       :snap-enabled="snapping.snapEnabled.value"
+      :construction-mode="construction.enabled.value"
       :aux-hint="auxHint ?? toolStepHint"
       @select-tool="selectTool"
       @undo="sketch.sketchStore.undo()"
       @redo="sketch.sketchStore.redo()"
       @toggle-snap="snapping.snapEnabled.value = !snapping.snapEnabled.value"
+      @toggle-construction="construction.toggle()"
     />
 
     <ConstraintToolbar
@@ -469,7 +501,9 @@ defineExpose({
       :can-apply="constraints.canApply"
       :label="constraints.label"
       :title="constraints.title"
+      :construction-action="construction.selectionAction.value"
       @apply="constraints.create"
+      @toggle-construction="sketch.toggleConstructionOfSelected()"
       @clear="sketch.clearSelection()"
     />
 
@@ -516,6 +550,7 @@ defineExpose({
       :selected-entity-ids="highlightedIds"
       :snap-point="canvasSnap?.at ?? null"
       :snap-label="canvasSnap?.label ?? null"
+      :auto-hint="autoConstraints.hint.value"
       @canvas-click="onCanvasClick"
       @canvas-dblclick="dimensions.editAt"
       @canvas-move="onCanvasMove"

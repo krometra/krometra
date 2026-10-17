@@ -8,11 +8,13 @@ defineProps<{
   canApply: (type: ConstraintType) => boolean;
   label: (type: ConstraintType) => string;
   title: (type: ConstraintType) => string;
+  constructionAction: string | null;
 }>();
 
 const emit = defineEmits<{
   (e: "apply", type: ConstraintType): void;
   (e: "clear"): void;
+  (e: "toggle-construction"): void;
 }>();
 </script>
 
@@ -28,6 +30,15 @@ const emit = defineEmits<{
       @click="emit('apply', ct)"
     >
       {{ label(ct) }}
+    </button>
+    <button
+      v-if="constructionAction"
+      :class="[$style.constraintBtn, $style.constraintBtnActive]"
+      title="Переключить вспомогательную геометрию у выбранного (X)"
+      data-testid="sketch-toggle-construction-selected"
+      @click="emit('toggle-construction')"
+    >
+      {{ constructionAction }}
     </button>
     <button :class="$style.constraintClearBtn" @click="emit('clear')">✕</button>
   </div>

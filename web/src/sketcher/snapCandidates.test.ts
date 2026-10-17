@@ -290,3 +290,18 @@ describe("начало координат", () => {
     expect(snapAt([line("l", 0, 0, 10, 0)], { x: 0.1, y: 0.1 }, 1)?.kind).toBe("endpoint");
   });
 });
+
+describe("источник привязки для авто-ограничений", () => {
+  it("точка примитива знает свой объект и номер точки, как в решателе", () => {
+    const arc: SketchEntity = { id: "a", type: "arc", center: { x: 0, y: 0 }, radius: 10, startAngle: 0, endAngle: Math.PI / 2 };
+    expect(snapAt([line("l", 20, 20, 40, 20)], { x: 40.1, y: 20 }, 1)?.ref).toEqual({ entity_id: "l", sub_index: 1 });
+    expect(snapAt([line("l", 20, 20, 40, 20)], { x: 30, y: 20.1 }, 1)).toMatchObject({ kind: "midpoint", ref: { entity_id: "l", sub_index: 0 } });
+    expect(snapAt([arc], { x: 0.1, y: 10 }, 1)?.ref).toEqual({ entity_id: "a", sub_index: 2 });
+    expect(snapAt([], { x: 0.1, y: 0 }, 1)?.ref).toEqual({ entity_id: "sketch-origin", sub_index: 0 });
+  });
+
+  it("проекция на отрезок ссылается на него, пересечение - ни на что", () => {
+    expect(snapAt([line("l", 20, 20, 40, 20)], { x: 25, y: 20.2 }, 1)).toMatchObject({ kind: "on-line", ref: { entity_id: "l", sub_index: 0 } });
+    expect(intersectionCandidates([line("a", 0, 0, 10, 0), line("b", 5, -5, 5, 5)])[0].ref).toBeUndefined();
+  });
+});

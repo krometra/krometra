@@ -159,12 +159,14 @@ export function drawEntity(
       const w = Math.abs(entity.corner2.x - entity.corner1.x);
       const h = Math.abs(entity.corner2.y - entity.corner1.y);
 
-      ctx.fillStyle = isPreview ? "rgba(38, 55, 77, 0.12)" : "rgba(38, 55, 77, 0.05)";
-      ctx.fillRect(x1, y1, w, h);
+      if (!entity.construction) {
+        ctx.fillStyle = isPreview ? "rgba(38, 55, 77, 0.12)" : "rgba(38, 55, 77, 0.05)";
+        ctx.fillRect(x1, y1, w, h);
+      }
 
-      ctx.strokeStyle = strokeColor(hovered, alpha);
-      ctx.lineWidth = (hovered ? 3 : 2) / zoom;
+      applyStroke(ctx, Boolean(entity.construction), hovered, alpha, zoom);
       ctx.strokeRect(x1, y1, w, h);
+      ctx.setLineDash([]);
       break;
     }
 
