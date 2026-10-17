@@ -91,7 +91,7 @@ function onDblClick(e: MouseEvent) {
 
 function onWheel(e: WheelEvent) {
   e.preventDefault();
-  viewport.zoomAt(e);
+  viewport.handleWheel(e);
 }
 
 function onContextMenu(e: MouseEvent) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CsButton from "@/components/ui/CsButton.vue";
 import CsIcon from "@/components/ui/CsIcon.vue";
+import NavigationMenu from "./NavigationMenu.vue";
 import type { IconName } from "@/components/ui/icons";
 import type { RenderingMode } from "@/composables/editor/types";
 
@@ -71,6 +72,8 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
     >
       <CsIcon :name="b.icon" :size="17" />
     </CsButton>
+    <div :class="$style.vSep" />
+    <NavigationMenu />
   </div>
 </template>
 

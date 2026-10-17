@@ -6,9 +6,10 @@
  * - Click face → animate camera to canonical view
  * - Click edge → intermediate isometric view
  * - Click vertex → isometric view
+ * - Drag cube → orbit camera around current target
  * - Home button resets to default isometry
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import * as THREE from "three";
 import CsIcon from "@/components/ui/CsIcon.vue";
 import {
@@ -16,6 +17,7 @@ import {
   type CanonicalView,
 } from "@/composables/useViewCube";
 import { cubeRotation } from "@/lib/orientation";
+import { beginCubeDrag, moveCubeDrag, type CubeDrag, type CubeOrbit } from "@/lib/navigation/cubeDrag";
 
 const props = defineProps<{
   /** Current camera world position */
@@ -27,7 +29,37 @@ const props = defineProps<{
 const emit = defineEmits<{
   "view-change": [view: CanonicalView];
   "view-iso": [];
+  orbit: [orbit: CubeOrbit];
 }>();
+
+const PRIMARY_BUTTON = 0;
+let drag: CubeDrag | null = null;
+let swallowClick = false;
+const dragging = ref(false);
+
+function onPointerDown(e: PointerEvent) {
+  swallowClick = false;
+  drag = e.button === PRIMARY_BUTTON ? beginCubeDrag(e.clientX, e.clientY) : null;
+}
+
+function onPointerMove(e: PointerEvent) {
+  if (!drag) return;
+  if ((e.buttons & 1) === 0) {
+    onPointerEnd();
+    return;
+  }
+  const next = moveCubeDrag(drag, e.clientX, e.clientY);
+  if (next.drag.dragging && !drag.dragging) (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  drag = next.drag;
+  dragging.value = drag.dragging;
+  if (next.orbit) emit("orbit", next.orbit);
+}
+
+function onPointerEnd() {
+  swallowClick = drag?.dragging ?? false;
+  drag = null;
+  dragging.value = false;
+}
 
 
 const rotation = computed(() =>
@@ -65,6 +97,10 @@ function handleHomeClick() {
  * We use delegation: the click handler checks `data-face`, `data-edge`, `data-vertex`.
  */
 function handleClick(e: MouseEvent) {
+  if (swallowClick) {
+    swallowClick = false;
+    return;
+  }
   const target = e.target as HTMLElement;
   const face = target.closest("[data-face]");
   if (face) {
@@ -112,7 +148,15 @@ const faceDefs = [
     </button>
 
     <!-- 3D CSS Cube scene -->
-    <div :class="$style.scene" @click="handleClick">
+    <div
+      :class="[$style.scene, dragging && $style.sceneDragging]"
+      data-testid="view-cube"
+      @click="handleClick"
+      @pointerdown="onPointerDown"
+      @pointermove="onPointerMove"
+      @pointerup="onPointerEnd"
+      @pointercancel="onPointerEnd"
+    >
       <div
         :class="$style.cube"
         :style="{
@@ -208,6 +252,13 @@ const faceDefs = [
   justify-content: center;
   perspective: 400px;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.sceneDragging,
+.sceneDragging * {
+  cursor: grabbing;
 }
 
 .cube {

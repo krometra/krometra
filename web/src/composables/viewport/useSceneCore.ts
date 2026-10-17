@@ -176,6 +176,7 @@ export function useSceneCore(entries: MeshEntry[]) {
     const created = new OrbitControls(cam, element);
     created.enableDamping = true;
     created.dampingFactor = 0.08;
+    created.zoomToCursor = true;
     created.enabled = viewportShown;
     created.target.copy(target);
     created.update();
@@ -381,6 +382,8 @@ export function useSceneCore(entries: MeshEntry[]) {
     resetView,
     setCameraView,
     animateCameraTo,
+    stopCameraAnimation,
+    orbitControls: () => controls,
     getCameraState,
     captureImage,
     dispose,
