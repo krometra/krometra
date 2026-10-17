@@ -1,5 +1,6 @@
 import { computed, ref } from "vue";
 import { useSelection } from "@/composables/shared/useSelection";
+import { useSketch } from "@/composables/shared/useSketch";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { apiErrorMessage, toast } from "@/composables/useToast";
 import type { TimelineEdit } from "@/core/commands/TimelineEditCommand";
@@ -11,10 +12,12 @@ import {
   sketchDependents,
 } from "@/lib/timelineEdits";
 import { isFailed, isSuppressed, rollbackIndex } from "@/lib/timelineFlags";
+import { entryDeleteBlock, isOpenSketchEntry } from "@/lib/timelineGuards";
 import type { TimelineChange } from "@/lib/timelineChange";
 import type { TimelineEntry } from "@/types/api";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { ModelHistoryApi } from "./useModelHistory";
+import { useHistoryLock } from "./useHistoryLock";
 
 export interface PendingSketchDelete {
   entryId: string;
@@ -26,6 +29,8 @@ export function useTimelineEdits(deps: { model: ReturnType<typeof useDocumentMod
   const { model, history } = deps;
   const selection = useSelection();
   const names = useDisplayNames();
+  const sketch = useSketch();
+  const lock = useHistoryLock();
   const pendingSketchDelete = ref<PendingSketchDelete | null>(null);
   const marker = computed(() => rollbackIndex(model.timelineEntries.value));
   const rolledBack = computed(() => marker.value < model.timelineEntries.value.length);
@@ -38,6 +43,11 @@ export function useTimelineEdits(deps: { model: ReturnType<typeof useDocumentMod
     const failed = [...change.changed, ...change.added].filter(isFailed);
     if (failed.length === 0) return;
     toast(`Не построились: ${failed.map(names.entryLabel).join(", ")}. Причина — в подсказке на шкале истории.`, "warning");
+  }
+
+  function refused(reason: string | null): boolean {
+    if (reason) toast(reason, "warning");
+    return reason !== null;
   }
 
   async function run(label: string, edit: TimelineEdit) {
@@ -53,13 +63,14 @@ export function useTimelineEdits(deps: { model: ReturnType<typeof useDocumentMod
   function deleteEntry(entryId: string) {
     const entry = entryOf(entryId);
     if (!entry) return Promise.resolve();
+    if (isOpenSketchEntry(lock.state.value, entry)) sketch.exitSketch();
     if (selection.selectedFeatureId.value === entryId) selection.clearSelection();
     return run(`Удалить ${names.entryLabel(entry)}`, (document) => deleteTimelineEntry(document, entryId));
   }
 
   function requestDelete(entryId: string) {
     const entry = entryOf(entryId);
-    if (!entry) return Promise.resolve();
+    if (!entry || refused(entryDeleteBlock(lock.state.value, entry))) return Promise.resolve();
     const dependents = sketchDependents({ components: {}, timeline: model.timelineEntries.value }, entryId);
     if (dependents.length === 0) return deleteEntry(entryId);
     pendingSketchDelete.value = { entryId, label: names.entryLabel(entry), dependents: dependents.map(names.entryLabel) };
@@ -88,14 +99,14 @@ export function useTimelineEdits(deps: { model: ReturnType<typeof useDocumentMod
 
   function toggleSuppressed(entryId: string) {
     const entry = entryOf(entryId);
-    if (!entry) return Promise.resolve();
+    if (!entry || refused(lock.reason.value)) return Promise.resolve();
     const suppressed = !isSuppressed(entry);
     const label = `${suppressed ? "Подавить" : "Вернуть"} ${names.entryLabel(entry)}`;
     return run(label, (document) => setEntrySuppressed(document, entryId, suppressed));
   }
 
   function rollTo(index: number) {
-    if (index === marker.value) return Promise.resolve();
+    if (index === marker.value || refused(lock.reason.value)) return Promise.resolve();
     const label = index >= model.timelineEntries.value.length ? "Вернуть маркер в конец" : "Откатить историю";
     return run(label, (document) => rollTimelineTo(document, index));
   }
@@ -106,12 +117,14 @@ export function useTimelineEdits(deps: { model: ReturnType<typeof useDocumentMod
   }
 
   function deleteAfterMarker() {
+    if (refused(lock.reason.value)) return Promise.resolve();
     return run("Удалить всё после маркера", (document) => deleteRolledBack(document, names.entryLabel));
   }
 
   return {
     marker,
     rolledBack,
+    lockReason: lock.reason,
     pendingSketchDelete,
     requestDelete,
     requestSketchDelete,

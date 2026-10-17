@@ -26,6 +26,7 @@ onMounted(() => {
 onUnmounted(() => window.removeEventListener("click", onWindowClick));
 
 function onItemClick(item: CtxItem) {
+  if (item.disabled) return;
   item.action();
   emit("close");
 }
@@ -44,8 +45,10 @@ function onItemClick(item: CtxItem) {
       :key="i"
       role="menuitem"
       tabindex="0"
-      :class="[$style.ctxItem, item.danger && $style.ctxItemDanger]"
-      @click="onItemClick(item)"
+      :aria-disabled="item.disabled || undefined"
+      :title="item.hint"
+      :class="[$style.ctxItem, item.danger && $style.ctxItemDanger, item.disabled && $style.ctxItemDisabled]"
+      @click="item.disabled ? $event.stopPropagation() : onItemClick(item)"
       @keydown.enter="onItemClick(item)"
     >
       {{ item.label }}
@@ -86,5 +89,12 @@ function onItemClick(item: CtxItem) {
 
 .ctxItemDanger:hover {
   color: var(--cs-red-strong);
+}
+
+.ctxItemDisabled,
+.ctxItemDisabled:hover {
+  background: none;
+  color: var(--cs-text-muted);
+  cursor: not-allowed;
 }
 </style>

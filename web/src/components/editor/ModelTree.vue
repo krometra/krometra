@@ -5,6 +5,8 @@ import { useSelection } from "@/composables/shared/useSelection";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
 import { useSketchVisibility } from "@/composables/editor/useSketchVisibility";
+import { useHistoryLock } from "@/composables/editor/useHistoryLock";
+import { toast } from "@/composables/useToast";
 import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { entryStateHint } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
@@ -26,6 +28,7 @@ const bodyPick = useBodyPick();
 const names = useDisplayNames();
 const { timelineEntries, sketches, bodies, workPlanes } = useDocumentModel();
 const sketchVisibility = useSketchVisibility();
+const historyLock = useHistoryLock();
 
 const selectedTimelineId = computed(() => selection.selectedFeatureId.value);
 const sketchCount = computed(() => sketches.value.length);
@@ -77,6 +80,10 @@ const renamingId = ref<string | null>(null);
 const renameValue = ref("");
 
 function startRename(id: string, current: string) {
+  if (historyLock.reason.value) {
+    toast(historyLock.reason.value, "warning");
+    return;
+  }
   renamingId.value = id;
   renameValue.value = current;
 }

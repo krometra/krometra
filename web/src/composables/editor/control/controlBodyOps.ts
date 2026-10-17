@@ -6,6 +6,7 @@ import { defineOp, type ControlOp } from "@/lib/control/dispatcher";
 import { INVALID, param } from "@/lib/control/params";
 import type { BodyRotation, BodyTransform, Vec3 } from "@/lib/bodyTransform";
 import { fail } from "@/lib/control/protocol";
+import { isOpenSketch } from "@/lib/timelineGuards";
 import type { EditorControlContext } from "./controlContext";
 import { asOperationFailure, describeChange } from "./controlHistoryOps";
 
@@ -52,11 +53,12 @@ export function bodyOps(context: EditorControlContext): ControlOp[] {
     };
   }
 
-  function requireSketch(sketchId: string) {
-    context.requireSketch(sketchId);
-    if (context.sketch.activeSketchId.value === sketchId) {
-      throw fail("wrong_mode", "Этот эскиз сейчас открыт: сначала закройте его (sketch.finish или sketch.cancel).");
+  function closeSketchForDelete(sketchId: string) {
+    if (!isOpenSketch(context.lockState(), sketchId)) return;
+    if (context.model.sketchHasFeature(sketchId)) {
+      throw fail("operation_failed", "Этот эскиз открыт, и по нему построены операции: удалите его запись через timeline.delete (зависимые останутся с ошибкой) или закройте эскиз.");
     }
+    context.sketchFlow.handleSketchCancel();
   }
 
   return [
@@ -103,6 +105,7 @@ export function bodyOps(context: EditorControlContext): ControlOp[] {
       },
       run: async ({ bodyId, name }) => {
         requireBody(bodyId);
+        context.requireHistoryUnlocked();
         if (!name.trim()) throw fail("invalid_params", "Имя не может состоять из одних пробелов.");
         await context.names.rename(context.projectId, bodyId, name);
         return { body: bodySummary(bodyId) };
@@ -178,11 +181,12 @@ export function bodyOps(context: EditorControlContext): ControlOp[] {
 
     defineOp({
       op: "sketch.delete",
-      description: `Удаляет эскиз и его запись истории. Эскиз, по которому построена операция (used = true в op state), удалить нельзя — operation_failed; удалите сначала операцию (timeline.delete) или тело (body.delete). Отменяется history.undo. Возвращает { deleted: ${CHANGE_FORMAT}, mode }.`,
+      description: `Удаляет эскиз и его запись истории. Открытый сейчас эскиз закрывается без сохранения и удаляется (как «Удалить» в его меню); при другом открытом эскизе - wrong_mode. Эскиз, по которому построена операция (used = true в op state), удалить нельзя — operation_failed; удалите сначала операцию (timeline.delete) или тело (body.delete). Отменяется history.undo. Возвращает { deleted: ${CHANGE_FORMAT}, mode }.`,
       mutates: true,
       params: { sketchId: param.id("Эскиз из op state.") },
       run: async ({ sketchId }) => {
-        requireSketch(sketchId);
+        context.requireSketch(sketchId);
+        closeSketchForDelete(sketchId);
         context.leaveTools();
         const label = `Удалить ${context.names.sketchLabel(sketchId)}`;
         const change = await context.sketchFlow.removeSketch(sketchId).catch(asOperationFailure);

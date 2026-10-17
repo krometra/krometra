@@ -158,11 +158,11 @@ export function useWorkPlanes(deps: {
   function menuItems(planeId: string, rename: (planeId: string, name: string) => void): CtxItem[] {
     const plane = planes.value.find((candidate) => candidate.id === planeId);
     return [
-      { label: "Создать эскиз", action: () => startSketch(planeId) },
-      { label: "Изменить параметры", action: () => edit(planeId) },
+      { label: "Создать эскиз", editsModel: true, action: () => startSketch(planeId) },
+      { label: "Изменить параметры", editsModel: true, action: () => edit(planeId) },
       { label: plane?.visible !== false ? "Скрыть" : "Показать", action: () => toggleVisibility(planeId) },
-      { label: "Переименовать", action: () => rename(planeId, label(planeId)) },
-      { label: "Удалить", danger: true, action: () => requestRemove(planeId) },
+      { label: "Переименовать", editsModel: true, action: () => rename(planeId, label(planeId)) },
+      { label: "Удалить", danger: true, editsModel: true, action: () => requestRemove(planeId) },
     ];
   }
 

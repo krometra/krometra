@@ -8,6 +8,7 @@ import { useDisplayNames } from "@/composables/useDisplayNames";
 import type SketcherContainer from "@/components/sketcher/SketcherContainer.vue";
 import { resolveEditorMode, type EditorMode } from "@/lib/control/mode";
 import { entryError, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
+import { historyLockReason, type HistoryLockState } from "@/lib/timelineGuards";
 import { fail } from "@/lib/control/protocol";
 import type { MeshData, TimelineEntry } from "@/types/api";
 import { useBrowserKernelStatus } from "../browserKernelStatus";
@@ -138,10 +139,17 @@ export function createControlContext(deps: EditorControlDeps) {
     return instance;
   }
 
+  function lockState(): HistoryLockState {
+    return { sketchOpen: sketch.sketchMode.value, activeSketchId: sketch.activeSketchId.value };
+  }
+
+  function requireHistoryUnlocked() {
+    const reason = historyLockReason(lockState());
+    if (reason) throw fail("wrong_mode", `${reason} (sketch.finish или sketch.cancel).`);
+  }
+
   function leaveTools() {
-    if (sketch.sketchMode.value) {
-      throw fail("wrong_mode", "Открыт эскиз: сначала завершите его (sketch.finish) или отмените (sketch.cancel).");
-    }
+    requireHistoryUnlocked();
     deps.leaveActiveTools();
   }
 
@@ -208,6 +216,8 @@ export function createControlContext(deps: EditorControlDeps) {
     notReadyReason,
     busyReason,
     viewport,
+    lockState,
+    requireHistoryUnlocked,
     leaveTools,
     requireSketchMode,
     bodyMesh,

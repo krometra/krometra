@@ -4,6 +4,7 @@ import { fail } from "@/lib/control/protocol";
 import type { TimelineEdit } from "@/core/commands/TimelineEditCommand";
 import { deleteRolledBack, deleteTimelineEntry, rollTimelineTo, setEntrySuppressed } from "@/lib/timelineEdits";
 import { isFailed, rollbackIndex } from "@/lib/timelineFlags";
+import { isOpenSketchEntry } from "@/lib/timelineGuards";
 import type { TimelineEntry } from "@/types/api";
 import type { EditorControlContext } from "./controlContext";
 import { asOperationFailure, describeChange } from "./controlHistoryOps";
@@ -33,10 +34,14 @@ export function timelineOps(context: EditorControlContext): ControlOp[] {
   return [
     defineOp({
       op: "timeline.delete",
-      description: `Удаляет запись истории — то же, что «Удалить» в контекстном меню и клавиша Delete. Операции, построенные на результате удалённой, пересобираются от её исходного тела (вырез после удалённого скругления режет тело без скругления); если без удалённой операция не строится (грань или тело пропали, эскиз удалён), она остаётся в истории с ошибкой, остальная модель достраивается. Удалённый эскиз оставляет зависимые операции с ошибкой «эскиз не найден». ${RESULT}`,
+      description: `Удаляет запись истории — то же, что «Удалить» в контекстном меню и клавиша Delete. Операции, построенные на результате удалённой, пересобираются от её исходного тела (вырез после удалённого скругления режет тело без скругления); если без удалённой операция не строится (грань или тело пропали, эскиз удалён), она остаётся в истории с ошибкой, остальная модель достраивается. Удалённый эскиз оставляет зависимые операции с ошибкой «эскиз не найден». Пока открыт эскиз, правки истории недоступны (wrong_mode), кроме удаления записи самого открытого эскиза: он закрывается без сохранения и удаляется. ${RESULT}`,
       mutates: true,
       params: { featureId: param.id("id записи из timeline в op state.") },
-      run: ({ featureId }) => apply(`Удалить ${context.names.entryLabel(entryOf(featureId))}`, (document) => deleteTimelineEntry(document, featureId)),
+      run: ({ featureId }) => {
+        const entry = entryOf(featureId);
+        if (isOpenSketchEntry(context.lockState(), entry)) context.sketchFlow.handleSketchCancel();
+        return apply(`Удалить ${context.names.entryLabel(entry)}`, (document) => deleteTimelineEntry(document, featureId));
+      },
     }),
 
     defineOp({

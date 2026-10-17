@@ -13,5 +13,8 @@ export type TreeItemKind = "sketch" | "body" | "feature" | "plane";
 export interface CtxItem {
   label: string;
   danger?: boolean;
+  editsModel?: boolean;
+  disabled?: boolean;
+  hint?: string;
   action: () => void;
 }

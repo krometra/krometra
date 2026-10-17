@@ -4,12 +4,14 @@ import { useDisplayNames } from "@/composables/useDisplayNames";
 import { apiErrorMessage, toast } from "@/composables/useToast";
 import { deleteBody } from "@/lib/bodyHistory";
 import { isSuppressed } from "@/lib/timelineFlags";
+import { isOpenSketch, isOpenSketchEntry, lockItems } from "@/lib/timelineGuards";
 import type { DocumentEdit } from "@/core/commands/DocumentEditCommand";
 import type { CtxItem, TreeItemKind } from "./types";
 import type { BodyPresentationApi } from "./useBodyPresentation";
 import type { useDocumentModel } from "./useDocumentModel";
 import type { ExportApi } from "./useExport";
 import type { ExtrudeRevolveApi } from "./useExtrudeRevolve";
+import { useHistoryLock } from "./useHistoryLock";
 import type { ModelHistoryApi } from "./useModelHistory";
 import type { SketchLifecycleApi } from "./useSketchLifecycle";
 import { useSketchVisibility } from "./useSketchVisibility";
@@ -35,6 +37,7 @@ export function useTreeContextMenu(deps: {
   const selection = useSelection();
   const names = useDisplayNames();
   const sketchVisibility = useSketchVisibility();
+  const lock = useHistoryLock();
   const menu = ref<{ x: number; y: number; kind: TreeItemKind; id: string } | null>(null);
 
   function open(event: MouseEvent, kind: TreeItemKind, id: string) {
@@ -69,13 +72,13 @@ export function useTreeContextMenu(deps: {
     const sketch = model.sketches.value.find((candidate) => candidate.id === id);
     const items: CtxItem[] = [
       { label: sketch && sketchVisibility.isVisible(sketch) ? "Скрыть" : "Показать", action: () => toggleSketchVisibility(id) },
-      { label: "Редактировать эскиз", action: () => sketchFlow.editSketch(id) },
-      { label: "Выдавить", action: () => extrude.startExtrudeFromSketch(id, "extrude") },
-      { label: "Вращать", action: () => extrude.startExtrudeFromSketch(id, "revolve") },
-      { label: "Переименовать", action: () => tree.value?.startRename(id, names.sketchLabel(id)) },
+      { label: "Редактировать эскиз", editsModel: true, action: () => sketchFlow.editSketch(id) },
+      { label: "Выдавить", editsModel: true, action: () => extrude.startExtrudeFromSketch(id, "extrude") },
+      { label: "Вращать", editsModel: true, action: () => extrude.startExtrudeFromSketch(id, "revolve") },
+      { label: "Переименовать", editsModel: true, action: () => tree.value?.startRename(id, names.sketchLabel(id)) },
     ];
     const removeSketch = () => (model.sketchHasFeature(id) ? timelineEdits.requestSketchDelete(id) : sketchFlow.deleteSketch(id));
-    items.push({ label: "Удалить", danger: true, action: removeSketch });
+    items.push(deleteItem(isOpenSketch(lock.state.value, id), removeSketch));
     return items;
   }
 
@@ -84,21 +87,21 @@ export function useTreeContextMenu(deps: {
     const label = `Удалить ${names.bodyLabel(id)}`;
     return [
       { label: body?.visible !== false ? "Скрыть" : "Показать", action: () => toggleVisibility(id) },
-      { label: "Переименовать", action: () => tree.value?.startRename(id, names.bodyLabel(id)) },
+      { label: "Переименовать", editsModel: true, action: () => tree.value?.startRename(id, names.bodyLabel(id)) },
       { label: "Экспорт STEP", action: () => exportApi.download({ format: "step", bodyIds: [id] }) },
       { label: "Экспорт STL…", action: () => exportApi.openMeshExport("stl", [id]) },
       { label: "Экспорт 3MF…", action: () => exportApi.openMeshExport("3mf", [id]) },
-      { label: "Удалить с историей", danger: true, action: () => remove(label, (document) => deleteBody(document, id, names.entryLabel)) },
+      { label: "Удалить с историей", danger: true, editsModel: true, action: () => remove(label, (document) => deleteBody(document, id, names.entryLabel)) },
     ];
   }
 
   function markerItems(id: string): CtxItem[] {
-    const items: CtxItem[] = [{ label: "Откатить сюда", action: () => timelineEdits.rollAfter(id) }];
+    const items: CtxItem[] = [{ label: "Откатить сюда", editsModel: true, action: () => timelineEdits.rollAfter(id) }];
     if (!timelineEdits.rolledBack.value) return items;
     return [
       ...items,
-      { label: "Вернуть маркер в конец", action: () => timelineEdits.rollTo(model.timelineEntries.value.length) },
-      { label: "Удалить всё после маркера", danger: true, action: () => timelineEdits.deleteAfterMarker() },
+      { label: "Вернуть маркер в конец", editsModel: true, action: () => timelineEdits.rollTo(model.timelineEntries.value.length) },
+      { label: "Удалить всё после маркера", danger: true, editsModel: true, action: () => timelineEdits.deleteAfterMarker() },
     ];
   }
 
@@ -108,23 +111,31 @@ export function useTreeContextMenu(deps: {
     if (!entry) return items;
     if (entry.kind === "sketch" && entry.sketch_id) {
       const sketchId = entry.sketch_id;
-      items.push({ label: "Редактировать эскиз", action: () => sketchFlow.editSketch(sketchId) });
+      items.push({ label: "Редактировать эскиз", editsModel: true, action: () => sketchFlow.editSketch(sketchId) });
     }
-    items.push({ label: "Переименовать", action: () => tree.value?.startRename(id, names.entryLabel(entry)) });
+    items.push({ label: "Переименовать", editsModel: true, action: () => tree.value?.startRename(id, names.entryLabel(entry)) });
     if (entry.kind !== "sketch") {
-      items.push({ label: isSuppressed(entry) ? "Снять подавление" : "Подавить", action: () => timelineEdits.toggleSuppressed(id) });
+      items.push({ label: isSuppressed(entry) ? "Снять подавление" : "Подавить", editsModel: true, action: () => timelineEdits.toggleSuppressed(id) });
     }
-    items.push(...markerItems(id), { label: "Удалить", danger: true, action: () => timelineEdits.requestDelete(id) });
+    items.push(...markerItems(id), deleteItem(isOpenSketchEntry(lock.state.value, entry), () => timelineEdits.requestDelete(id)));
     return items;
+  }
+
+  function deleteItem(openSketch: boolean, action: () => void): CtxItem {
+    if (openSketch) return { label: "Удалить", danger: true, hint: "Эскиз закроется без сохранения и будет удалён", action };
+    return { label: "Удалить", danger: true, editsModel: true, action };
+  }
+
+  function menuItems(kind: TreeItemKind, id: string): CtxItem[] {
+    if (kind === "sketch") return sketchItems(id);
+    if (kind === "body") return bodyItems(id);
+    if (kind === "plane") return deps.workPlanes.menuItems(id, (planeId, name) => tree.value?.startRename(planeId, name));
+    return featureItems(id);
   }
 
   const items = computed<CtxItem[]>(() => {
     const current = menu.value;
-    if (!current) return [];
-    if (current.kind === "sketch") return sketchItems(current.id);
-    if (current.kind === "body") return bodyItems(current.id);
-    if (current.kind === "plane") return deps.workPlanes.menuItems(current.id, (id, name) => tree.value?.startRename(id, name));
-    return featureItems(current.id);
+    return current ? lockItems(menuItems(current.kind, current.id), lock.reason.value) : [];
   });
 
   return { menu, items, open, close, toggleVisibility, toggleSketchVisibility };

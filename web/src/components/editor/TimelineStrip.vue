@@ -17,6 +17,7 @@ const props = defineProps<{
   entries: TimelineEntry[];
   selectedId: string | null;
   marker: number;
+  lockReason?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -31,6 +32,7 @@ const track = ref<HTMLElement | null>(null);
 const drag = useTimelineMarkerDrag({
   marker: computed(() => props.marker),
   count: computed(() => props.entries.length),
+  locked: computed(() => !!props.lockReason),
   nodes: () => [...(track.value?.querySelectorAll<HTMLElement>("[data-testid='timeline-node']") ?? [])],
   onDrop: (index) => emit("rollback", index),
 });
@@ -135,8 +137,9 @@ function timelineDetail(entry: TimelineEntry): string {
           :aria-valuemin="0"
           :aria-valuemax="entries.length"
           :aria-valuenow="drag.shown.value"
-          title="Маркер отката: перетащите, чтобы показать модель на этом шаге (стрелки влево/вправо)"
-          :class="[$style.marker, drag.dragging.value && $style.markerDragging]"
+          :aria-disabled="lockReason ? true : undefined"
+          :title="lockReason ?? 'Маркер отката: перетащите, чтобы показать модель на этом шаге (стрелки влево/вправо)'"
+          :class="[$style.marker, drag.dragging.value && $style.markerDragging, lockReason && $style.markerLocked]"
           @pointerdown.prevent="drag.start"
           @pointermove="drag.move"
           @pointerup="drag.finish"
@@ -173,7 +176,8 @@ function timelineDetail(entry: TimelineEntry): string {
         variant="ghost"
         size="sm"
         :class="$style.addNode"
-        title="Новая операция — начните с эскиза (S)"
+        :disabled="!!lockReason"
+        :title="lockReason ?? 'Новая операция — начните с эскиза (S)'"
         @click="emit('add-sketch')"
         >＋</CsButton
       >
@@ -284,6 +288,11 @@ function timelineDetail(entry: TimelineEntry): string {
 .marker:focus-visible {
   outline: 2px solid var(--cs-primary);
   outline-offset: 2px;
+}
+
+.markerLocked {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .markerDragging::before,
