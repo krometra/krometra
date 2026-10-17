@@ -13,6 +13,7 @@ from app.schemas.document import DocumentUpdate
 from app.schemas.ids import is_body_id, is_component_id
 from app.services.document_service import get_document
 
+from .browser_draft import is_draft_angle
 from .browser_extrude import _error, is_browser_body, validated_browser_upload
 from .browser_mirror import MIRROR_PLANES, check_mirror_rebuild
 from .browser_naming import validated_browser_naming
@@ -43,6 +44,7 @@ EDITABLE_PARAMS = {
     "mirror": {"plane", "offset"},
     "hole": {"hole_type", "diameter", "extent", "depth", "bottom", "cbore_diameter", "cbore_depth", "csink_diameter", "csink_angle"},
     "pattern": {"count", "spacing", "angle", "count2", "spacing2"},
+    "draft": {"angle_deg"},
 }
 
 
@@ -79,6 +81,8 @@ def _validated_value(kind: str, key: str, value: object):
         if value not in TRANSITIONS:
             _invalid("Переход лофта - smooth или ruled.")
         return value
+    if key == "angle_deg" and not is_draft_angle(value):
+        _invalid("Угол уклона должен быть больше 0° и меньше 90°.")
     if key in CHOICES:
         if value not in CHOICES[key]:
             _invalid("Недопустимый вариант параметра операции.")

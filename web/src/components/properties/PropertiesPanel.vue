@@ -8,6 +8,7 @@ import FeatureParamsEditor from "./FeatureParamsEditor.vue";
 import { editableValues, featureParamFields } from "@/lib/browserFeatureParams";
 import { transformParams } from "@/lib/bodyTransform";
 import { mirrorParams } from "@/lib/mirrorPlane";
+import { draftParams } from "@/lib/browserDraft";
 import { holeSummaryRows } from "@/lib/holeFeature";
 import { patternParamRows } from "@/lib/bodyPatternParams";
 import { loftParamRows } from "@/lib/loftFeature";
@@ -50,7 +51,7 @@ const featureEntry = computed<TimelineEntry | null>(() =>
 
 const isSketchFeature = computed(() => featureEntry.value?.kind === "sketch");
 const isReadonlyFeature = computed(() =>
-  ["extrude", "revolve", "sweep", "loft", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"].includes(featureEntry.value?.kind ?? "")
+  ["extrude", "revolve", "sweep", "loft", "fillet", "chamfer", "boolean", "thread", "import", "transform", "shell", "mirror", "hole", "pattern", "draft"].includes(featureEntry.value?.kind ?? "")
 );
 const editableLabels = computed(() => {
   const entry = featureEntry.value;
@@ -122,6 +123,8 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       ];
     case "mirror":
       return mirrorParams(p);
+    case "draft":
+      return draftParams(p);
     case "hole":
       return holeSummaryRows(p);
     case "pattern":

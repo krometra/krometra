@@ -1,4 +1,5 @@
 import type { TimelineEntry } from "@/types/api";
+import { draftFeatureOfParams } from "./browserDraft";
 import { mirrorPlaneOfParams } from "./mirrorPlane";
 import { patternReferenceBodies } from "./bodyPattern";
 import { patternModeOf, patternSpecFromParams } from "./bodyPatternParams";
@@ -6,7 +7,7 @@ import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browser
 import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
 import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
 
-export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern";
+export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft";
 
 export interface RebuildStep {
   entryId: string;
@@ -51,7 +52,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "loft", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "loft", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern", "draft"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -65,6 +66,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   mirror: ["plane", "offset"],
   hole: [...HOLE_EDITABLE_PARAMS],
   pattern: ["count", "spacing", "angle", "count2", "spacing2"],
+  draft: ["angle_deg"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -230,6 +232,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
     return { kind: "transform", featureKey, bodyId: text(params.target_body_id), translate: params.translate, rotate: params.rotate ?? null };
   }
   if (entry.kind === "shell") return { kind: "shell", featureKey, ...shellRequest(params) };
+  if (entry.kind === "draft") return { kind: "draft", featureKey, ...draftFeatureOfParams(params) };
   if (entry.kind === "mirror") {
     return { kind: "mirror", featureKey, bodyId: text(params.target_body_id), plane: mirrorPlaneOfParams(params), merge: params.merge === true };
   }

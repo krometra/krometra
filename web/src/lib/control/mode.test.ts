@@ -10,6 +10,7 @@ const idle: EditorModeFlags = {
   edgeFeature: null,
   thread: false,
   shell: false,
+  draft: false,
   mirror: false,
   hole: false,
   pattern: false,
@@ -31,6 +32,7 @@ describe("resolveEditorMode", () => {
     expect(resolveEditorMode({ ...idle, edgeFeature: "chamfer" })).toBe("chamfer");
     expect(resolveEditorMode({ ...idle, thread: true })).toBe("thread");
     expect(resolveEditorMode({ ...idle, shell: true })).toBe("shell");
+    expect(resolveEditorMode({ ...idle, draft: true })).toBe("draft");
     expect(resolveEditorMode({ ...idle, mirror: true })).toBe("mirror");
     expect(resolveEditorMode({ ...idle, hole: true })).toBe("hole");
     expect(resolveEditorMode({ ...idle, pattern: true })).toBe("pattern");

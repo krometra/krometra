@@ -15,6 +15,7 @@ import { useBooleanMode } from "@/composables/editor/useBooleanMode";
 import { useFilletChamfer } from "@/composables/editor/useFilletChamfer";
 import { useThread } from "@/composables/editor/useThread";
 import { useShell } from "@/composables/editor/useShell";
+import { useDraft } from "@/composables/editor/useDraft";
 import { useMirror } from "@/composables/editor/useMirror";
 import { useEditorTools } from "@/composables/editor/useEditorTools";
 import { useSelectionLabel } from "@/composables/editor/useSelectionLabel";
@@ -54,6 +55,7 @@ import BooleanPanel from "@/components/editor/BooleanPanel.vue";
 import FilletChamferPanel from "@/components/editor/FilletChamferPanel.vue";
 import ThreadPanel from "@/components/editor/ThreadPanel.vue";
 import ShellPanel from "@/components/editor/ShellPanel.vue";
+import DraftPanel from "@/components/editor/DraftPanel.vue";
 import MirrorPanel from "@/components/editor/MirrorPanel.vue";
 import SweepPanel from "@/components/editor/SweepPanel.vue";
 import LoftPanel from "@/components/editor/LoftPanel.vue";
@@ -115,6 +117,7 @@ const booleanMode = useBooleanMode({ projectId: props.id, viewportRef, viewportS
 const filletChamfer = useFilletChamfer({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const thread = useThread({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const shell = useShell({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const draft = useDraft({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const mirror = useMirror({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const sweep = useSweep({ projectId: props.id, meshes, model });
 const loft = useLoft({ projectId: props.id, viewportRef, meshes, model });
@@ -122,7 +125,7 @@ const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, 
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([
-  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool,
+  filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool, draft.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -219,7 +222,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, loft, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
-      measure,
+      measure, draft,
     });
 
 // --- Горячие клавиши ---
@@ -429,6 +432,7 @@ const selectionLabel = useSelectionLabel();
         <FilletChamferPanel v-else-if="filletChamfer.filletChamferMode.value" :fillet="filletChamfer" />
         <ThreadPanel v-else-if="thread.threadMode.value" :thread="thread" />
         <ShellPanel v-else-if="shell.shellMode.value" :shell="shell" />
+        <DraftPanel v-else-if="draft.draftMode.value" :draft="draft" />
         <MirrorPanel v-else-if="mirror.mirrorMode.value" :mirror="mirror" />
         <HolePanel v-else-if="hole.holeMode.value" :hole="hole" />
         <PatternPanel v-else-if="pattern.patternMode.value" :pattern="pattern" />

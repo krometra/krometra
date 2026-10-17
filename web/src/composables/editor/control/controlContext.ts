@@ -29,6 +29,7 @@ import type { SweepApi } from "../useSweep";
 import type { LoftApi } from "../useLoft";
 import type { ThreadApi } from "../useThread";
 import type { ShellApi } from "../useShell";
+import type { DraftApi } from "../useDraft";
 import type { MeasureApi } from "../useMeasure";
 import type { ViewportRef } from "../types";
 
@@ -55,6 +56,7 @@ export interface EditorControlDeps {
   bodyTransform: BodyTransformApi;
   leaveActiveTools: () => void;
   shell: ShellApi;
+  draft: DraftApi;
   measure: MeasureApi;
 }
 
@@ -80,6 +82,7 @@ export function createControlContext(deps: EditorControlDeps) {
       edgeFeature: deps.filletChamfer.filletChamferMode.value ? deps.filletChamfer.mode.value : null,
       thread: deps.thread.threadMode.value,
       shell: deps.shell.shellMode.value,
+      draft: deps.draft.draftMode.value,
       mirror: deps.mirror.mirrorMode.value,
       hole: deps.hole.holeMode.value,
       pattern: deps.pattern.patternMode.value,
@@ -105,6 +108,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.filletChamfer.loading.value) return "Идёт построение скругления или фаски.";
     if (deps.thread.loading.value) return "Идёт нарезка резьбы.";
     if (deps.shell.loading.value) return "Идёт построение оболочки.";
+    if (deps.draft.loading.value) return "Идёт построение уклона.";
     if (deps.mirror.loading.value) return "Идёт зеркальное отражение тела.";
     if (deps.hole.loading.value) return "Идёт сверление отверстий.";
     if (deps.booleanMode.loading.value) return "Идёт булева операция.";
