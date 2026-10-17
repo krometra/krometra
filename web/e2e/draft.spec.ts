@@ -5,7 +5,12 @@ import { rect, sceneBodies, type Feature, type Topo } from "./helpers/control";
 test.use({
   storageState: { cookies: [], origins: [] },
   viewport: { width: 1680, height: 1000 },
+  trace: "retain-on-failure",
+  screenshot: "only-on-failure",
 });
+
+const RIGHT_SPOT = [10, 3, 6];
+const FRONT_SPOT = [-4, -10, 6];
 
 const SIDE = 20;
 const HEIGHT = 10;
@@ -37,6 +42,26 @@ async function clickModelPoint(cad: CadEditor, point: number[]) {
   const [x, y] = await cad.projectPoint(point);
   await cad.page.mouse.click(x, y);
   await cad.page.waitForTimeout(300);
+}
+
+async function pickFace(cad: CadEditor, point: number[], rows: number, pageErrors: string[]) {
+  await clickModelPoint(cad, point);
+  try {
+    await expect(cad.page.getByTestId("draft-face-row")).toHaveCount(rows);
+  } catch {
+    const [x, y] = await cad.projectPoint(point);
+    const under = await cad.page.evaluate(([px, py]) => {
+      const element = document.elementFromPoint(px, py);
+      return element ? `${element.tagName}.${element.className}` : "ничего";
+    }, [x, y]);
+    const state = await cad.control<{ mode: string; busy: boolean }>("state");
+    const selected = await cad.control<{ selection: unknown }>("selection.get");
+    const status = await cad.page.getByTestId("draft-status").textContent();
+    throw new Error(
+      `Клик по ${point} (экран ${x},${y}) не дал ${rows} строк граней: под курсором ${under}, mode ${state.mode}, busy ${state.busy}, `
+      + `selection ${JSON.stringify(selected.selection)}, статус «${status}», ошибки страницы ${JSON.stringify(pageErrors)}`,
+    );
+  }
 }
 
 async function lastEntry(cad: CadEditor) {
@@ -73,14 +98,10 @@ test("уклон: грани кликом от плоскости XY, правк
   await expect(page.getByTestId("draft-neutral-status")).toContainText("XY");
   await cad.idle();
 
-  await clickModelPoint(cad, [SIDE / 2, 0, HEIGHT / 2]);
-  await expect(page.getByTestId("draft-face-row")).toHaveCount(1);
-  await clickModelPoint(cad, [0, -SIDE / 2, HEIGHT / 2]);
-  await expect(page.getByTestId("draft-face-row")).toHaveCount(2);
-  await clickModelPoint(cad, [0, -SIDE / 2, HEIGHT / 2]);
-  await expect(page.getByTestId("draft-face-row")).toHaveCount(1);
-  await clickModelPoint(cad, [0, -SIDE / 2, HEIGHT / 2]);
-  await expect(page.getByTestId("draft-face-row")).toHaveCount(2);
+  await pickFace(cad, RIGHT_SPOT, 1, pageErrors);
+  await pickFace(cad, FRONT_SPOT, 2, pageErrors);
+  await pickFace(cad, FRONT_SPOT, 1, pageErrors);
+  await pickFace(cad, FRONT_SPOT, 2, pageErrors);
   await expect(page.getByTestId("draft-face-row").first()).toContainText("Плоская грань · 200 мм²");
 
   const angle = page.getByTestId("draft-angle");
