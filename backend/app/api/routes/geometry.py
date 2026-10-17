@@ -17,6 +17,7 @@ from app.services.geometry_ops import (
 )
 from app.services.geometry_ops.browser_naming import validated_browser_naming, validated_feature_key
 from app.services.geometry_ops.limits import MAX_STEP_BYTES
+from app.services.geometry_ops.profile_regions import parse_profile_regions
 from app.api.browser_upload_route import BrowserUploadRoute
 
 router = APIRouter(prefix="/projects", tags=["geometry"], route_class=BrowserUploadRoute)
@@ -40,6 +41,7 @@ async def browser_extrude_endpoint(
     offset: float = Form(0.0),
     up_to_body_id: str | None = Form(None),
     up_to_face_id: str | None = Form(None),
+    profile_regions: str | None = Form(None),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
     storage: AsyncStorageClient = Depends(get_storage),
@@ -65,6 +67,7 @@ async def browser_extrude_endpoint(
         offset=offset,
         up_to_body_id=up_to_body_id,
         up_to_face_id=up_to_face_id,
+        profile_regions=parse_profile_regions(profile_regions),
     )
     return ExtrudeResponse(
         body_id=result["body_id"],
@@ -80,6 +83,7 @@ async def browser_revolve_endpoint(
     axis_origin: str = Form(...), axis: str = Form(...), angle: float = Form(...),
     direction: str = Form(...), document_version: int = Form(...),
     naming: str | None = Form(None), feature_key: str | None = Form(None),
+    profile_regions: str | None = Form(None),
     current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db),
     storage: AsyncStorageClient = Depends(get_storage),
 ):
@@ -90,6 +94,7 @@ async def browser_revolve_endpoint(
         project_id, current_user.id, sketch_id, 0, direction, document_version, await step.read(MAX_STEP_BYTES + 1), mesh, db, storage,
         feature_kind="revolve", axis_origin=origin, axis=axis, angle=angle,
         naming=validated_browser_naming(naming), feature_key=validated_feature_key(feature_key),
+        profile_regions=parse_profile_regions(profile_regions),
     )
     return RevolveResponse(body_id=result["body_id"], mesh=MeshResponse(**result["mesh"]))
 

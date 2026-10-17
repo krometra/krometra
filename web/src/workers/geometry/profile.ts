@@ -4,12 +4,11 @@ import { sketchPlaneNormal, type Vector3 } from "@/lib/browserExtrudeFrame";
 import type { BrowserContour } from "@/lib/browserContours";
 import {
   browserProfileCenter,
-  browserProfilesOf,
   isBrowserCircle,
   isBrowserRectangle,
   type BrowserProfile,
 } from "@/lib/browserProfile";
-import type { SketchEntity, SketchPoint } from "@/types/api";
+import type { SketchPoint } from "@/types/api";
 import { combineShapes } from "./shapes";
 import type { Point } from "./types";
 
@@ -80,10 +79,10 @@ export interface ProfilePlacement {
   sweep: Sweep;
 }
 
-export function sweepSketchProfiles(entities: SketchEntity[], place: (center: Point) => ProfilePlacement) {
+export function sweepProfiles(profiles: BrowserProfile[], place: (center: Point) => ProfilePlacement) {
   const shapes: Shape3D[] = [];
   try {
-    for (const profile of browserProfilesOf(entities)) {
+    for (const profile of profiles) {
       const center = browserProfileCenter(profile);
       const placement = place(center);
       const plane = new Plane(placement.origin, placement.u, sketchPlaneNormal(placement));

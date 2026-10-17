@@ -773,6 +773,8 @@ export interface components {
             up_to_body_id?: string | null;
             /** Up To Face Id */
             up_to_face_id?: string | null;
+            /** Profile Regions */
+            profile_regions?: string | null;
         };
         /** Body_browser_fillet_endpoint_api_projects__project_id__geometry_browser_fillet_post */
         Body_browser_fillet_endpoint_api_projects__project_id__geometry_browser_fillet_post: {
@@ -924,6 +926,8 @@ export interface components {
             naming?: string | null;
             /** Feature Key */
             feature_key?: string | null;
+            /** Profile Regions */
+            profile_regions?: string | null;
         };
         /** Body_browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post */
         Body_browser_shell_endpoint_api_projects__project_id__geometry_browser_shell_post: {

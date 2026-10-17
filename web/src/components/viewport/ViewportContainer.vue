@@ -24,6 +24,7 @@ import { useCameraLookAt } from "@/composables/viewport/useCameraLookAt";
 import { bodyFaceFrame, visibleBounds } from "@/composables/viewport/bodyGeometry";
 import { raycastFace } from "@/composables/viewport/faceRaycast";
 import { useMeasurePicking } from "@/composables/viewport/useMeasurePicking";
+import { useRegionPicking } from "@/composables/viewport/useRegionPicking";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -67,6 +68,7 @@ const holePreview = useHolePreview(context);
 const probe = useViewportProbe(context);
 const section = useSectionView(context);
 const lookAt = useCameraLookAt(context, core.animateCameraTo);
+const regionPicking = useRegionPicking(context);
 
 const faces = useFaceSelection({
   context,
@@ -123,6 +125,7 @@ onUnmounted(() => {
   previews.hideFillet();
   previews.hideThread();
   holePreview.hideHoles();
+  regionPicking.hide();
   measure.dispose();
 });
 
@@ -136,6 +139,7 @@ function onCanvasClick(event: MouseEvent) {
     emit("planePicked", { plane: planes.planeOf(quad) });
     return;
   }
+  if (regionPicking.handleClick(event.shiftKey)) return;
 
   if (selectionMode.value === "body") bodies.handleClick();
   else if (selectionMode.value === "face") faces.handleClick();
@@ -147,6 +151,11 @@ function onCanvasMouseMove(event: MouseEvent) {
   if (!context.ready()) return;
   core.updatePointer(event);
 
+  if (regionPicking.isActive() && regionPicking.handleHover()) {
+    faces.restoreSelected();
+    core.setCursor("pointer");
+    return;
+  }
   if (selectionMode.value === "edge") {
     core.setCursor(edges.handleHover() ? "pointer" : "crosshair");
     return;
@@ -268,6 +277,8 @@ defineExpose({
   hideThreadPreview: previews.hideThread,
   showMirrorPreview: mirrorPreview.show,
   hideMirrorPreview: mirrorPreview.hide,
+  showProfileRegions: regionPicking.show,
+  hideProfileRegions: regionPicking.hide,
   showHolePreview: holePreview.showHoles,
   hideHolePreview: holePreview.hideHoles,
   fitAllBodies,

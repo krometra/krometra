@@ -110,6 +110,11 @@ export function featureSketchIds(entry: TimelineEntry): string[] {
   return [...new Set([text(entry.sketch_id), ...path].filter((id): id is string => id !== null))];
 }
 
+function profileRegionsOf(params: Record<string, unknown>): string[] | null {
+  const keys = Array.isArray(params.profile_regions) ? params.profile_regions.map(text).filter((key): key is string => key !== null) : [];
+  return keys.length > 0 ? keys : null;
+}
+
 function sketchPlacement(document: RebuildDocument, sketchId: string | null | undefined, label: string) {
   const sketch = document.components[sketchId ?? ""] as Record<string, unknown> | undefined;
   if (!sketch || !Array.isArray(sketch.entities)) throw new Error(`Эскиз операции «${label}» не найден.`);
@@ -134,6 +139,7 @@ function extrudeRequest(document: RebuildDocument, entry: TimelineEntry, params:
     upToBodyId: text(params.up_to_body_id),
     upToFaceId: text(params.up_to_face_id),
     upToFacePoints: null,
+    profileRegions: profileRegionsOf(params),
   };
 }
 
@@ -188,6 +194,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
       axis: params.axis,
       angle: number(params.angle, 360),
       direction: text(params.direction) ?? "one_side",
+      profileRegions: profileRegionsOf(params),
     };
   }
   if (entry.kind === "sweep") {

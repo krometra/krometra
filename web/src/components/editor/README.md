@@ -13,6 +13,7 @@ EditorView.vue (оркестратор, ~580 строк)
 │   ├── useDocumentStatus        статус сохранения документа (loading/saved/…/conflict)
 │   ├── useCameraSync            поллинг камеры для ViewCube + переходы вида
 │   ├── useExtrudeRevolve        состояние и команды выдавливания/вращения + ghost-превью
+│   ├── useProfileRegions        регионы профиля эскиза: выбор кликом и Shift во вьюпорте, слитые грани для призрака
 │   ├── useQuantityField         числовое поле с выражением и единицами (lib/expr + lib/units)
 │   ├── useSketchLifecycle       выбор плоскости/грани, вход-выход из эскиза, удаление
 │   ├── useBooleanMode           режим CSG: выбор target/tool, apply
@@ -44,6 +45,7 @@ EditorView.vue (оркестратор, ~580 строк)
     ├── PropsPanelShell          каркас правой панели (head/body/foot-слоты)
     ├── SketchPropsPanel         панель режима эскиза
     ├── ExtrudeRevolvePanel      панель выдавливания/вращения (prop: ExtrudeRevolveApi)
+    ├── ProfileRegionsField      строка «Профиль» панели: весь эскиз или выбранные регионы, сброс
     ├── BooleanPanel             панель CSG (prop: BooleanModeApi)
     ├── FilletChamferPanel       панель скругления/фаски (prop: FilletChamferApi)
     ├── EdgeSelectionList        чекбокс касательной цепочки + список выбранных рёбер с точечным снятием

@@ -42,6 +42,7 @@ export interface BrowserExtrudeOptions {
   upToBodyId: string | null;
   upToFaceId: string | number | null;
   upToFacePoints: Vector3[] | null;
+  profileRegions?: string[] | null;
 }
 
 export interface BrowserSweepOptions {
@@ -229,7 +230,15 @@ export async function buildBrowserExtrude(input: BrowserSketchPlacement & Browse
   return buildResult(result, "Браузерное ядро вернуло неполный результат выдавливания.");
 }
 
-export async function buildBrowserRevolve(input: BrowserSketchPlacement & { axisOrigin: { x: number; y: number }; axis: "x" | "y"; angle: number; direction: "one_side" | "symmetric" }, featureKey: string): Promise<BrowserBuildResult> {
+export interface BrowserRevolveOptions {
+  axisOrigin: { x: number; y: number };
+  axis: "x" | "y";
+  angle: number;
+  direction: "one_side" | "symmetric";
+  profileRegions: string[] | null;
+}
+
+export async function buildBrowserRevolve(input: BrowserSketchPlacement & BrowserRevolveOptions, featureKey: string): Promise<BrowserBuildResult> {
   const result = await request({ kind: "revolve", ...cloneBrowserWorkerInput(input), featureKey });
   return buildResult(result, "Браузерное ядро вернуло неполный результат вращения.");
 }
