@@ -17,12 +17,12 @@ import {
   applyPerpendicular,
   applyVertical,
 } from "./geometricConstraints";
-import { CONVERGENCE_THRESHOLD, buildPointMap, constraintSegments, pinOrigin, writePointsBack, type PointMap } from "./pointMap";
+import { CONVERGENCE_THRESHOLD, buildPointMap, constraintSegments, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
 import type { SketchConstraint, SketchEntity, SolverOutput } from "./types";
 
 export type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity, SketchPoint, SolverOutput } from "./types";
 
-const MAX_ITERATIONS = 50;
+const MAX_ITERATIONS = 500;
 
 export function solveSketch(entities: SketchEntity[], constraints: SketchConstraint[]): SolverOutput {
   if (!constraints || constraints.length === 0) {
@@ -31,6 +31,7 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
 
   const workEntities: SketchEntity[] = JSON.parse(JSON.stringify(entities));
   const points = buildPointMap(workEntities);
+  shareCoincidentPoints(points, constraints);
 
   let converged = false;
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {

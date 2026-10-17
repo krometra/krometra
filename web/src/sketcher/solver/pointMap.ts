@@ -51,6 +51,42 @@ export function buildPointMap(entities: SketchEntity[]): PointMap {
   return map;
 }
 
+function isPointToPoint(constraint: SketchConstraint): boolean {
+  return constraint.type === "coincident" && constraint.anchors.length >= 2;
+}
+
+export function shareCoincidentPoints(points: PointMap, constraints: SketchConstraint[]) {
+  const parent = new Map<string, string>();
+  const find = (k: string): string => {
+    let root = k;
+    while (parent.has(root) && parent.get(root) !== root) root = parent.get(root)!;
+    parent.set(k, root);
+    return root;
+  };
+  const union = (a: string, b: string) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra === rb) return;
+    if (rb === ORIGIN_KEY) parent.set(ra, rb);
+    else parent.set(rb, ra);
+  };
+  for (const constraint of constraints.filter(isPointToPoint)) {
+    const keys = constraint.anchors.map((ref) => key(ref.entity_id, ref.sub_index)).filter((k) => points.has(k));
+    for (const k of keys.slice(1)) union(keys[0], k);
+  }
+  const groups = new Map<string, string[]>();
+  for (const k of parent.keys()) groups.set(find(k), [...(groups.get(find(k)) ?? []), k]);
+  for (const [root, members] of groups) {
+    const shared = root === ORIGIN_KEY ? points.get(ORIGIN_KEY)! : centroid(members.map((k) => points.get(k)!));
+    for (const k of members) points.set(k, shared);
+  }
+}
+
+function centroid(list: SketchPoint[]): SketchPoint {
+  const sum = list.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+  return { x: sum.x / list.length, y: sum.y / list.length };
+}
+
 export function pinOrigin(points: PointMap) {
   const origin = points.get(ORIGIN_KEY);
   if (!origin) return;
