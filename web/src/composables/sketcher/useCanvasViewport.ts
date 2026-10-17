@@ -2,6 +2,7 @@ import { onMounted, onUnmounted, type Ref } from "vue";
 import type { SketchEntity, SketchPoint } from "@/types/api";
 import { entityBBox } from "@/sketcher/entityGeometry";
 import {
+  centeredView,
   screenToWorld as toWorld,
   worldToScreen as toScreen,
   visibleWorldBounds as worldBounds,
@@ -117,11 +118,13 @@ export function useCanvasViewport(deps: {
     else panBy(gesture.dx, gesture.dy);
   }
 
-  function centerView() {
+  function resetToCenter() {
     const { width, height } = cssSize();
-    offsetX = width / 2;
-    offsetY = height / 2;
-    zoom = 1.0;
+    ({ offsetX, offsetY, zoom } = centeredView(width, height));
+  }
+
+  function centerView() {
+    resetToCenter();
     render();
   }
 
@@ -175,9 +178,7 @@ export function useCanvasViewport(deps: {
     resizeObserver = new ResizeObserver(handleResize);
     if (containerRef.value) resizeObserver.observe(containerRef.value);
 
-    const { width, height } = cssSize();
-    offsetX = width / 2;
-    offsetY = height / 2;
+    resetToCenter();
   });
 
   onUnmounted(() => {
