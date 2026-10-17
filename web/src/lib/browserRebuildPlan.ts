@@ -7,7 +7,7 @@ import { sketchOwnerBody, sketchSeatSteps, type SketchSeatStep } from "./browser
 import { HOLE_EDITABLE_PARAMS, holeSpecFromParams } from "./holeFeature";
 import { fallbackBodyOf, isSuppressed } from "./timelineFlags";
 
-export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft";
+export type RebuildKind = "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "import" | "transform" | "shell" | "mirror" | "hole" | "pattern" | "draft" | "press_pull";
 
 export interface RebuildStep {
   entryId: string;
@@ -52,7 +52,7 @@ export interface RebuildDocument {
   timeline: TimelineEntry[];
 }
 
-const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "loft", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern", "draft"]);
+const REBUILD_KINDS = new Set<string>(["extrude", "revolve", "sweep", "loft", "boolean", "fillet", "chamfer", "thread", "import", "transform", "shell", "mirror", "hole", "pattern", "draft", "press_pull"]);
 
 const EDITABLE_PARAMS: Record<string, string[]> = {
   extrude: ["distance", "direction", "back_distance", "offset"],
@@ -67,6 +67,7 @@ const EDITABLE_PARAMS: Record<string, string[]> = {
   hole: [...HOLE_EDITABLE_PARAMS],
   pattern: ["count", "spacing", "angle", "count2", "spacing2"],
   draft: ["angle_deg"],
+  press_pull: ["distance"],
 };
 
 export function editableBrowserParams(kind: string): string[] {
@@ -181,6 +182,15 @@ function shellRequest(params: Record<string, unknown>) {
   };
 }
 
+function pressPullRequest(params: Record<string, unknown>) {
+  return {
+    bodyId: text(params.target_body_id),
+    faceNames: Array.isArray(params.face_ids) ? params.face_ids.map(String) : [],
+    distance: number(params.distance, 1),
+    newBody: params.new_body === true,
+  };
+}
+
 function holeRequest(document: RebuildDocument, entry: TimelineEntry, params: Record<string, unknown>) {
   const placement = entry.sketch_id ? sketchPlacement(document, entry.sketch_id, entry.label) : { entities: null, plane: "XY", planeOffset: 0, planeBasis: null };
   return {
@@ -240,6 +250,7 @@ function requestOf(document: RebuildDocument, entry: TimelineEntry, params: Reco
   }
   if (entry.kind === "shell") return { kind: "shell", featureKey, ...shellRequest(params) };
   if (entry.kind === "draft") return { kind: "draft", featureKey, ...draftFeatureOfParams(params) };
+  if (entry.kind === "press_pull") return { kind: "press_pull", featureKey, ...pressPullRequest(params) };
   if (entry.kind === "mirror") {
     return { kind: "mirror", featureKey, bodyId: text(params.target_body_id), plane: mirrorPlaneOfParams(params), merge: params.merge === true };
   }

@@ -6,7 +6,7 @@ export type SelectionMode = "face" | "body" | "edge" | "measure" | "none";
 
 export type ViewportRef = Ref<InstanceType<typeof ViewportContainer> | undefined>;
 
-export type RibbonAction = "sketch" | "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "shell" | "mirror" | "hole" | "measure" | "pattern" | "draft";
+export type RibbonAction = "sketch" | "extrude" | "revolve" | "sweep" | "loft" | "boolean" | "fillet" | "chamfer" | "thread" | "shell" | "mirror" | "hole" | "measure" | "pattern" | "draft" | "press_pull";
 
 export type TreeItemKind = "sketch" | "body" | "feature";
 

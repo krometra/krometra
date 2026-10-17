@@ -23,6 +23,7 @@ import type { MirrorApi } from "../useMirror";
 import type { HoleApi } from "../useHole";
 import type { ModelHistoryApi } from "../useModelHistory";
 import type { PatternApi } from "../usePattern";
+import type { PressPullApi } from "../usePressPull";
 import type { SketchLifecycleApi } from "../useSketchLifecycle";
 import type { StepImportApi } from "../useStepImport";
 import type { SweepApi } from "../useSweep";
@@ -58,6 +59,7 @@ export interface EditorControlDeps {
   shell: ShellApi;
   draft: DraftApi;
   measure: MeasureApi;
+  pressPull: PressPullApi;
 }
 
 const KERNEL_WAITING: Record<string, string> = {
@@ -90,6 +92,7 @@ export function createControlContext(deps: EditorControlDeps) {
       sweep: deps.sweep.sweepMode.value,
       loft: deps.loft.loftMode.value,
       measure: deps.measure.active.value,
+      pressPull: deps.pressPull.pressPullMode.value,
     });
   }
 
@@ -117,6 +120,7 @@ export function createControlContext(deps: EditorControlDeps) {
     if (deps.stepImport.loading.value) return "Идёт импорт STEP.";
     if (deps.bodyTransform.loading.value) return "Идёт перемещение тела.";
     if (deps.pattern.loading.value) return "Идёт построение массива.";
+    if (deps.pressPull.loading.value) return "Идёт сдвиг грани.";
     if (undoRedo.isExecuting.value) return "Идёт отмена или повтор операции.";
     if (deps.sketchFlow.finishing.value || sketch.isLoading.value) return "Эскиз сохраняется или загружается.";
     if (deps.meshes.hydrating.value) return "Тела перезагружаются в сцену.";

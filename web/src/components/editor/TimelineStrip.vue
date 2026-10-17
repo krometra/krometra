@@ -8,6 +8,7 @@ import { draftDetail } from "@/lib/browserDraft";
 import { holeDetail } from "@/lib/holeFeature";
 import { LOFT_ICON, loftSummary } from "@/lib/loftFeature";
 import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
+import { pressPullDetail } from "@/lib/browserPressPull";
 import { isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
 import { entryStateHint, timelineSlots } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
@@ -56,6 +57,7 @@ function timelineIcon(kind: string): string {
     mirror: "M12 3v18 M7 7l-3 5 3 5 M17 7l3 5-3 5",
     draft: "M8 4h8l3 16H5z M12 4v16",
     pattern: "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z",
+    press_pull: "M4 14h16 M12 14V4 M8 8l4-4 4 4 M4 20h16",
   };
   return icons[kind] ?? icons.sketch;
 }
@@ -112,6 +114,8 @@ function timelineDetail(entry: TimelineEntry): string {
       return draftDetail(entry.params ?? {});
     case "pattern":
       return patternSummary(patternSpecFromParams(entry.params ?? {}));
+    case "press_pull":
+      return pressPullDetail(entry.params ?? {});
     default:
       return '';
   }

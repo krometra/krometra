@@ -10,6 +10,7 @@ import { loftNamed, type LoftRequest } from "./loft";
 import type { NamedShape } from "./naming";
 import { initOcct } from "./occt";
 import { patternNamed, type PatternRequest } from "./pattern";
+import { pressPullNamed, type PressPullRequest } from "./pressPull";
 import { revolveNamed } from "./revolve";
 import { bodyRevision, namedBodyShape, publishShape, releaseShape } from "./shapes";
 import { shellNamed, type ShellRequest } from "./shell";
@@ -48,6 +49,7 @@ const builders: Record<RebuildKind, (request: never, lookup: BodyLookup) => Name
   hole: (request: HoleBuildRequest, lookup) => holeNamed(request, lookup),
   pattern: (request: PatternRequest, lookup) => patternNamed(request, lookup),
   draft: (request: DraftRequest, lookup) => draftNamed(request, lookup),
+  press_pull: (request: PressPullRequest, lookup) => pressPullNamed(request, lookup),
 };
 
 const backend: RebuildBackend<NamedShape> = {

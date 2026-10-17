@@ -45,6 +45,7 @@ const kindColor = (kind: string): string => {
     chamfer: "oklch(0.72 0.15 45)",
     shell: "oklch(0.74 0.15 55)",
     draft: "oklch(0.72 0.14 140)",
+    press_pull: "oklch(0.72 0.14 150)",
   };
   return colors[kind] ?? "oklch(0.66 0.01 250)";
 };

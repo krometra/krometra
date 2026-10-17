@@ -45,6 +45,7 @@ EDITABLE_PARAMS = {
     "hole": {"hole_type", "diameter", "extent", "depth", "bottom", "cbore_diameter", "cbore_depth", "csink_diameter", "csink_angle"},
     "pattern": {"count", "spacing", "angle", "count2", "spacing2"},
     "draft": {"angle_deg"},
+    "press_pull": {"distance"},
 }
 
 

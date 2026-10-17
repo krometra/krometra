@@ -24,6 +24,7 @@ import { useLoft } from "@/composables/editor/useLoft";
 import { useHole } from "@/composables/editor/useHole";
 import { useMeasure } from "@/composables/editor/useMeasure";
 import { usePattern } from "@/composables/editor/usePattern";
+import { usePressPull } from "@/composables/editor/usePressPull";
 import { useEditorHotkeys } from "@/composables/editor/useEditorHotkeys";
 import { useOnboarding } from "@/composables/editor/useOnboarding";
 import { useExport } from "@/composables/editor/useExport";
@@ -111,8 +112,10 @@ const loft = useLoft({ projectId: props.id, viewportRef, meshes, model });
 const hole = useHole({ projectId: props.id, viewportRef, viewportSelectionMode, meshes, model });
 const measure = useMeasure({ viewportRef, viewportSelectionMode, meshes });
 const pattern = usePattern({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
+const pressPull = usePressPull({ projectId: props.id, viewportRef, viewportSelectionMode, meshes });
 const tools = useEditorTools([
   filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool, draft.tool,
+  pressPull.tool,
 ]);
 const projectName = ref("Проект");
 const exportApi = useExport({ projectName, bodies: model.bodies });
@@ -209,7 +212,7 @@ const control = props.watch
   : useEditorControl({
       projectId: props.id, viewportRef, sketcherRef, model, meshes, extrude, sketchFlow, booleanMode, filletChamfer, thread, mirror, sweep, loft, hole, pattern,
       shell, exportApi, stepImport, history, bodyPresentation, bodyTransform, leaveActiveTools,
-      measure, draft,
+      measure, draft, pressPull,
     });
 
 // --- Горячие клавиши ---
@@ -408,7 +411,7 @@ const selectionLabel = useSelectionLabel();
 
       <aside :class="$style.props" :inert="watchInert">
         <EditorOperationPanels
-          :panels="{ extrude, booleanMode, filletChamfer, thread, shell, draft, mirror, sweep, loft, hole, measure, pattern }"
+          :panels="{ extrude, booleanMode, filletChamfer, thread, shell, draft, pressPull, mirror, sweep, loft, hole, measure, pattern }"
           @sketch-ok="sketchFlow.handleSketchOk"
           @sketch-cancel="sketchFlow.handleSketchCancel"
           @edit-sketch="sketchFlow.editSketch"

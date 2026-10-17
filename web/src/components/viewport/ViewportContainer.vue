@@ -17,6 +17,7 @@ import { usePlaneHelpers } from "@/composables/viewport/usePlaneHelpers";
 import { useSketchOutlines } from "@/composables/viewport/useSketchOutlines";
 import { usePreviews } from "@/composables/viewport/usePreviews";
 import { useMirrorPreview } from "@/composables/viewport/useMirrorPreview";
+import { usePressPullPreview } from "@/composables/viewport/usePressPullPreview";
 import { useHolePreview } from "@/composables/viewport/useHolePreview";
 import { useMeshGhost } from "@/composables/viewport/useMeshGhost";
 import { useViewportProbe } from "@/composables/viewport/useViewportProbe";
@@ -69,6 +70,7 @@ const previews = usePreviews(context);
 const mirrorPreview = useMirrorPreview(context);
 const holePreview = useHolePreview(context);
 const meshGhost = useMeshGhost(context);
+const pressPullPreview = usePressPullPreview(context);
 const probe = useViewportProbe(context);
 const section = useSectionView(context);
 const lookAt = useCameraLookAt(context, core.animateCameraTo);
@@ -296,6 +298,8 @@ defineExpose({
   hideHolePreview: holePreview.hideHoles,
   showMeshGhost: meshGhost.show,
   hideMeshGhost: meshGhost.hide,
+  showPressPullPreview: pressPullPreview.show,
+  hidePressPullPreview: pressPullPreview.hide,
   fitAllBodies,
   resetView: core.resetView,
   getBodyIds: registry.getBodyIds,

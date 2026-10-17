@@ -8,6 +8,7 @@ import FilletChamferPanel from "./FilletChamferPanel.vue";
 import ThreadPanel from "./ThreadPanel.vue";
 import ShellPanel from "./ShellPanel.vue";
 import DraftPanel from "./DraftPanel.vue";
+import PressPullPanel from "./PressPullPanel.vue";
 import MirrorPanel from "./MirrorPanel.vue";
 import SweepPanel from "./SweepPanel.vue";
 import LoftPanel from "./LoftPanel.vue";
@@ -20,6 +21,7 @@ import type { FilletChamferApi } from "@/composables/editor/useFilletChamfer";
 import type { ThreadApi } from "@/composables/editor/useThread";
 import type { ShellApi } from "@/composables/editor/useShell";
 import type { DraftApi } from "@/composables/editor/useDraft";
+import type { PressPullApi } from "@/composables/editor/usePressPull";
 import type { MirrorApi } from "@/composables/editor/useMirror";
 import type { SweepApi } from "@/composables/editor/useSweep";
 import type { LoftApi } from "@/composables/editor/useLoft";
@@ -35,6 +37,7 @@ export interface OperationPanels {
   thread: ThreadApi;
   shell: ShellApi;
   draft: DraftApi;
+  pressPull: PressPullApi;
   mirror: MirrorApi;
   sweep: SweepApi;
   loft: LoftApi;
@@ -61,6 +64,7 @@ const sketch = useSketch();
   <ThreadPanel v-else-if="panels.thread.threadMode.value" :thread="panels.thread" />
   <ShellPanel v-else-if="panels.shell.shellMode.value" :shell="panels.shell" />
   <DraftPanel v-else-if="panels.draft.draftMode.value" :draft="panels.draft" />
+  <PressPullPanel v-else-if="panels.pressPull.pressPullMode.value" :press-pull="panels.pressPull" />
   <MirrorPanel v-else-if="panels.mirror.mirrorMode.value" :mirror="panels.mirror" />
   <HolePanel v-else-if="panels.hole.holeMode.value" :hole="panels.hole" />
   <PatternPanel v-else-if="panels.pattern.patternMode.value" :pattern="panels.pattern" />
