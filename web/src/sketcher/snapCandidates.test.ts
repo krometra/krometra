@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { SketchEntity } from "@/types/api";
 import {
   collectCandidates,
+  contourCenterCandidates,
   entityCandidates,
   intersectionCandidates,
   pickCandidate,
@@ -303,5 +304,44 @@ describe("источник привязки для авто-ограничени
   it("проекция на отрезок ссылается на него, пересечение - ни на что", () => {
     expect(snapAt([line("l", 20, 20, 40, 20)], { x: 25, y: 20.2 }, 1)).toMatchObject({ kind: "on-line", ref: { entity_id: "l", sub_index: 0 } });
     expect(intersectionCandidates([line("a", 0, 0, 10, 0), line("b", 5, -5, 5, 5)])[0].ref).toBeUndefined();
+  });
+});
+
+describe("центр замкнутого контура", () => {
+  const r = 5;
+  const roundedFace = (cx: number, cy: number, half: number): SketchEntity[] => {
+    const a = half - r;
+    const line = (id: string, x1: number, y1: number, x2: number, y2: number): SketchEntity =>
+      ({ id, type: "line", start: { x: cx + x1, y: cy + y1 }, end: { x: cx + x2, y: cy + y2 }, construction: true }) as SketchEntity;
+    const arc = (id: string, x: number, y: number, from: number): SketchEntity =>
+      ({ id, type: "arc", center: { x: cx + x, y: cy + y }, radius: r, startAngle: from, endAngle: from + Math.PI / 2, construction: true }) as SketchEntity;
+    return [
+      line("b", -a, -half, a, -half),
+      arc("br", a, -a, -Math.PI / 2),
+      line("r", half, -a, half, a),
+      arc("tr", a, a, 0),
+      line("t", a, half, -a, half),
+      arc("tl", -a, a, Math.PI / 2),
+      line("l", -half, a, -half, -a),
+      arc("bl", -a, -a, Math.PI),
+    ];
+  };
+
+  it("контур грани со скруглёнными углами из вспомогательных отрезков и дуг даёт «Центр контура»", () => {
+    const snap = snapAt(roundedFace(12, -7, 20), { x: 12.4, y: -6.8 }, 1);
+    expect(snap?.kind).toBe("centroid");
+    expect(snap?.label).toBe("Центр контура");
+    expect(snap?.point.x).toBeCloseTo(12, 6);
+    expect(snap?.point.y).toBeCloseTo(-7, 6);
+  });
+
+  it("незамкнутая цепочка центра не даёт", () => {
+    const open = roundedFace(0, 0, 20).slice(0, 5);
+    expect(contourCenterCandidates(open)).toEqual([]);
+  });
+
+  it("центры считаются один раз на массив сущностей", () => {
+    const entities = roundedFace(0, 0, 20);
+    expect(contourCenterCandidates(entities)).toBe(contourCenterCandidates(entities));
   });
 });

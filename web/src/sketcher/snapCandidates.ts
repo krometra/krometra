@@ -13,11 +13,13 @@
 
 import type { ConstraintRef, SketchEntity, SketchPoint } from "@/types/api";
 import { intersectLines, lineRefOf, projectOnLine, type LineRef } from "./geometry";
+import { chainedContourCenters } from "./contours";
 import { SKETCH_ORIGIN, SKETCH_ORIGIN_ID } from "./sketchOrigin";
 
 export type SnapKind =
   | "endpoint"
   | "center"
+  | "centroid"
   | "origin"
   | "intersection"
   | "midpoint"
@@ -41,6 +43,7 @@ export interface SnapCandidate {
 const PRIORITY: Record<SnapKind, number> = {
   endpoint: 0,
   center: 0,
+  centroid: 1,
   quadrant: 1,
   origin: 1,
   intersection: 2,
@@ -53,6 +56,7 @@ const PRIORITY: Record<SnapKind, number> = {
 export const SNAP_LABELS: Record<SnapKind, string> = {
   endpoint: "Конец",
   center: "Центр",
+  centroid: "Центр контура",
   origin: "Начало координат",
   intersection: "Пересечение",
   midpoint: "Середина",
@@ -161,9 +165,25 @@ export function intersectionCandidates(entities: SketchEntity[]): SnapCandidate[
   return out;
 }
 
-/** Все кандидаты эскиза: точки примитивов + пересечения прямых. */
+const contourCentersCache = new WeakMap<SketchEntity[], SnapCandidate[]>();
+
+/** Центры замкнутых контуров; пересчёт только при смене массива сущностей, не на каждом движении мыши. */
+export function contourCenterCandidates(entities: SketchEntity[]): SnapCandidate[] {
+  const cached = contourCentersCache.get(entities);
+  if (cached) return cached;
+  const centers = chainedContourCenters(entities).map((point) => at(point, "centroid"));
+  contourCentersCache.set(entities, centers);
+  return centers;
+}
+
+/** Все кандидаты эскиза: точки примитивов, центры контуров, пересечения прямых. */
 export function collectCandidates(entities: SketchEntity[]): SnapCandidate[] {
-  return [...entities.flatMap(entityCandidates), ...intersectionCandidates(entities), at({ ...SKETCH_ORIGIN }, "origin", SKETCH_ORIGIN_ID)];
+  return [
+    ...entities.flatMap(entityCandidates),
+    ...contourCenterCandidates(entities),
+    ...intersectionCandidates(entities),
+    at({ ...SKETCH_ORIGIN }, "origin", SKETCH_ORIGIN_ID),
+  ];
 }
 
 const distance = (a: SketchPoint, b: SketchPoint) => Math.hypot(a.x - b.x, a.y - b.y);

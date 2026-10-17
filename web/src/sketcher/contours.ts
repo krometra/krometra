@@ -60,10 +60,15 @@ function polyline(entity: SketchEntity): SketchPoint[] | null {
   return null;
 }
 
+interface Chain {
+  points: SketchPoint[];
+  closed: boolean;
+}
+
 /** Цепочки из отрезков и дуг, соединённых общими концами; порядок рисования не важен. */
-function chainSegments(segments: SketchPoint[][]): SketchPoint[][] {
+function chainSegments(segments: SketchPoint[][]): Chain[] {
   const rest = segments.slice();
-  const chains: SketchPoint[][] = [];
+  const chains: Chain[] = [];
 
   while (rest.length) {
     let points = rest.shift()!.slice();
@@ -84,18 +89,44 @@ function chainSegments(segments: SketchPoint[][]): SketchPoint[][] {
         break;
       }
     }
-    if (points.length > 2 && near(points[0], points[points.length - 1])) points.pop();
-    chains.push(points);
+    const closed = points.length > 2 && near(points[0], points[points.length - 1]);
+    if (closed) points.pop();
+    chains.push({ points, closed });
   }
 
   return chains;
+}
+
+function polygonCentroid(points: SketchPoint[]): SketchPoint | null {
+  let area = 0;
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length];
+    const cross = a.x * b.y - b.x * a.y;
+    area += cross;
+    cx += (a.x + b.x) * cross;
+    cy += (a.y + b.y) * cross;
+  }
+  if (Math.abs(area) < 1e-9) return null;
+  return { x: cx / (3 * area), y: cy / (3 * area) };
+}
+
+/** Центры площади замкнутых контуров из отрезков и дуг, вспомогательных тоже: контур грани приходит именно ими. */
+export function chainedContourCenters(entities: SketchEntity[]): SketchPoint[] {
+  const segments = entities.map(polyline).filter((p): p is SketchPoint[] => p !== null);
+  return chainSegments(segments)
+    .filter((chain) => chain.closed && chain.points.length >= 3)
+    .map((chain) => polygonCentroid(chain.points))
+    .filter((p): p is SketchPoint => p !== null);
 }
 
 export function profileContours(entities: SketchEntity[]): SketchPoint[][] {
   const profile = entities.filter((e) => !isConstruction(e));
   const standalone = profile.map(closedPolygon).filter((p): p is SketchPoint[] => p !== null);
   const segments = profile.map(polyline).filter((p): p is SketchPoint[] => p !== null);
-  return [...standalone, ...chainSegments(segments)].filter((c) => c.length >= 3);
+  return [...standalone, ...chainSegments(segments).map((chain) => chain.points)].filter((c) => c.length >= 3);
 }
 
 function pointInPolygon(point: SketchPoint, polygon: SketchPoint[]): boolean {
