@@ -5,12 +5,13 @@ from __future__ import annotations
 from typing import AsyncGenerator
 
 import redis.asyncio as aioredis
-from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi import BackgroundTasks, Cookie, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.core.database import get_db
+from app.core.mailer import Outbox
 from app.core.rate_limit import resolve_client_ip
 from app.models.user import User
 from app.services.auth_service import AuthError, AuthSession, get_current_session
@@ -82,6 +83,10 @@ async def get_refresh_token_from_cookie(
             detail={"error": "invalid_grant", "error_description": "No refresh token cookie."},
         )
     return refresh_token
+
+
+def get_outbox(background_tasks: BackgroundTasks) -> Outbox:
+    return Outbox(background_tasks)
 
 
 def get_client_ip(request: Request) -> str:

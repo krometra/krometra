@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.core import rate_limit
 from app.core.security import API_KEY_CLAIM, API_KEY_PREFIX, create_access_token, decode_access_token, hash_api_key
 from app.models.api_key import ApiKey
+from app.models.base import utcnow
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.services import auth_service
@@ -23,7 +24,7 @@ pytestmark = pytest.mark.asyncio
 
 
 def _add_user(db: FakeDb, email: str) -> User:
-    user = User(email=email, password_hash=None, display_name=email)
+    user = User(email=email, password_hash=None, display_name=email, email_verified_at=utcnow())
     db.add(user)
     return user
 
@@ -97,7 +98,7 @@ def _active_refresh_rows(db: FakeDb) -> list[RefreshToken]:
 
 class TestApiKeyService:
     async def test_key_is_returned_once_and_only_its_hash_is_stored(self, db, alice):
-        api_key, raw_key = await create_api_key(db, alice.id, "Claude Code")
+        api_key, raw_key = await create_api_key(db, alice, "Claude Code")
         assert raw_key.startswith(API_KEY_PREFIX)
         assert len(raw_key) > len(API_KEY_PREFIX) + 40
         assert api_key.key_hash == hash_api_key(raw_key)
@@ -106,26 +107,26 @@ class TestApiKeyService:
         assert raw_key not in stored
 
     async def test_keys_are_unique(self, db, alice):
-        raw_keys = {(await create_api_key(db, alice.id, f"key {i}"))[1] for i in range(5)}
+        raw_keys = {(await create_api_key(db, alice, f"key {i}"))[1] for i in range(5)}
         assert len(raw_keys) == 5
 
     async def test_limit_per_user(self, db, alice, bob):
         for i in range(KEY_LIMIT):
-            await create_api_key(db, alice.id, f"key {i}")
+            await create_api_key(db, alice, f"key {i}")
         with pytest.raises(ApiKeyError) as exc:
-            await create_api_key(db, alice.id, "one too many")
+            await create_api_key(db, alice, "one too many")
         assert (exc.value.status_code, exc.value.error) == (409, "api_key_limit")
-        await create_api_key(db, bob.id, "bob's own")
+        await create_api_key(db, bob, "bob's own")
 
     async def test_foreign_key_is_not_deleted(self, db, redis, alice, bob):
-        api_key, _ = await create_api_key(db, alice.id, "alice")
+        api_key, _ = await create_api_key(db, alice, "alice")
         with pytest.raises(ApiKeyError) as exc:
             await delete_api_key(db, redis, bob.id, api_key.id)
         assert (exc.value.status_code, exc.value.error) == (404, "api_key_not_found")
         assert db.rows(ApiKey) == [api_key]
 
     async def test_delete_ends_key_sessions_only(self, db, redis, alice):
-        api_key, raw_key = await create_api_key(db, alice.id, "alice")
+        api_key, raw_key = await create_api_key(db, alice, "alice")
         await auth_service.authenticate_api_key_grant(db, redis, raw_key, "203.0.113.1")
         await auth_service._start_refresh_family(db, redis, alice.id, api_key_id=None)
         key_family, password_family = (row.family_id for row in db.rows(RefreshToken))

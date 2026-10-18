@@ -76,4 +76,26 @@ export const account: Translation<typeof source> = {
     "Connect the {product} MCP server (browser-based 3D CAD) to Claude Code and check that it works. The server runs on the site, there is nothing to install.\n\n1. Connect the server for all of the user's projects:\n\n```bash\n{connect}\n```\n\n{keyNote}\n\n2. Check the connection: the output must list the krometra server with the Connected status.\n\n```bash\n{verify}\n```\n\n3. Restart Claude Code or run /mcp, then call the cad_list_projects tool.\n\nHow to work with the editor: cad_open_project — commands run in the editor tab the user has open, so if the tool asks for it, give the user the project link. Then cad_capabilities (the only source of truth about operations), cad_state and cad_snapshot to read the model, cad_request to run operations. Sizes are in millimetres. Details: {readme}",
   "account.agent.keyPlaceholder": "Replace krm_... with an access key from the Account page ({origin}/account): ask the user for it.",
   "account.agent.keyFilled": "The access key and site address are already filled in.",
+
+  "account.email.title": "Email",
+  "account.email.verified": "{email} is confirmed.",
+  "account.email.unverified": "{email} is not confirmed: we sent an email with a link when you signed up.",
+  "account.email.resend": "Send the email again",
+  "account.email.resendIn": "Send again in {seconds} s",
+  "account.email.sent": "Email sent. Check your inbox and the spam folder.",
+  "account.email.resendFailed": "Could not send the email.",
+  "account.email.banner": "Confirm your email {email}.",
+  "account.email.bannerQuestion": "Didn't get the email?",
+
+  "account.password.title": "Password",
+  "account.password.intro": "After a password change, sessions on other devices end and this one stays.",
+  "account.password.current": "Current password",
+  "account.password.submit": "Change password",
+  "account.password.failed": "Could not change the password.",
+  "account.password.changed": "Password changed. Other sessions have been ended.",
+  "account.password.forgot": "Don't remember the current password?",
+  "account.password.forgotLink": "Recover by email",
+
+  "account.keys.needsVerifiedEmail":
+    "Access keys can be created once your email is confirmed: open the link from the email or send it again in the Email section.",
 };

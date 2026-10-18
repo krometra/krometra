@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAuth } from "@/composables/shared/useAuth";
 import { useI18n } from "@/composables/shared/useI18n";
 import { useApiKeys } from "@/composables/account/useApiKeys";
 import { toast } from "@/composables/useToast";
-import { errorMessage } from "@/lib/apiError";
+import { ApiError, errorMessage } from "@/lib/apiError";
 import type { ApiKey } from "@/types/api";
 import ApiKeyCreateForm from "@/components/account/ApiKeyCreateForm.vue";
 import ApiKeyList from "@/components/account/ApiKeyList.vue";
 import ApiKeyReveal from "@/components/account/ApiKeyReveal.vue";
+import EmailStatusSection from "@/components/account/EmailStatusSection.vue";
+import PasswordChangeForm from "@/components/account/PasswordChangeForm.vue";
 import McpConnectGuide from "@/components/account/McpConnectGuide.vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
@@ -18,11 +20,21 @@ const auth = useAuth();
 const { t } = useI18n();
 const apiKeys = useApiKeys();
 const origin = window.location.origin;
+const emailVerified = computed(() => auth.user.value?.email_verified ?? false);
 
 const deleteTarget = ref<ApiKey | null>(null);
 const deleting = ref(false);
 
 onMounted(apiKeys.load);
+
+async function createKey(name: string) {
+  try {
+    await apiKeys.create(name);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "email_not_verified") void auth.fetchMe();
+    throw error;
+  }
+}
 
 async function confirmDelete() {
   const key = deleteTarget.value;
@@ -56,6 +68,14 @@ async function confirmDelete() {
         </p>
       </div>
 
+      <EmailStatusSection />
+
+      <section :class="$style.section" data-testid="password">
+        <h2 :class="$style.sectionTitle">{{ t("account.password.title") }}</h2>
+        <p :class="$style.muted">{{ t("account.password.intro") }}</p>
+        <PasswordChangeForm />
+      </section>
+
       <section :class="$style.section" data-testid="api-keys">
         <h2 :class="$style.sectionTitle">{{ t("account.keys.title") }}</h2>
         <p :class="$style.muted">{{ t("account.keys.intro") }}</p>
@@ -73,7 +93,10 @@ async function confirmDelete() {
           <KrButton variant="secondary" size="sm" @click="apiKeys.load">{{ t("account.keys.retry") }}</KrButton>
         </div>
         <template v-else>
-          <ApiKeyCreateForm :create="apiKeys.create" :at-limit="apiKeys.atLimit.value" />
+          <ApiKeyCreateForm v-if="emailVerified" :create="createKey" :at-limit="apiKeys.atLimit.value" />
+          <p v-else :class="$style.notice" role="status" data-testid="api-key-needs-email">
+            {{ t("account.keys.needsVerifiedEmail") }}
+          </p>
           <ApiKeyList :keys="apiKeys.keys.value" @remove="deleteTarget = $event" />
         </template>
       </section>
@@ -163,6 +186,16 @@ async function confirmDelete() {
   color: var(--kr-text-secondary);
   font-size: 14px;
   line-height: 1.55;
+}
+
+.notice {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--kr-amber-border);
+  border-radius: var(--kr-radius-md);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  line-height: 1.5;
 }
 
 .failure {

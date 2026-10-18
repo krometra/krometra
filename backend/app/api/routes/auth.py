@@ -8,14 +8,17 @@ from app.api.deps import (
     get_client_ip,
     get_current_active_user,
     get_db,
+    get_outbox,
     get_redis,
     get_refresh_token_from_cookie,
 )
 from app.config import get_settings
 from app.core import rate_limit
+from app.core.mailer import Outbox
 from app.core.rate_limit import RateLimitExceeded
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, RegisterResponse, TokenResponse, UserResponse
+from app.services.account_service import send_verification_email
 from app.services.admin_roles import ensure_listed_admin
 from app.services.auth_service import (
     AuthError,
@@ -31,7 +34,7 @@ settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _too_many_requests(e: RateLimitExceeded) -> HTTPException:
+def too_many_requests(e: RateLimitExceeded) -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         detail={"error": "rate_limited", "error_description": e.description},
@@ -52,15 +55,17 @@ async def register(
     client_ip: str = Depends(get_client_ip),
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
+    outbox: Outbox = Depends(get_outbox),
 ):
-    """Register a new user with email and password."""
+    """Register a new user with email and password and send the verification email."""
     try:
         await rate_limit.consume(redis, rate_limit.REGISTER_BY_IP, client_ip)
         user = await register_user(db, data)
     except RateLimitExceeded as e:
-        raise _too_many_requests(e)
+        raise too_many_requests(e)
     except AuthError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"error": e.error, "error_description": e.error_description})
+    await send_verification_email(redis, outbox, user)
     return RegisterResponse(user=UserResponse.model_validate(user))
 
 
@@ -113,7 +118,7 @@ async def token(
         else:
             raise _bad_request("unsupported_grant_type", f"Grant type '{grant_type}' is not supported.")
     except RateLimitExceeded as e:
-        raise _too_many_requests(e)
+        raise too_many_requests(e)
     except AuthError as e:
         raise _bad_request(e.error, e.error_description)
 
@@ -133,7 +138,7 @@ async def refresh(
         await rate_limit.consume(redis, rate_limit.REFRESH_BY_IP, client_ip)
         access_token, new_refresh_raw = await refresh_access_token(db, redis, raw_token)
     except RateLimitExceeded as e:
-        raise _too_many_requests(e)
+        raise too_many_requests(e)
     except AuthError as e:
         raise _bad_request(e.error, e.error_description)
 

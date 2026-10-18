@@ -10,4 +10,6 @@ export const validation = {
     many: "Пароль должен быть не короче {count} символов.",
     other: "Пароль должен быть не короче {count} символа.",
   },
+  "validation.password.confirmRequired": "Повторите пароль.",
+  "validation.password.mismatch": "Пароли не совпадают.",
 } as const satisfies DomainMessages<"validation">;

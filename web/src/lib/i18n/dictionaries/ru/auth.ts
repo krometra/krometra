@@ -30,4 +30,38 @@ export const auth = {
   "auth.register.hasAccount": "Уже есть аккаунт?",
   "auth.register.loginLink": "Войти",
   "auth.register.failed": "Не удалось зарегистрироваться.",
+
+  "auth.field.newPassword.label": "Новый пароль",
+  "auth.field.confirmPassword.label": "Повторите пароль",
+  "auth.login.forgotLink": "Забыли пароль?",
+  "auth.login.passwordReset": "Пароль изменён. Войдите с новым паролем.",
+  "auth.register.verifySent":
+    "Мы отправили письмо на {email}: откройте ссылку в нём, чтобы подтвердить почту. Работать можно уже сейчас.",
+
+  "auth.forgot.title": "Восстановление пароля",
+  "auth.forgot.subtitle": "Укажите почту аккаунта, и мы пришлём ссылку, чтобы задать новый пароль.",
+  "auth.forgot.submit": "Отправить ссылку",
+  "auth.forgot.submitting": "Отправляем…",
+  "auth.forgot.sent": "Если такой адрес есть, мы отправили письмо на {email}. Ссылка в нём действует 1 час.",
+  "auth.forgot.failed": "Не удалось отправить письмо.",
+  "auth.forgot.backToLogin": "Вернуться ко входу",
+
+  "auth.reset.title": "Новый пароль",
+  "auth.reset.subtitle": "Придумайте новый пароль. После сохранения сеансы на всех устройствах завершатся.",
+  "auth.reset.submit": "Сохранить пароль",
+  "auth.reset.submitting": "Сохраняем…",
+  "auth.reset.failed": "Не удалось сменить пароль.",
+  "auth.reset.invalidLink": "Ссылка недействительна или устарела: она работает 1 час и только один раз.",
+  "auth.reset.requestNew": "Запросить новую ссылку",
+
+  "auth.verify.title": "Подтверждение почты",
+  "auth.verify.subtitle": "Ссылка из письма подтверждает адрес вашего аккаунта.",
+  "auth.verify.pending": "Проверяем ссылку…",
+  "auth.verify.success": "Почта подтверждена. Спасибо!",
+  "auth.verify.alreadyVerified": "Почта уже подтверждена.",
+  "auth.verify.invalidLink": "Ссылка недействительна или устарела. Отправьте письмо ещё раз.",
+  "auth.verify.failed": "Не удалось подтвердить почту.",
+  "auth.verify.loginToResend": "Войдите в аккаунт, чтобы отправить письмо ещё раз.",
+  "auth.verify.toProjects": "К проектам",
+  "auth.verify.toLogin": "Войти",
 } as const satisfies DomainMessages<"auth">;

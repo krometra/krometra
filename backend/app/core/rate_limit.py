@@ -38,6 +38,42 @@ REGISTER_BY_IP = Limit(
 REFRESH_BY_IP = Limit(
     "rl:refresh:ip", settings.REFRESH_IP_LIMIT, settings.REFRESH_IP_WINDOW_SECONDS, "Слишком много запросов обновления сессии"
 )
+VERIFY_EMAIL_BY_IP = Limit(
+    "rl:verify:ip",
+    settings.VERIFY_EMAIL_IP_LIMIT,
+    settings.VERIFY_EMAIL_IP_WINDOW_SECONDS,
+    "Слишком много попыток подтвердить почту",
+)
+VERIFY_RESEND_BY_USER = Limit(
+    "rl:verify:resend",
+    settings.VERIFY_RESEND_LIMIT,
+    settings.VERIFY_RESEND_WINDOW_SECONDS,
+    "Письмо уже отправлено несколько раз",
+)
+FORGOT_PASSWORD_BY_IP = Limit(
+    "rl:forgot:ip",
+    settings.FORGOT_PASSWORD_IP_LIMIT,
+    settings.FORGOT_PASSWORD_IP_WINDOW_SECONDS,
+    "Слишком много запросов восстановления пароля",
+)
+FORGOT_PASSWORD_BY_EMAIL = Limit(
+    "rl:forgot:email",
+    settings.FORGOT_PASSWORD_EMAIL_LIMIT,
+    settings.FORGOT_PASSWORD_EMAIL_WINDOW_SECONDS,
+    "Слишком много запросов восстановления пароля для этой почты",
+)
+RESET_PASSWORD_BY_IP = Limit(
+    "rl:reset:ip",
+    settings.RESET_PASSWORD_IP_LIMIT,
+    settings.RESET_PASSWORD_IP_WINDOW_SECONDS,
+    "Слишком много попыток сменить пароль по ссылке",
+)
+PASSWORD_CHANGE_FAILURES_BY_USER = Limit(
+    "rl:password:change",
+    settings.PASSWORD_CHANGE_FAILURE_LIMIT,
+    settings.PASSWORD_CHANGE_FAILURE_WINDOW_SECONDS,
+    "Слишком много попыток с неверным текущим паролем",
+)
 
 _HIT_SCRIPT = """
 local count = redis.call('INCR', KEYS[1])

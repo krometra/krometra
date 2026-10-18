@@ -23,3 +23,8 @@ export function validatePassword(value: string): MessageDescriptor | null {
   }
   return null;
 }
+
+export function validatePasswordConfirmation(password: string, confirmation: string): MessageDescriptor | null {
+  if (!confirmation) return msg("validation.password.confirmRequired");
+  return confirmation === password ? null : msg("validation.password.mismatch");
+}

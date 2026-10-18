@@ -3,6 +3,7 @@ import operator
 
 from sqlalchemy.sql import operators
 from sqlalchemy.sql.elements import BinaryExpression, BindParameter, BooleanClauseList, False_, True_, UnaryExpression
+from sqlalchemy.sql.functions import Function
 
 from app.core import rate_limit, security
 from app.models import Base
@@ -20,13 +21,19 @@ def _literal(element):
     raise NotImplementedError(f"FakeDb: unsupported operand {element!r}")
 
 
+def _value(row, element):
+    if isinstance(element, Function) and element.name == "lower":
+        return _value(row, next(iter(element.clauses))).lower()
+    return getattr(row, element.key)
+
+
 def _matches(row, clause) -> bool:
     if clause is None:
         return True
     if isinstance(clause, BooleanClauseList) and clause.operator is operators.and_:
         return all(_matches(row, part) for part in clause.clauses)
     if isinstance(clause, BinaryExpression) and clause.operator in _COMPARATORS:
-        return _COMPARATORS[clause.operator](getattr(row, clause.left.key), _literal(clause.right))
+        return _COMPARATORS[clause.operator](_value(row, clause.left), _literal(clause.right))
     raise NotImplementedError(f"FakeDb: unsupported clause {clause}")
 
 
@@ -104,12 +111,17 @@ class FakeDb:
 class FakeRedis:
     def __init__(self):
         self.data: dict[str, str] = {}
+        self.expiry: dict[str, int | None] = {}
 
     async def get(self, key):
         return self.data.get(key)
 
     async def set(self, key, value, ex=None):
         self.data[key] = value
+        self.expiry[key] = ex
+
+    async def getdel(self, key):
+        return self.data.pop(key, None)
 
     async def delete(self, key):
         self.data.pop(key, None)

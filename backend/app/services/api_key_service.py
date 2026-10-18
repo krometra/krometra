@@ -7,6 +7,7 @@ from app.config import get_settings
 from app.core.security import api_key_display_prefix, generate_api_key, hash_api_key, invalidate_family
 from app.models.api_key import ApiKey
 from app.models.refresh_token import RefreshToken
+from app.models.user import User
 
 settings = get_settings()
 
@@ -29,12 +30,18 @@ async def list_api_keys(db: AsyncSession, user_id: str) -> list[ApiKey]:
     return list(result.scalars().all())
 
 
-async def create_api_key(db: AsyncSession, user_id: str, name: str) -> tuple[ApiKey, str]:
+async def create_api_key(db: AsyncSession, user: User, name: str) -> tuple[ApiKey, str]:
+    if not user.email_verified:
+        raise _fail(
+            status.HTTP_403_FORBIDDEN,
+            "email_not_verified",
+            "Подтвердите почту, чтобы создавать ключи доступа.",
+        )
     limit = settings.MAX_API_KEYS_PER_USER
-    if len(await list_api_keys(db, user_id)) >= limit:
+    if len(await list_api_keys(db, user.id)) >= limit:
         raise _fail(status.HTTP_409_CONFLICT, "api_key_limit", f"No more than {limit} API keys per user.")
     raw_key = generate_api_key()
-    api_key = ApiKey(user_id=user_id, name=name, prefix=api_key_display_prefix(raw_key), key_hash=hash_api_key(raw_key))
+    api_key = ApiKey(user_id=user.id, name=name, prefix=api_key_display_prefix(raw_key), key_hash=hash_api_key(raw_key))
     db.add(api_key)
     await db.commit()
     await db.refresh(api_key)

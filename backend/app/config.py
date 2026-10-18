@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
@@ -43,6 +45,30 @@ class Settings(BaseSettings):
     REGISTER_IP_WINDOW_SECONDS: int = 3600
     REFRESH_IP_LIMIT: int = 300
     REFRESH_IP_WINDOW_SECONDS: int = 60
+    VERIFY_EMAIL_IP_LIMIT: int = 30
+    VERIFY_EMAIL_IP_WINDOW_SECONDS: int = 3600
+    VERIFY_RESEND_LIMIT: int = 3
+    VERIFY_RESEND_WINDOW_SECONDS: int = 3600
+    FORGOT_PASSWORD_IP_LIMIT: int = 10
+    FORGOT_PASSWORD_IP_WINDOW_SECONDS: int = 3600
+    FORGOT_PASSWORD_EMAIL_LIMIT: int = 3
+    FORGOT_PASSWORD_EMAIL_WINDOW_SECONDS: int = 3600
+    RESET_PASSWORD_IP_LIMIT: int = 20
+    RESET_PASSWORD_IP_WINDOW_SECONDS: int = 3600
+    PASSWORD_CHANGE_FAILURE_LIMIT: int = 5
+    PASSWORD_CHANGE_FAILURE_WINDOW_SECONDS: int = 900
+
+    # Email
+    PUBLIC_URL: str = "http://localhost"
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 465
+    SMTP_SECURITY: Literal["ssl", "starttls", "none"] = "ssl"
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "Крометра <noreply@krometra.ru>"
+    SMTP_TIMEOUT_SECONDS: int = 20
+    EMAIL_VERIFICATION_TTL_SECONDS: int = 24 * 3600
+    PASSWORD_RESET_TTL_SECONDS: int = 3600
 
     # Quotas
     MAX_PROJECTS_PER_USER: int = 200

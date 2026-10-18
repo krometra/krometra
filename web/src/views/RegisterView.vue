@@ -6,6 +6,7 @@ import { useI18n } from "@/composables/shared/useI18n";
 import { useFormErrors } from "@/composables/forms/useFormErrors";
 import { MIN_PASSWORD_LENGTH, validateEmail, validatePassword } from "@/lib/formValidation";
 import { msg } from "@/lib/i18n/catalog";
+import { toast } from "@/composables/useToast";
 import AuthLayout from "@/components/auth/AuthLayout.vue";
 import KrInput from "@/components/ui/KrInput.vue";
 import KrButton from "@/components/ui/KrButton.vue";
@@ -37,6 +38,7 @@ async function handleRegister() {
   try {
     await auth.register(email.value, password.value, displayName.value || undefined);
     await auth.login(email.value, password.value);
+    toast(t("auth.register.verifySent", { email: email.value.trim() }), "success");
     router.push("/");
   } catch (e: unknown) {
     capture(e);

@@ -8,7 +8,7 @@
 
 Browser-first: точное B-rep ядро OpenCASCADE, собранное в WebAssembly (`replicad-opencascadejs`), работает в Web Worker (`web/src/workers/browser-geometry.worker.ts`, операции — в `web/src/workers/geometry/`). Worker строит тела, отдаёт тесселяцию во вьюпорт и STEP для хранения. Backend — только авторизация, проекты, документ и файловое хранилище (STEP, меш, превью); геометрию он не строит и не разбирает. Серверного ядра и серверного fallback нет; проекты, построенные старым серверным ядром, редактор не открывает.
 
-Реализованы: монорепо, аутентификация (OAuth2 password flow, rate limiting), CRUD проектов с изоляцией по пользователю, браузерное B-rep ядро OCCT/WASM (выдавливание с приклеиванием/вырезом на расстояние, насквозь, до грани/тела, в обе стороны; вращение; булевы; скругление и фаска; резьба; экспорт STEP/STL; стабильные имена граней/рёбер), скетчер с ограничениями, timeline операций, превью проектов снимком вьюпорта. Актуальный план — `.docs/ROADMAP.md`, продуктовый scope — `.docs/gdd.md`.
+Реализованы: монорепо, аутентификация (OAuth2 password flow, rate limiting), почтовые сценарии аккаунта (мягкое подтверждение почты: без него нельзя создать ключ MCP; восстановление пароля по ссылке; смена пароля в аккаунте), CRUD проектов с изоляцией по пользователю, браузерное B-rep ядро OCCT/WASM (выдавливание с приклеиванием/вырезом на расстояние, насквозь, до грани/тела, в обе стороны; вращение; булевы; скругление и фаска; резьба; экспорт STEP/STL; стабильные имена граней/рёбер), скетчер с ограничениями, timeline операций, превью проектов снимком вьюпорта. Актуальный план — `.docs/ROADMAP.md`, продуктовый scope — `.docs/gdd.md`.
 
 **`.docs/gdd.md`** — главный источник истины по продукту, архитектуре, scope MVP и плану развития. Читай его перед любыми крупными изменениями.
 
@@ -20,10 +20,11 @@ Browser-first: точное B-rep ядро OpenCASCADE, собранное в We
 backend/         FastAPI, SQLAlchemy (async), Alembic
   app/
     api/routes/  auth.py, projects.py (+ превью), documents.py, sketches.py, geometry.py (browser-*), admin.py (аналитика и роли)
-    core/        database.py, security.py (OAuth2/JWT/bcrypt), rate_limit.py, storage.py (MinIO)
+    core/        database.py, security.py (OAuth2/JWT/bcrypt), rate_limit.py, storage.py (MinIO),
+                 mailer.py (SMTP, фоновая отправка), email_tokens.py (одноразовые токены писем в Redis)
     models/      SQLAlchemy-модели (user, project, document, refresh_token, oauth_account)
     schemas/     Pydantic-схемы
-    services/    бизнес-логика (auth, project, document, thumbnail);
+    services/    бизнес-логика (auth, account: письма и пароль, project, document, thumbnail);
                  geometry_ops/ — приём результатов браузерного ядра: контракт меша, STEP, target_resolution
   alembic/       миграции БД
 web/
@@ -84,6 +85,8 @@ npm run test:mcp      # тесты локального и удалённого 
 # Backend (из backend/): pytest; SQL-агрегаты админки идут на Postgres при TEST_DATABASE_URL, без него пропускаются
 python -m app.cli admin grant|revoke <email>   # роль администратора (/admin); или ADMIN_EMAILS в .env
 ```
+
+Письма (подтверждение почты, восстановление и смена пароля) уходят через SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`ssl` на 465 или `starttls` на 587), `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`; ссылки строятся от `PUBLIC_URL`. Пустой `SMTP_HOST` - письмо только пишется в лог. В dev-compose письма ловит Mailpit: http://localhost:8025 (e2e - `web/e2e/email-flows.spec.ts`, адрес Mailpit в `E2E_MAILPIT_URL`). В прод `.env` SMTP-переменные надо прописать руками.
 
 Health-check: `GET /api/health`. Vite проксирует `/api` → `http://localhost:8000` и `/mcp` (с WebSocket) → `http://localhost:8787`.
 
