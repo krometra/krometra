@@ -9,6 +9,7 @@ from app.api.routes import admin as admin_routes
 from app.api.routes import auth as auth_routes
 from app.config import get_settings
 from app.core.security import create_access_token
+from app.models.base import utcnow
 from app.models.user import User
 from app.services import admin_analytics, auth_service
 from app.services.admin_roles import is_listed_admin, promote_listed_admin
@@ -181,7 +182,8 @@ class TestAdminEmails:
         assert alice.is_admin
 
     async def test_api_key_grant_promotes_listed_email(self, client, db, alice, admin_emails):
-        _, raw_key = await create_api_key(db, alice.id, "Claude Code")
+        alice.email_verified_at = utcnow()
+        _, raw_key = await create_api_key(db, alice, "Claude Code")
         admin_emails("alice@example.com")
         response = await client.post("/api/auth/token", data={"grant_type": "api_key", "api_key": raw_key})
         assert response.status_code == 200

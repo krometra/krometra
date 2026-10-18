@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { validateEmail, validatePassword, validatePasswordEntered } from "./formValidation";
+import {
+  validateEmail,
+  validatePassword,
+  validatePasswordConfirmation,
+  validatePasswordEntered,
+} from "./formValidation";
 import { SOURCE_CATALOG, type MessageDescriptor } from "./i18n/catalog";
 import { translate } from "./i18n/translate";
 
@@ -39,5 +44,19 @@ describe("validatePassword", () => {
 
   it("принимает пароль минимальной длины", () => {
     expect(validatePassword("12345678")).toBeNull();
+  });
+});
+
+describe("validatePasswordConfirmation", () => {
+  it("требует повтор пароля", () => {
+    expect(inRussian(validatePasswordConfirmation("secret-123", ""))).toBe("Повторите пароль.");
+  });
+
+  it("ловит несовпадение", () => {
+    expect(inRussian(validatePasswordConfirmation("secret-123", "secret-124"))).toBe("Пароли не совпадают.");
+  });
+
+  it("принимает совпадающий повтор", () => {
+    expect(validatePasswordConfirmation("secret-123", "secret-123")).toBeNull();
   });
 });

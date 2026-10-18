@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, String, false, func
@@ -17,6 +18,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     avatar_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    email_verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), default=utcnow)
     updated_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=utcnow, default=utcnow
@@ -27,3 +29,7 @@ class User(Base):
     projects: Mapped[list["Project"]] = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     api_keys: Mapped[list["ApiKey"]] = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
+
+    @property
+    def email_verified(self) -> bool:
+        return self.email_verified_at is not None

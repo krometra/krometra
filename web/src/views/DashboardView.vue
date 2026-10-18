@@ -10,6 +10,7 @@ import KrInput from "@/components/ui/KrInput.vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import ProjectThumbnail from "@/components/projects/ProjectThumbnail.vue";
+import EmailVerifyBanner from "@/components/account/EmailVerifyBanner.vue";
 import type { IconName } from "@/components/ui/icons";
 import { pluralize } from "@/lib/plural";
 import type { Project } from "@/types/api";
@@ -183,6 +184,7 @@ function formatDate(dateStr: string) {
           <input v-model="search" :class="$style.searchInput" placeholder="Поиск по проектам…" aria-label="Поиск по проектам" />
         </div>
       </header>
+      <EmailVerifyBanner />
 
       <div :class="$style.content">
         <div v-if="projectsStore.isLoading.value" :class="$style.muted">Загрузка проектов…</div>

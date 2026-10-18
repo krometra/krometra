@@ -18,6 +18,7 @@ export const ICONS = {
   user: [{ d: "M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M4.5 20a7.5 7.5 0 0 1 15 0" }],
   shield: [{ d: "M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z M9 12l2 2 4-4" }],
   copy: [{ d: "M9 9h11v11H9z M5 15H4V4h11v1" }],
+  mail: [{ d: "M3 6h18v12H3z M3 7l9 6 9-6" }],
   arrowLeft: [{ d: "M19 12H5 M11 6l-6 6 6 6" }],
   keyboard: [
     { d: "M3 6h18v12H3z" },

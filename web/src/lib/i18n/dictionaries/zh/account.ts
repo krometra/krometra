@@ -70,4 +70,25 @@ export const account: Translation<typeof source> = {
     "将 {product} MCP 服务器（浏览器 3D CAD）连接到 Claude Code，并检查它是否正常工作。服务器运行在网站上，无需安装。\n\n1. 为用户的所有项目连接服务器：\n\n```bash\n{connect}\n```\n\n{keyNote}\n\n2. 检查连接：输出中应有状态为 Connected 的 krometra 服务器。\n\n```bash\n{verify}\n```\n\n3. 重启 Claude Code 或执行 /mcp，然后调用 cad_list_projects 工具。\n\n如何使用编辑器：cad_open_project——命令在用户打开的编辑器标签页中执行，因此如果工具提出要求，请把项目链接发给用户。然后 cad_capabilities（关于操作的唯一可信来源），cad_state 和 cad_snapshot 读取模型，cad_request 执行操作。尺寸单位为毫米。详情：{readme}",
   "account.agent.keyPlaceholder": "将 krm_... 替换为“账户”页面（{origin}/account）上的访问密钥：向用户索取。",
   "account.agent.keyFilled": "命令中已填入访问密钥和网站地址。",
+
+  "account.email.title": "邮箱",
+  "account.email.verified": "{email} 已确认。",
+  "account.email.unverified": "{email} 尚未确认：注册时我们已向该地址发送了带链接的邮件。",
+  "account.email.resend": "重新发送邮件",
+  "account.email.resendIn": "{seconds} 秒后可重新发送",
+  "account.email.sent": "邮件已发送，请查收，也请检查垃圾邮件文件夹。",
+  "account.email.resendFailed": "邮件发送失败。",
+  "account.email.banner": "请确认邮箱 {email}。",
+  "account.email.bannerQuestion": "没有收到邮件？",
+
+  "account.password.title": "密码",
+  "account.password.intro": "修改密码后，其他设备上的会话将结束，当前会话保留。",
+  "account.password.current": "当前密码",
+  "account.password.submit": "修改密码",
+  "account.password.failed": "修改密码失败。",
+  "account.password.changed": "密码已修改，其他会话已结束。",
+  "account.password.forgot": "忘记当前密码？",
+  "account.password.forgotLink": "通过邮箱找回",
+
+  "account.keys.needsVerifiedEmail": "确认邮箱后才能创建访问密钥：打开邮件中的链接，或在“邮箱”部分重新发送邮件。",
 };

@@ -25,10 +25,17 @@ services:
       - "127.0.0.1:${APP_PORT:-8000}:8000"
     env_file:
       - .env
+    environment:
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURITY: none
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
     depends_on:
       - postgres
       - redis
       - minio
+      - mailpit
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -64,6 +71,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    container_name: cad-studio-mailpit
+    ports:
+      - "127.0.0.1:${MAILPIT_WEB_PORT:-8025}:8025"
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine

@@ -9,4 +9,6 @@ export const validation: Translation<typeof source> = {
     one: "The password must be at least {count} character long.",
     other: "The password must be at least {count} characters long.",
   },
+  "validation.password.confirmRequired": "Repeat the password.",
+  "validation.password.mismatch": "The passwords do not match.",
 };

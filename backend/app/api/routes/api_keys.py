@@ -30,7 +30,7 @@ async def create_new_api_key(
     db: AsyncSession = Depends(get_db),
 ):
     try:
-        api_key, raw_key = await create_api_key(db, current_user.id, data.name)
+        api_key, raw_key = await create_api_key(db, current_user, data.name)
     except ApiKeyError as e:
         raise _http_error(e)
     return ApiKeyCreated(**ApiKeyResponse.model_validate(api_key).model_dump(), key=raw_key)

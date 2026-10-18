@@ -48,7 +48,7 @@ class AuthSession:
     api_key_id: str | None
 
 
-async def _find_user_by_email(db: AsyncSession, email: str) -> User | None:
+async def find_user_by_email(db: AsyncSession, email: str) -> User | None:
     result = await db.execute(
         select(User).where(func.lower(User.email) == normalize_email(email)).order_by(User.created_at).limit(1)
     )
@@ -56,7 +56,7 @@ async def _find_user_by_email(db: AsyncSession, email: str) -> User | None:
 
 
 async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
-    if await _find_user_by_email(db, data.email):
+    if await find_user_by_email(db, data.email):
         raise AuthError("email_taken", "A user with this email already exists.")
 
     user = User(
@@ -71,7 +71,7 @@ async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
 
 
 async def _check_credentials(db: AsyncSession, email: str, password: str) -> User | None:
-    user = await _find_user_by_email(db, email)
+    user = await find_user_by_email(db, email)
     if not user or not user.password_hash:
         await burn_password_check(password)
         return None
@@ -120,7 +120,7 @@ async def authenticate_api_key_grant(
     await rate_limit.ensure_available(redis, rate_limit.LOGIN_FAILURES_BY_IP, client_ip)
 
     api_key = await find_api_key(db, raw_key)
-    user = await _find_user_by_id(db, api_key.user_id) if api_key else None
+    user = await find_user_by_id(db, api_key.user_id) if api_key else None
     if not api_key or not user:
         await rate_limit.consume(redis, rate_limit.LOGIN_FAILURES_BY_IP, client_ip)
         raise AuthError("invalid_grant", "Invalid API key.")
@@ -152,7 +152,7 @@ async def _start_refresh_family(db: AsyncSession, redis: Redis, user_id: str, *,
     return refresh_token_raw
 
 
-async def _find_user_by_id(db: AsyncSession, user_id: str) -> User | None:
+async def find_user_by_id(db: AsyncSession, user_id: str) -> User | None:
     result = await db.execute(select(User).where(User.id == user_id))
     return result.scalar_one_or_none()
 
@@ -214,7 +214,7 @@ async def refresh_access_token(
     # Revoke old token
     db_token.revoked = True
 
-    user = await _find_user_by_id(db, db_token.user_id)
+    user = await find_user_by_id(db, db_token.user_id)
     if not user:
         raise AuthError("invalid_grant", "User not found.")
     promote_listed_admin(user)
@@ -260,8 +260,7 @@ async def revoke_refresh_token(db: AsyncSession, redis: Redis, refresh_token_raw
         await db.commit()
 
 
-async def revoke_all_user_tokens(db: AsyncSession, redis: Redis, user_id: str) -> None:
-    """Revoke all refresh tokens for a user (logout from all devices)."""
+async def _revoke_user_families(db: AsyncSession, redis: Redis, user_id: str, keep_family_id: str | None) -> None:
     result = await db.execute(
         select(RefreshToken).where(
             RefreshToken.user_id == user_id,
@@ -269,9 +268,36 @@ async def revoke_all_user_tokens(db: AsyncSession, redis: Redis, user_id: str) -
         )
     )
     for token in result.scalars():
+        if token.family_id == keep_family_id:
+            continue
         await invalidate_family(redis, token.family_id)
         token.revoked = True
     await db.commit()
+
+
+async def revoke_all_user_tokens(db: AsyncSession, redis: Redis, user_id: str) -> None:
+    """Revoke all refresh tokens for a user (logout from all devices)."""
+    await _revoke_user_families(db, redis, user_id, keep_family_id=None)
+
+
+async def _active_family_of(db: AsyncSession, user_id: str, refresh_token_raw: str | None) -> str | None:
+    if not refresh_token_raw:
+        return None
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.token_hash == hash_refresh_token(refresh_token_raw),
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked == False,  # noqa: E712
+        )
+    )
+    token = result.scalar_one_or_none()
+    return token.family_id if token else None
+
+
+async def revoke_other_user_tokens(db: AsyncSession, redis: Redis, user_id: str, current_refresh_raw: str | None) -> None:
+    """Revoke every refresh family of the user except the one the current cookie belongs to."""
+    keep_family_id = await _active_family_of(db, user_id, current_refresh_raw)
+    await _revoke_user_families(db, redis, user_id, keep_family_id=keep_family_id)
 
 
 async def get_current_session(db: AsyncSession, token: str) -> AuthSession:
@@ -286,7 +312,7 @@ async def get_current_session(db: AsyncSession, token: str) -> AuthSession:
     user_id = payload.get("sub")
     if not user_id:
         raise AuthError("invalid_token", "Invalid token payload.")
-    user = await _find_user_by_id(db, user_id)
+    user = await find_user_by_id(db, user_id)
     if not user:
         raise AuthError("invalid_token", "User not found.")
     api_key_id = payload.get(API_KEY_CLAIM)

@@ -8,4 +8,6 @@ export const validation: Translation<typeof source> = {
   "validation.password.tooShort": {
     other: "密码长度不能少于 {count} 个字符。",
   },
+  "validation.password.confirmRequired": "请再次输入密码。",
+  "validation.password.mismatch": "两次输入的密码不一致。",
 };

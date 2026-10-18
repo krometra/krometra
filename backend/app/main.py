@@ -14,6 +14,7 @@ from app.api.routes import browser_hole
 from app.api.routes import browser_draft
 from app.api.routes import browser_press_pull
 from app.api.routes import admin
+from app.api.routes import account
 from app.config import get_settings
 
 settings = get_settings()
@@ -45,6 +46,7 @@ app.add_middleware(
 
 # Routes
 app.include_router(auth.router, prefix="/api")
+app.include_router(account.router, prefix="/api")
 app.include_router(api_keys.router, prefix="/api")
 app.include_router(projects.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")

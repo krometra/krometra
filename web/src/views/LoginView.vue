@@ -21,6 +21,7 @@ const { fields: fieldErrors, summary: errorMsg, validate, clearField, capture } 
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
+const passwordReset = route.query.reset === "1";
 
 async function handleLogin() {
   const valid = validate({
@@ -54,6 +55,10 @@ async function handleLogin() {
       <span :class="$style.line" />{{ t("auth.login.emailDivider") }}<span :class="$style.line" />
     </div>
 
+    <p v-if="passwordReset" :class="$style.notice" role="status" data-testid="password-reset-notice">
+      {{ t("auth.login.passwordReset") }}
+    </p>
+
     <form :class="$style.form" novalidate @submit.prevent="handleLogin">
       <KrInput
         v-model="email"
@@ -73,6 +78,9 @@ async function handleLogin() {
         :error="fieldErrors['password']"
         @update:model-value="clearField('password')"
       />
+      <router-link to="/forgot-password" :class="$style.forgot" data-testid="forgot-password-link">
+        {{ t("auth.login.forgotLink") }}
+      </router-link>
       <div v-if="errorMsg" :class="$style.error" role="alert">{{ errorMsg }}</div>
       <KrButton :class="$style.submit" type="submit" size="lg" :loading="loading">
         {{ loading ? t("auth.login.submitting") : t("auth.login.submit") }}
@@ -141,6 +149,21 @@ async function handleLogin() {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.forgot {
+  align-self: flex-end;
+  margin-top: -6px;
+  font-size: 13px;
+}
+
+.notice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--kr-green-border);
+  border-radius: var(--kr-radius-md);
+  color: var(--kr-green-strong);
+  font-size: 13px;
 }
 
 .submit {

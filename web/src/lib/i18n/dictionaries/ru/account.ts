@@ -79,4 +79,26 @@ export const account = {
     "Подключи к Claude Code MCP-сервер «{product}» (браузерная 3D CAD) и проверь, что он работает. Сервер работает на сайте, устанавливать ничего не нужно.\n\n1. Подключи сервер для всех проектов пользователя:\n\n```bash\n{connect}\n```\n\n{keyNote}\n\n2. Проверь подключение: в выводе команды должен быть сервер krometra со статусом Connected.\n\n```bash\n{verify}\n```\n\n3. Перезапусти Claude Code или выполни /mcp, затем вызови инструмент cad_list_projects.\n\nКак работать с редактором: cad_open_project — команды выполняются в открытой у пользователя вкладке редактора, поэтому, если инструмент попросит, передай пользователю ссылку на проект. Затем cad_capabilities (единственный источник правды об операциях), cad_state и cad_snapshot для чтения модели, cad_request для операций. Размеры в миллиметрах. Подробности: {readme}",
   "account.agent.keyPlaceholder": "Вместо krm_... подставь ключ доступа со страницы «Аккаунт» ({origin}/account): попроси его у пользователя.",
   "account.agent.keyFilled": "Ключ доступа и адрес сайта в команде уже подставлены.",
+
+  "account.email.title": "Почта",
+  "account.email.verified": "Адрес {email} подтверждён.",
+  "account.email.unverified": "Адрес {email} не подтверждён: при регистрации мы отправили на него письмо со ссылкой.",
+  "account.email.resend": "Отправить письмо ещё раз",
+  "account.email.resendIn": "Отправить ещё раз через {seconds} с",
+  "account.email.sent": "Письмо отправлено. Проверьте почту, в том числе папку «Спам».",
+  "account.email.resendFailed": "Не удалось отправить письмо.",
+  "account.email.banner": "Подтвердите почту {email}.",
+  "account.email.bannerQuestion": "Письмо не пришло?",
+
+  "account.password.title": "Пароль",
+  "account.password.intro": "После смены пароля сеансы на других устройствах завершатся, этот останется.",
+  "account.password.current": "Текущий пароль",
+  "account.password.submit": "Сменить пароль",
+  "account.password.failed": "Не удалось сменить пароль.",
+  "account.password.changed": "Пароль изменён. Остальные сеансы завершены.",
+  "account.password.forgot": "Не помните текущий пароль?",
+  "account.password.forgotLink": "Восстановить по почте",
+
+  "account.keys.needsVerifiedEmail":
+    "Ключи доступа можно создавать после подтверждения почты: откройте ссылку из письма или отправьте его ещё раз в разделе «Почта».",
 } as const satisfies DomainMessages<"account">;
