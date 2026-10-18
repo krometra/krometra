@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 import { hexagon } from "./helpers/hexagon";
 
 /**
@@ -35,7 +35,7 @@ async function openNamedProject(page: Page, name: string): Promise<CadEditor> {
   });
   expect(renamed.ok(), "переименование проекта").toBeTruthy();
   await page.reload();
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await cad.install();
   return cad;
 }

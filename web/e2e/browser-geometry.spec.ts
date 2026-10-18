@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 
 test.use({
   storageState: { cookies: [], origins: [] },
@@ -98,7 +98,7 @@ test("браузерное ядро: отверстие, вырез, прикл�
 
   await test.step("после перезагрузки тела восстанавливаются в worker", async () => {
     await page.reload();
-    await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+    await expectEditorOpen(page);
     await page.waitForTimeout(4000);
     await cad.install();
 

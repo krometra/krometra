@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 
 test.use({
   storageState: { cookies: [], origins: [] },
@@ -47,7 +47,7 @@ test("глаз эскиза в дереве прячет контур, сост�
   await expect.poll(() => storedVisibility(cad, sketch.id), { message: "видимость сохранена" }).toBe(false);
 
   await page.reload();
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await cad.install();
   await expect(page.getByTestId("sketch-visibility")).toHaveText("скрыто");
   await expect.poll(() => outlineIds(cad), { message: "после перезагрузки эскиз всё ещё скрыт" }).toEqual([]);

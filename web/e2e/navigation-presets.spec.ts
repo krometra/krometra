@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 import { rect, type Feature } from "./helpers/control";
 
 test.use({
@@ -133,7 +133,7 @@ test("пресеты навигации: кнопки мыши, зум к кур
   expectUntouched(move.before, move.after, "SolidWorks, ЛКМ только выбирает");
 
   await page.reload();
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await cad.install();
   expect((await setNavigation(cad, {})).preset, "выбор пресета переживает перезагрузку").toBe("solidworks");
 

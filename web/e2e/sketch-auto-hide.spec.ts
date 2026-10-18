@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 
 test.use({
   storageState: { cookies: [], origins: [] },
@@ -61,7 +61,7 @@ test("эскиз прячется после выдавливания, Ctrl+Z и
   await expect.poll(() => outlineIds(cad), { message: "повтор выдавливания снова прячет эскиз" }).toEqual([]);
 
   await page.reload();
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await cad.install();
   await expect.poll(() => outlineIds(cad), { message: "после перезагрузки использованный эскиз не рисуется" }).toEqual([]);
 
@@ -71,7 +71,7 @@ test("эскиз прячется после выдавливания, Ctrl+Z и
   await expect.poll(() => storedVisibility(cad, sketch.id), { message: "явный выбор сохранён" }).toBe(true);
 
   await page.reload();
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await cad.install();
   await expect.poll(() => outlineIds(cad), { message: "явно показанный эскиз остаётся видимым" }).toEqual([sketch.id]);
 

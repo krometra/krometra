@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 
 test.use({
   storageState: { cookies: [], origins: [] },
@@ -49,7 +49,7 @@ test("импорт STEP: тело с топологией, булева опер
 
   await test.step("импортированное тело переживает перезагрузку и участвует в экспорте", async () => {
     await page.reload();
-    await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+    await expectEditorOpen(page);
     await page.waitForTimeout(4000);
     await cad.install();
 

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expectEditorOpen } from "./helpers/cad";
 
 const email = process.env.E2E_USER_EMAIL || "e2e-agent@example.com";
 const password = process.env.E2E_USER_PASSWORD || "testpass123";
@@ -75,7 +76,7 @@ test("кнопка «Вращать» открывает параметры вр
   page.on("pageerror", (err) => pageErrors.push(String(err)));
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
 
   await page.getByRole("button", { name: "Вращать", exact: true }).first().click();
 
@@ -93,7 +94,7 @@ test("кнопка «Выдавить» открывает параметры в
   const projectId = await openProjectWithSketch(page);
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
 
   await page.getByRole("button", { name: "Выдавить", exact: true }).first().click();
 
@@ -109,7 +110,7 @@ test("вращение строит тело, видимое в сцене бе�
   page.on("pageerror", (err) => pageErrors.push(String(err)));
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await expect(page.getByText("Начните с эскиза")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Вращать", exact: true }).first().click();

@@ -24,6 +24,10 @@ export const E2E_EMAIL = process.env.E2E_USER_EMAIL || "e2e-agent@example.com";
 export const E2E_PASSWORD = process.env.E2E_USER_PASSWORD || "testpass123";
 
 const READY_TIMEOUT_MS = 120_000;
+
+export async function expectEditorOpen(page: Page): Promise<void> {
+  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible({ timeout: READY_TIMEOUT_MS });
+}
 const IDLE_TIMEOUT_MS = 120_000;
 const NOT_READY_RETRY_MS = 60_000;
 const SETTLE_MS = 300;
@@ -121,7 +125,7 @@ export class CadEditor {
     const cad = new CadEditor(page, (await created.json()).id as string);
     cad.token = access_token;
     await page.goto(`/editor/${cad.projectId}`);
-    await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible({ timeout: READY_TIMEOUT_MS });
+    await expectEditorOpen(page);
     await cad.install();
     return cad;
   }

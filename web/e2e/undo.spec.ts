@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { CadEditor, edgesAtZ } from "./helpers/cad";
+import { CadEditor, edgesAtZ, expectEditorOpen } from "./helpers/cad";
 
 const email = process.env.E2E_USER_EMAIL || "e2e-agent@example.com";
 const password = process.env.E2E_USER_PASSWORD || "testpass123";
@@ -71,7 +71,7 @@ test("Ctrl+Z в эскизе отменяет геометрию эскиза, �
   page.on("pageerror", (err) => pageErrors.push(String(err)));
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
 
   // Открыть существующий эскиз из дерева: выбор плоскости идёт кликом по 3D-сцене.
   await page.getByText("Эскизы").click();
@@ -130,7 +130,7 @@ test("Ctrl+Z в модели не помечает документ грязны
   const { projectId, token } = await newProject(page);
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
 
   // В пустом проекте отменять нечего — undo не должен ничего портить.
   await page.keyboard.press("Control+z");
@@ -149,7 +149,7 @@ test("кнопки «Отменить»/«Повторить» есть в ри�
   const { projectId } = await newProject(page);
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
 
   // Обнаруживаемость: раньше отмена была только на Ctrl+Z и нигде не показывалась.
   const ribbonUndo = page.getByTestId("ribbon-undo");

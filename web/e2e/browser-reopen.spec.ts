@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CadEditor } from "./helpers/cad";
+import { CadEditor, expectEditorOpen } from "./helpers/cad";
 
 test.use({
   storageState: { cookies: [], origins: [] },
@@ -57,7 +57,7 @@ test("проект восстанавливает browser B-rep после по�
 
   await page.goto("about:blank");
   await page.goto(`/editor/${cad.projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   await cad.install();
   await expect.poll(() => cad.visibleBodyCount(), {
     message: "меш восстановленного тела виден во вьюпорте",

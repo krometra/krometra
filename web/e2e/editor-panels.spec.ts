@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { expectEditorOpen } from "./helpers/cad";
 
 const email = process.env.E2E_USER_EMAIL || "e2e-agent@example.com";
 const password = process.env.E2E_USER_PASSWORD || "testpass123";
@@ -56,7 +57,7 @@ async function openProjectWithSketch(page: Page): Promise<string> {
   expect(saved.ok()).toBeTruthy();
 
   await page.goto(`/editor/${projectId}`);
-  await expect(page.getByText("БРАУЗЕР МОДЕЛИ")).toBeVisible();
+  await expectEditorOpen(page);
   return projectId;
 }
 
