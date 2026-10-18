@@ -37,9 +37,9 @@ const avatarInitial = computed(() => {
 
 <template>
   <header :class="$style.menuBar">
-    <KrLogo :size="22" :show-text="false" :class="$style.homeBtn" @click="router.push('/')" />
+    <KrLogo :size="22" :show-text="false" :class="$style.homeBtn" @click="router.push('/projects')" />
     <div :class="$style.breadcrumb">
-      <span :class="$style.crumbLink" @click="router.push('/')">Мои проекты</span>
+      <span :class="$style.crumbLink" @click="router.push('/projects')">Мои проекты</span>
       <span :class="$style.crumbSep">/</span>
       <span :class="$style.crumbActive">{{ projectName }}</span>
       <span :class="[$style.versionTag, $style[docStatus]]">v{{ docVersion }} · {{ statusLabel }}</span>

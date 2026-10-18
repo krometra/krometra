@@ -1,3 +1,11 @@
-# Сервис закрытый: в поисковую выдачу попадать не должен.
 User-agent: *
-Disallow: /
+Allow: /$
+Disallow: /projects
+Disallow: /editor/
+Disallow: /account
+Disallow: /admin
+Disallow: /api/
+Disallow: /mcp
+Disallow: /landing.html
+
+Sitemap: https://krometra.ru/sitemap.xml

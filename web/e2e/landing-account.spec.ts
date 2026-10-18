@@ -19,7 +19,7 @@ async function openLanding(browser: Browser, baseURL: string | undefined, user =
     body: JSON.stringify(user),
   }));
   const page = await context.newPage();
-  await page.goto(new URL("/landing", baseURL).toString());
+  await page.goto(new URL("/", baseURL).toString());
   return { context, page };
 }
 
@@ -42,6 +42,22 @@ test("анонимный пользователь видит приглашен�
     await expect(page.getByText("Войти", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Начать бесплатно" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Мои проекты" })).toBeHidden();
+  } finally {
+    await context.close();
+  }
+});
+
+test("лендинг рассказывает про моделирование через MCP и ведёт к ключу", async ({ browser, baseURL }) => {
+  const { context, page } = await openLanding(browser, baseURL);
+
+  try {
+    await page.getByRole("link", { name: "ИИ и MCP" }).click();
+    const section = page.locator("#ai");
+    await expect(section.getByRole("heading", { name: "Опишите деталь словами" })).toBeInViewport();
+    await expect(page.getByTestId("landing-mcp-command")).toContainText(new URL("/mcp", baseURL).toString());
+    await expect(section.getByRole("link", { name: "Инструкция по подключению" })).toHaveAttribute("href", /github\.com\/krometra\/krometra\/.*mcp\/README\.md/);
+    await section.getByRole("button", { name: "Подключить ассистента" }).click();
+    await expect(page).toHaveURL(/\/account$/);
   } finally {
     await context.close();
   }

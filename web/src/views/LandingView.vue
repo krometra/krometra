@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrLogo from "@/components/ui/KrLogo.vue";
+import LandingMcp from "@/components/landing/LandingMcp.vue";
 import editorPreview from "@/assets/landing/editor-preview.webp";
 import { useAuth } from "@/composables/shared/useAuth";
 
@@ -13,11 +14,16 @@ const userName = computed(() => auth.user.value?.display_name || auth.user.value
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
 
 function openWorkspace() {
-  router.push(auth.isAuthenticated.value ? "/" : "/login");
+  router.push(auth.isAuthenticated.value ? "/projects" : "/login");
+}
+
+function startWithAssistant() {
+  router.push(auth.isAuthenticated.value ? "/account" : "/login");
 }
 
 const nav = [
   { label: "Что умеет", target: "features" },
+  { label: "ИИ и MCP", target: "ai" },
   { label: "Как устроено", target: "core" },
 ];
 
@@ -64,7 +70,7 @@ const features = [
 <template>
   <div :class="$style.page">
     <nav :class="$style.nav">
-      <KrLogo @click="router.push('/landing')" :class="$style.clickable" />
+      <KrLogo @click="router.push('/')" :class="$style.clickable" />
       <div :class="$style.navLinks">
         <a
           v-for="link in nav"
@@ -135,6 +141,8 @@ const features = [
         <div :class="$style.featureBody">{{ f.body }}</div>
       </div>
     </section>
+
+    <LandingMcp @start="startWithAssistant" />
 
     <section id="core" :class="$style.core">
       <h2 :class="$style.h2">Как это устроено</h2>

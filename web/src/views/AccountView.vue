@@ -43,7 +43,7 @@ async function confirmDelete() {
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <router-link to="/" :class="$style.back">
+      <router-link to="/projects" :class="$style.back">
         <KrIcon name="arrowLeft" :size="16" />{{ t("account.backToProjects") }}
       </router-link>
     </header>

@@ -14,7 +14,7 @@ const router = useRouter();
         Крометра теперь считает модель в браузере, и такие тела нельзя открыть или изменить.
         Создайте новый проект и постройте деталь заново.
       </p>
-      <KrButton @click="router.push('/')">К проектам</KrButton>
+      <KrButton @click="router.push('/projects')">К проектам</KrButton>
     </div>
   </div>
 </template>

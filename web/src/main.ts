@@ -5,19 +5,9 @@ import "@krometra/ui-kit/style.css";
 import "./styles/sketcher.css";
 import { applyTheme } from "@krometra/ui-kit";
 import { useI18n } from "./composables/shared/useI18n";
+import { APP_THEME } from "./lib/appTheme";
 
-applyTheme({
-  preset: "ocean",
-  scheme: "light",
-  radius: "soft",
-  density: "comfortable",
-  accent: "#006eb8",
-  accentHover: "#005fa7",
-  accentSoft: "#d5ebfe",
-  text: "#1e2731",
-  textMuted: "#636a71",
-  textFaint: "#82878c",
-});
+applyTheme(APP_THEME);
 
 const app = createApp(App);
 app.use(router);

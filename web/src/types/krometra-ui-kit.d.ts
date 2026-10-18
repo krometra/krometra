@@ -8,4 +8,5 @@ declare module "@krometra/ui-kit" {
   export const KSwitch: Component;
   export const KTable: Component;
   export function applyTheme(options: Record<string, string>): void;
+  export function themeToCss(options: Record<string, string>, selector?: string): string;
 }

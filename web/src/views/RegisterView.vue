@@ -37,7 +37,7 @@ async function handleRegister() {
   try {
     await auth.register(email.value, password.value, displayName.value || undefined);
     await auth.login(email.value, password.value);
-    router.push("/");
+    router.push("/projects");
   } catch (e: unknown) {
     capture(e);
   } finally {

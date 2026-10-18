@@ -15,7 +15,7 @@ const router = useRouter();
   <div :class="$style.page">
     <div :class="$style.shell">
       <div :class="$style.header">
-        <KrLogo :class="$style.logo" @click="router.push('/landing')" />
+        <KrLogo :class="$style.logo" @click="router.push('/')" />
         <LocaleSwitcher />
       </div>
 

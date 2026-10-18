@@ -115,7 +115,7 @@ async function confirmDelete() {
 
 async function handleLogout() {
   await auth.logout();
-  router.push("/landing");
+  router.push("/");
 }
 
 function formatDate(dateStr: string) {
@@ -127,7 +127,7 @@ function formatDate(dateStr: string) {
   <div :class="$style.page">
     <!-- sidebar -->
     <aside :class="$style.sidebar">
-      <KrLogo :size="24" :class="$style.brand" @click="router.push('/landing')" />
+      <KrLogo :size="24" :class="$style.brand" @click="router.push('/')" />
       <button :class="$style.newBtn" @click="showCreateDialog = true">
         <KrIcon name="plus" :size="16" />Новый проект
       </button>

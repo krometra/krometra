@@ -32,7 +32,7 @@ async function handleLogin() {
   loading.value = true;
   try {
     await auth.login(email.value, password.value);
-    const redirect = (route.query.redirect as string) || "/";
+    const redirect = (route.query.redirect as string) || "/projects";
     router.push(redirect);
   } catch (e: unknown) {
     capture(e);

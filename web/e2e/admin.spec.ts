@@ -60,7 +60,7 @@ test("обычный пользователь не попадает в /admin и
 
     const regularPage = await context.newPage();
     await regularPage.goto("/admin");
-    await expect(regularPage).toHaveURL(/\/$/);
+    await expect(regularPage).toHaveURL(/\/projects$/);
     await expect(regularPage.getByText("Мои проекты")).toBeVisible();
     await expect(regularPage.getByTestId("admin-link")).toHaveCount(0);
   } finally {
@@ -77,7 +77,7 @@ test("админ видит аналитику, ищет пользовател�
   });
   expect(created.ok()).toBeTruthy();
 
-  await page.goto("/");
+  await page.goto("/projects");
   await page.getByTestId("admin-link").click();
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "Администрирование" })).toBeVisible();
@@ -117,7 +117,7 @@ test("админ видит аналитику, ищет пользовател�
   await page.getByRole("tab", { name: "Проекты" }).click();
   const projects = page.getByTestId("admin-projects");
   await searchIn(page, "admin-projects-search", projectName);
+  await expect(projects.locator("tbody tr")).toHaveCount(1);
   await expect(projects.getByText(projectName)).toBeVisible();
   await expect(projects.getByText(adminEmail)).toBeVisible();
-  await expect(projects.locator("tbody tr")).toHaveCount(1);
 });

@@ -1,14 +1,16 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "@/composables/shared/useAuth";
+import { syncSignedInHint } from "@/lib/signedInHint";
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: "/landing",
+      path: "/",
       name: "landing",
       component: () => import("@/views/LandingView.vue"),
     },
+    { path: "/landing", redirect: "/" },
     {
       path: "/login",
       name: "login",
@@ -22,7 +24,7 @@ const router = createRouter({
       meta: { guest: true },
     },
     {
-      path: "/",
+      path: "/projects",
       name: "dashboard",
       component: () => import("@/views/DashboardView.vue"),
       meta: { requiresAuth: true },
@@ -57,12 +59,10 @@ router.beforeEach(async (to, _from, next) => {
   if (!auth.isAuthenticated.value) {
     await auth.initialize();
   }
+  syncSignedInHint(auth.isAuthenticated.value);
 
   if (to.meta.requiresAuth && !auth.isAuthenticated.value) {
-    // Аноним с корня — это ещё не «зашёл не туда», а первый визит: ему нужен
-    // лендинг с рассказом о продукте, а не форма входа.
-    if (to.name === "dashboard") next({ name: "landing" });
-    else next({ name: "login", query: { redirect: to.fullPath } });
+    next({ name: "login", query: { redirect: to.fullPath } });
   } else if (to.meta.guest && auth.isAuthenticated.value) {
     next({ name: "dashboard" });
   } else if (to.meta.requiresAdmin && !auth.user.value?.is_admin) {

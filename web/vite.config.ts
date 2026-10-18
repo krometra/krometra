@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "path";
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [vue()],
   resolve: {
     alias: [
@@ -30,13 +30,16 @@ export default defineConfig({
   build: {
     // three.js — монолитная библиотека, её чанк ~520 KB и не растёт с нашим кодом
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ["three", "three/examples/jsm/controls/OrbitControls.js"],
+    manifest: !isSsrBuild,
+    rollupOptions: isSsrBuild
+      ? {}
+      : {
+          output: {
+            manualChunks: {
+              three: ["three", "three/examples/jsm/controls/OrbitControls.js"],
+            },
+          },
         },
-      },
-    },
   },
   // Юнит-тесты живут рядом с кодом в src/; e2e (playwright) — в e2e/
   test: {
@@ -46,4 +49,4 @@ export default defineConfig({
       include: ["src/bench/**/*.bench.ts"],
     },
   },
-});
+}));

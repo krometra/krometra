@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run check:size && vue-tsc --noEmit && vite build",
+    "build": "npm run check:size && vue-tsc --noEmit && vite build && npm run prerender",
     "check:size": "eslint src/",
     "preview": "vite preview",
     "lint": "eslint src/ --max-warnings 0",
@@ -21,7 +21,8 @@
     "bench:compare": "vitest bench --run --compare bench-results/baseline.json",
     "mcp": "node mcp/server.mjs",
     "test:mcp": "node --test \"mcp/test/*.test.mjs\"",
-    "e2e:mcp": "playwright test e2e/mcp-maixcam.spec.ts"
+    "e2e:mcp": "playwright test e2e/mcp-maixcam.spec.ts",
+    "prerender": "vite build --ssr src/landing/prerender.ts --outDir dist-ssr --emptyOutDir && node scripts/prerender-landing.mjs"
   },
   "dependencies": {
     "@types/three": "^0.170.0",

@@ -70,6 +70,7 @@ export const useI18n = createSharedComposable(() => {
   }
 
   function syncDocument() {
+    if (typeof document === "undefined") return;
     document.documentElement.lang = LOCALE_HTML_LANG[locale.value];
     document.title = t("common.documentTitle", { product: t("common.productName") });
   }
