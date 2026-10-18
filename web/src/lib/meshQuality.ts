@@ -31,8 +31,12 @@ export const QUALITY_LABELS: Record<QualityPreset, string> = {
   custom: "Своё",
 };
 
+export function roundedQuality(values: CustomQuality): CustomQuality {
+  return { tolerance: Number(values.tolerance.toFixed(4)), angleDeg: Number(values.angleDeg.toFixed(1)) };
+}
+
 export function defaultQuality(): QualityChoice {
-  return { preset: "normal", custom: { ...QUALITY_PRESETS.normal } };
+  return { preset: "normal", custom: roundedQuality(QUALITY_PRESETS.normal) };
 }
 
 const STL_HEADER_BYTES = 84;
@@ -67,7 +71,7 @@ function isPreset(value: unknown): value is QualityPreset {
 function readCustom(value: unknown): CustomQuality {
   const raw = (value ?? {}) as Partial<CustomQuality>;
   const custom = { tolerance: raw.tolerance as number, angleDeg: raw.angleDeg as number };
-  return customQualityError(custom) ? { ...QUALITY_PRESETS.normal } : custom;
+  return customQualityError(custom) ? roundedQuality(QUALITY_PRESETS.normal) : roundedQuality(custom);
 }
 
 export function parseQualityChoice(raw: string | null): QualityChoice {

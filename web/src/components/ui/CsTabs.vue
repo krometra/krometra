@@ -99,6 +99,16 @@ watch(
   transition: color var(--cs-transition-fast), border-color var(--cs-transition-fast);
 }
 
+.trigger:focus {
+  outline: none;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--cs-border-focus);
+  outline-offset: -2px;
+  border-radius: var(--cs-radius-sm);
+}
+
 .trigger:hover {
   color: var(--cs-text);
 }

@@ -109,6 +109,7 @@ watch(
   flex-direction: column;
   gap: var(--cs-spacing-xs);
   width: 100%;
+  min-width: 0;
 }
 
 .label {
@@ -161,6 +162,7 @@ watch(
   text-align: center;
   outline: none;
   padding: var(--cs-spacing-xs) 0;
+  width: 0;
   min-width: 0;
 }
 

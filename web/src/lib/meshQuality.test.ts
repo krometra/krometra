@@ -45,8 +45,14 @@ describe("meshQuality", () => {
     expect(parseQualityChoice(JSON.stringify({ preset: "ultra" }))).toEqual(defaultQuality());
     expect(parseQualityChoice(JSON.stringify({ preset: "draft", custom: { tolerance: -1, angleDeg: 5 } }))).toEqual({
       preset: "draft",
-      custom: QUALITY_PRESETS.normal,
+      custom: { tolerance: 0.01, angleDeg: 28.6 },
     });
+  });
+
+  it("округляет своё качество для поля ввода", () => {
+    expect(defaultQuality().custom).toEqual({ tolerance: 0.01, angleDeg: 28.6 });
+    const stored = JSON.stringify({ preset: "custom", custom: { tolerance: 0.012345, angleDeg: 28.64788975 } });
+    expect(parseQualityChoice(stored).custom).toEqual({ tolerance: 0.0123, angleDeg: 28.6 });
   });
 
   it("собирает явный допуск поверх пресета", () => {

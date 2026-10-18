@@ -90,7 +90,8 @@ function onOpenChange(open: boolean) {
 }
 
 .custom {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--cs-spacing-sm);
 }
 
