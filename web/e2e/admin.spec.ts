@@ -118,6 +118,6 @@ test("админ видит аналитику, ищет пользовател�
   const projects = page.getByTestId("admin-projects");
   await searchIn(page, "admin-projects-search", projectName);
   await expect(projects.locator("tbody tr")).toHaveCount(1);
-  await expect(projects.getByText(projectName)).toBeVisible();
-  await expect(projects.getByText(adminEmail)).toBeVisible();
+  await expect(projects.locator("tbody tr")).toContainText([projectName]);
+  await expect(projects.locator("tbody tr")).toContainText([adminEmail]);
 });

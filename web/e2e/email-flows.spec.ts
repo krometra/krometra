@@ -69,7 +69,7 @@ async function fillLogin(page: Page, email: string, password: string): Promise<v
 async function loginByUi(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
   await fillLogin(page, email, password);
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/projects$/);
 }
 
 test("регистрация отправляет письмо, ссылка из него подтверждает почту", async ({ browser, baseURL, request }) => {
@@ -82,14 +82,14 @@ test("регистрация отправляет письмо, ссылка и�
     await page.getByLabel("Пароль").fill(PASSWORD);
     await page.getByRole("button", { name: "Создать аккаунт" }).click();
 
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/projects$/);
     await expect(page.getByTestId("email-verify-banner")).toContainText(email);
 
     const text = await waitForMail(request, email, SUBJECT.verify);
     await page.goto(linkPath(text, "/verify-email"));
     await expect(page.getByTestId("verify-email-success")).toBeVisible();
 
-    await page.goto("/");
+    await page.goto("/projects");
     await expect(page.getByText("Мои проекты").first()).toBeVisible();
     await expect(page.getByTestId("email-verify-banner")).toHaveCount(0);
 
@@ -143,7 +143,7 @@ test("восстановление пароля по ссылке: новый п
     await expect(page).toHaveURL(/\/login/);
 
     await fillLogin(page, email, NEW_PASSWORD);
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/projects$/);
     await expect(page.getByTestId("email-verify-banner")).toHaveCount(0);
     expect(await passwordWorks(request, email, PASSWORD)).toBe(false);
 
