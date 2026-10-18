@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { BrowserExtrudeOperation } from "@/lib/browserBoolean";
 import type { BrowserSweepOrientation } from "@/lib/browserSweepPath";
@@ -31,7 +31,7 @@ const applyLabel = computed(() => {
 <template>
   <PropsPanelShell title="По траектории" kind="SWEEP" dot-color="oklch(0.70 0.13 180)">
     <div :class="$style.body" data-testid="sweep-panel">
-      <CsSelect
+      <KrSelect
         :model-value="profileSketchId ?? ''"
         :options="sketchOptions"
         label="Профиль"
@@ -39,7 +39,7 @@ const applyLabel = computed(() => {
         data-testid="sweep-profile"
         @update:model-value="profileSketchId = $event || null"
       />
-      <CsSelect
+      <KrSelect
         :model-value="pathSketchId ?? ''"
         :options="sketchOptions"
         label="Путь"
@@ -47,14 +47,14 @@ const applyLabel = computed(() => {
         data-testid="sweep-path"
         @update:model-value="pathSketchId = $event || null"
       />
-      <CsSelect
+      <KrSelect
         :model-value="operation"
         :options="OPERATIONS"
         label="Операция"
         data-testid="sweep-operation"
         @update:model-value="sweep.setOperation($event as BrowserExtrudeOperation)"
       />
-      <CsSelect
+      <KrSelect
         v-if="operation !== 'new_body'"
         :model-value="targetBodyId ?? ''"
         :options="targetOptions"
@@ -62,7 +62,7 @@ const applyLabel = computed(() => {
         data-testid="sweep-target"
         @update:model-value="targetBodyId = $event || null"
       />
-      <CsSelect
+      <KrSelect
         :model-value="orientation"
         :options="ORIENTATIONS"
         label="Ориентация профиля"
@@ -73,7 +73,7 @@ const applyLabel = computed(() => {
         Путь начинается на профиле и уходит из его плоскости. «Без закрутки» держит профиль ровно вдоль всего пути.
       </p>
       <p v-if="message" :class="$style.error" data-testid="sweep-error">{{ message }}</p>
-      <CsButton
+      <KrButton
         variant="primary"
         :disabled="loading || setupError !== null"
         :loading="loading"
@@ -81,10 +81,10 @@ const applyLabel = computed(() => {
         @click="sweep.apply"
       >
         {{ applyLabel }}
-      </CsButton>
+      </KrButton>
     </div>
     <template #foot>
-      <CsButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="sweep.exit">Отмена (Esc)</CsButton>
+      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="sweep.exit">Отмена (Esc)</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -93,36 +93,36 @@ const applyLabel = computed(() => {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 
 .hint {
   margin: 0;
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-muted);
   line-height: 1.45;
 }
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-error);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-error);
   line-height: 1.45;
 }
 
 .cancelBtn.cancelBtn {
   flex: 1;
   height: auto;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .cancelBtn.cancelBtn:hover {
   background: transparent;
-  border-color: var(--cs-text-muted);
-  color: var(--cs-text);
+  border-color: var(--kr-text-muted);
+  color: var(--kr-text);
 }
 </style>

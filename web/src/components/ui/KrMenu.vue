@@ -19,7 +19,7 @@ const props = withDefaults(
   }
 );
 
-const id = `cs-menu-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-menu-${Math.random().toString(36).slice(2, 9)}`;
 
 const [state, send] = useMachine(
   menu.machine({
@@ -74,33 +74,33 @@ function handleSelect(value: string) {
 }
 
 .content {
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-md);
-  box-shadow: var(--cs-shadow-md);
-  padding: var(--cs-spacing-xs);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-md);
+  box-shadow: var(--kr-shadow-md);
+  padding: var(--kr-spacing-xs);
   min-width: 180px;
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-sm);
-  padding: var(--cs-spacing-xs) var(--cs-spacing-sm);
-  border-radius: var(--cs-radius-sm);
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-secondary);
+  gap: var(--kr-spacing-sm);
+  padding: var(--kr-spacing-xs) var(--kr-spacing-sm);
+  border-radius: var(--kr-radius-sm);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-secondary);
   cursor: pointer;
-  transition: background var(--cs-transition-fast), color var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), color var(--kr-transition-fast);
 }
 
 .item:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .icon {
-  font-size: var(--cs-font-size-md);
+  font-size: var(--kr-font-size-md);
   width: 20px;
   text-align: center;
 }

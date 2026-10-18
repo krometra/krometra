@@ -10,9 +10,9 @@ import ApiKeyCreateForm from "@/components/account/ApiKeyCreateForm.vue";
 import ApiKeyList from "@/components/account/ApiKeyList.vue";
 import ApiKeyReveal from "@/components/account/ApiKeyReveal.vue";
 import McpConnectGuide from "@/components/account/McpConnectGuide.vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsDialog from "@/components/ui/CsDialog.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrDialog from "@/components/ui/KrDialog.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 
 const auth = useAuth();
 const { t } = useI18n();
@@ -44,7 +44,7 @@ async function confirmDelete() {
   <div :class="$style.page">
     <header :class="$style.header">
       <router-link to="/" :class="$style.back">
-        <CsIcon name="arrowLeft" :size="16" />{{ t("account.backToProjects") }}
+        <KrIcon name="arrowLeft" :size="16" />{{ t("account.backToProjects") }}
       </router-link>
     </header>
 
@@ -70,7 +70,7 @@ async function confirmDelete() {
         <div v-if="apiKeys.loading.value" :class="$style.muted">{{ t("account.keys.loading") }}</div>
         <div v-else-if="apiKeys.loadFailure.value" :class="$style.failure" role="alert">
           {{ errorMessage(apiKeys.loadFailure.value, t("account.keys.loadFailed")) }}
-          <CsButton variant="secondary" size="sm" @click="apiKeys.load">{{ t("account.keys.retry") }}</CsButton>
+          <KrButton variant="secondary" size="sm" @click="apiKeys.load">{{ t("account.keys.retry") }}</KrButton>
         </div>
         <template v-else>
           <ApiKeyCreateForm :create="apiKeys.create" :at-limit="apiKeys.atLimit.value" />
@@ -81,16 +81,16 @@ async function confirmDelete() {
       <McpConnectGuide :class="$style.section" :origin="origin" />
     </main>
 
-    <CsDialog :open="deleteTarget !== null" @update:open="deleteTarget = null">
+    <KrDialog :open="deleteTarget !== null" @update:open="deleteTarget = null">
       <template #title>{{ t("account.keys.deleteTitle") }}</template>
       <p :class="$style.muted">{{ t("account.keys.deleteText", { name: deleteTarget?.name ?? "" }) }}</p>
       <template #footer>
-        <CsButton variant="secondary" size="md" @click="deleteTarget = null">{{ t("account.keys.cancel") }}</CsButton>
-        <CsButton variant="danger" size="md" :loading="deleting" data-testid="api-key-delete-confirm" @click="confirmDelete">
+        <KrButton variant="secondary" size="md" @click="deleteTarget = null">{{ t("account.keys.cancel") }}</KrButton>
+        <KrButton variant="danger" size="md" :loading="deleting" data-testid="api-key-delete-confirm" @click="confirmDelete">
           {{ t("account.keys.delete") }}
-        </CsButton>
+        </KrButton>
       </template>
-    </CsDialog>
+    </KrDialog>
   </div>
 </template>
 
@@ -98,8 +98,8 @@ async function confirmDelete() {
 .page {
   height: 100vh;
   overflow-y: auto;
-  background: var(--cs-surface);
-  color: var(--cs-text);
+  background: var(--kr-surface);
+  color: var(--kr-text);
 }
 
 .header {
@@ -107,21 +107,21 @@ async function confirmDelete() {
   display: flex;
   align-items: center;
   padding: 0 30px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   text-decoration: none;
-  font-size: var(--cs-font-size-sm);
-  transition: color var(--cs-transition-fast);
+  font-size: var(--kr-font-size-sm);
+  transition: color var(--kr-transition-fast);
 }
 
 .back:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .content {
@@ -141,8 +141,8 @@ async function confirmDelete() {
 
 .title {
   margin: 0;
-  font-size: var(--cs-font-size-2xl);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-2xl);
+  font-weight: var(--kr-font-weight-bold);
   letter-spacing: -0.02em;
 }
 
@@ -154,13 +154,13 @@ async function confirmDelete() {
 
 .sectionTitle {
   margin: 0;
-  font-size: var(--cs-font-size-lg);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-lg);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .muted {
   margin: 0;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 14px;
   line-height: 1.55;
 }
@@ -169,8 +169,8 @@ async function confirmDelete() {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--cs-error);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-error);
+  font-size: var(--kr-font-size-sm);
 }
 
 @media (max-width: 600px) {

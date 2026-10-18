@@ -4,8 +4,8 @@ import { useI18n } from "@/composables/shared/useI18n";
 import { useFormErrors } from "@/composables/forms/useFormErrors";
 import { API_KEY_LIMIT, validateKeyName } from "@/lib/apiKeys";
 import { msg } from "@/lib/i18n/catalog";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsInput from "@/components/ui/CsInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
 
 const props = defineProps<{
   create: (name: string) => Promise<void>;
@@ -38,7 +38,7 @@ async function submit() {
   </p>
   <form v-else :class="$style.form" novalidate data-testid="api-key-create" @submit.prevent="submit">
     <div :class="$style.name">
-      <CsInput
+      <KrInput
         v-model="name"
         :label="t('account.keys.name.label')"
         :placeholder="t('account.keys.name.placeholder')"
@@ -47,9 +47,9 @@ async function submit() {
         @update:model-value="clearField('name')"
       />
     </div>
-    <CsButton type="submit" size="md" :loading="creating" :class="$style.submit">
+    <KrButton type="submit" size="md" :loading="creating" :class="$style.submit">
       {{ t("account.keys.create") }}
-    </CsButton>
+    </KrButton>
     <div v-if="summary" :class="$style.error" role="alert">{{ summary }}</div>
   </form>
 </template>
@@ -73,13 +73,13 @@ async function submit() {
 
 .error {
   flex-basis: 100%;
-  color: var(--cs-error);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-error);
+  font-size: var(--kr-font-size-sm);
 }
 
 .limit {
   margin: 0;
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
 }
 </style>

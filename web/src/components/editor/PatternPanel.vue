@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsCheckbox from "@/components/ui/CsCheckbox.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrCheckbox from "@/components/ui/KrCheckbox.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import PatternAxisPicker from "./PatternAxisPicker.vue";
 import type { PatternApi } from "@/composables/editor/usePattern";
@@ -39,7 +39,7 @@ function hintFor(slot: PatternAxisSlot): string {
   <PropsPanelShell title="Массив" kind="FEATURE" dot-color="oklch(0.7 0.13 200)">
     <div :class="$style.body" data-testid="pattern-panel">
       <div :class="$style.row">
-        <CsButton
+        <KrButton
           v-for="option in TYPES"
           :key="option.value"
           size="sm"
@@ -48,11 +48,11 @@ function hintFor(slot: PatternAxisSlot): string {
           @click="pattern.updateForm({ type: option.value })"
         >
           {{ option.label }}
-        </CsButton>
+        </KrButton>
       </div>
 
       <div :class="$style.field">
-        <CsSelect
+        <KrSelect
           label="Тело"
           :model-value="pattern.sourceBodyId.value ?? ''"
           :options="pattern.availableBodies.value"
@@ -74,7 +74,7 @@ function hintFor(slot: PatternAxisSlot): string {
       />
 
       <div :class="$style.pair">
-        <CsNumberInput
+        <KrNumberInput
           label="Количество"
           :model-value="form.count"
           :min="2"
@@ -83,7 +83,7 @@ function hintFor(slot: PatternAxisSlot): string {
           data-testid="pattern-count"
           @update:model-value="pattern.updateForm({ count: $event })"
         />
-        <CsNumberInput
+        <KrNumberInput
           v-if="circular"
           label="Полный угол"
           :model-value="form.angle"
@@ -94,7 +94,7 @@ function hintFor(slot: PatternAxisSlot): string {
           data-testid="pattern-angle"
           @update:model-value="pattern.updateForm({ angle: $event })"
         />
-        <CsNumberInput
+        <KrNumberInput
           v-else
           label="Шаг"
           :model-value="form.spacing"
@@ -108,7 +108,7 @@ function hintFor(slot: PatternAxisSlot): string {
       <span v-else :class="$style.hint">Отрицательный шаг разворачивает направление</span>
 
       <template v-if="!circular">
-        <CsCheckbox
+        <KrCheckbox
           :model-value="form.secondDirection"
           label="Второе направление (сетка)"
           data-testid="pattern-second"
@@ -126,7 +126,7 @@ function hintFor(slot: PatternAxisSlot): string {
             @cancel="pattern.stopPicking"
           />
           <div :class="$style.pair">
-            <CsNumberInput
+            <KrNumberInput
               label="Количество 2"
               :model-value="form.count2"
               :min="1"
@@ -135,7 +135,7 @@ function hintFor(slot: PatternAxisSlot): string {
               data-testid="pattern-count2"
               @update:model-value="pattern.updateForm({ count2: $event })"
             />
-            <CsNumberInput
+            <KrNumberInput
               label="Шаг 2"
               :model-value="form.spacing2"
               :step="1"
@@ -150,7 +150,7 @@ function hintFor(slot: PatternAxisSlot): string {
       <div :class="$style.field">
         <span :class="$style.label">Результат</span>
         <div :class="$style.row">
-          <CsButton
+          <KrButton
             v-for="option in MODES"
             :key="option.value"
             size="sm"
@@ -159,7 +159,7 @@ function hintFor(slot: PatternAxisSlot): string {
             @click="pattern.setMode(option.value)"
           >
             {{ option.label }}
-          </CsButton>
+          </KrButton>
         </div>
         <span :class="$style.hint">Объединённый массив тела-инструмента вырезается из детали одной булевой операцией</span>
       </div>
@@ -170,15 +170,15 @@ function hintFor(slot: PatternAxisSlot): string {
     </div>
 
     <template #foot>
-      <CsButton
+      <KrButton
         variant="primary"
         :disabled="pattern.formError.value !== null || pattern.loading.value"
         data-testid="pattern-apply"
         @click="pattern.apply"
       >
         {{ pattern.loading.value ? "Строю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" @click="pattern.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" @click="pattern.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -187,8 +187,8 @@ function hintFor(slot: PatternAxisSlot): string {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .field {
@@ -198,8 +198,8 @@ function hintFor(slot: PatternAxisSlot): string {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .row {
@@ -211,19 +211,19 @@ function hintFor(slot: PatternAxisSlot): string {
 .pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
 }
 
 .hint {
-  margin-top: calc(var(--cs-spacing-sm) * -1);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  margin-top: calc(var(--kr-spacing-sm) * -1);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-danger);
+  color: var(--kr-danger);
 }
 </style>

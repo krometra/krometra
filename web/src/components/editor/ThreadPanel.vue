@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { ThreadApi } from "@/composables/editor/useThread";
 
@@ -126,7 +126,7 @@ function handleApply() {
       </p>
 
       <div :class="$style.presets">
-        <CsButton
+        <KrButton
           v-for="preset in PRESETS"
           :key="preset.id"
           size="sm"
@@ -137,12 +137,12 @@ function handleApply() {
           @click="applyPreset(preset)"
         >
           {{ preset.label }}
-        </CsButton>
+        </KrButton>
       </div>
 
       <div :class="$style.field">
         <span :class="$style.label">Шаг</span>
-        <CsNumberInput
+        <KrNumberInput
           v-model="pitch"
           :min="0.2"
           :max="30"
@@ -155,7 +155,7 @@ function handleApply() {
 
       <div :class="$style.field">
         <span :class="$style.label">Глубина профиля</span>
-        <CsNumberInput
+        <KrNumberInput
           v-model="depthPercent"
           :min="5"
           :max="90"
@@ -169,7 +169,7 @@ function handleApply() {
 
       <div :class="$style.field">
         <span :class="$style.label">Профиль</span>
-        <CsNumberInput
+        <KrNumberInput
           v-model="crestPercent"
           :min="0"
           :max="90"
@@ -183,7 +183,7 @@ function handleApply() {
 
       <div :class="$style.field">
         <span :class="$style.label">Заходы</span>
-        <CsNumberInput
+        <KrNumberInput
           v-model="starts"
           :min="1"
           :max="8"
@@ -196,7 +196,7 @@ function handleApply() {
 
       <div :class="$style.field">
         <span :class="$style.label">Длина</span>
-        <CsNumberInput
+        <KrNumberInput
           v-model="length"
           :min="0"
           :step="1"
@@ -208,7 +208,7 @@ function handleApply() {
 
       <div :class="$style.field">
         <span :class="$style.label">Отступ</span>
-        <CsNumberInput
+        <KrNumberInput
           v-model="offset"
           :min="0"
           :step="1"
@@ -218,22 +218,22 @@ function handleApply() {
       </div>
 
       <div :class="$style.handed">
-        <CsButton
+        <KrButton
           size="sm"
           :variant="rightHanded ? 'primary' : 'secondary'"
           data-testid="thread-right"
           @click="rightHanded = true"
         >
           Правая
-        </CsButton>
-        <CsButton
+        </KrButton>
+        <KrButton
           size="sm"
           :variant="!rightHanded ? 'primary' : 'secondary'"
           data-testid="thread-left"
           @click="rightHanded = false"
         >
           Левая
-        </CsButton>
+        </KrButton>
       </div>
 
       <p v-if="thread.error.value" :class="$style.error" data-testid="thread-error">
@@ -242,15 +242,15 @@ function handleApply() {
     </div>
 
     <template #foot>
-      <CsButton
+      <KrButton
         variant="primary"
         :disabled="!hasCylinder || thread.loading.value"
         data-testid="thread-apply"
         @click="handleApply"
       >
         {{ thread.loading.value ? "Строю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" @click="thread.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" @click="thread.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -259,19 +259,19 @@ function handleApply() {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .status {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .statusReady {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .field {
@@ -281,13 +281,13 @@ function handleApply() {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .hint {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .presets {
@@ -307,8 +307,8 @@ function handleApply() {
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-danger);
+  color: var(--kr-danger);
 }
 </style>

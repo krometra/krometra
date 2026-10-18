@@ -227,7 +227,7 @@ MVP охватывает ~15-20% функциональности Fusion 360, н
 | **3D Rendering** | Three.js (r185+) | Зрелая, WebGL/WebGPU, огромное сообщество. Используется напрямую через ref, без абстракций |
 | **State Management** | createSharedComposable (VueUse) | Глобальное реактивное состояние без отдельной библиотеки сторов — каждый модуль состояния это обычный composable, расшаренный через createSharedComposable. Никаких отдельных сторов, меньше зависимостей, идиоматично для Composition API |
 | **UI Components** | zag.js + CSS Modules | Headless state machines для UI-логики (dialog, menu, tooltip, select, combobox, tree-view, etc.) + собственные стили через CSS-переменные. Никакого Tailwind, никакого Radix |
-| **Styling** | CSS Modules + Vanilla Extract (для тем) | Сквозная дизайн-система на CSS-переменных (--cs-color-*, --cs-spacing-*, --cs-radius-*). CSS Modules для изоляции стилей компонентов. Vanilla Extract для type-safe тем |
+| **Styling** | CSS Modules + Vanilla Extract (для тем) | Сквозная дизайн-система на CSS-переменных (--kr-color-*, --kr-spacing-*, --kr-radius-*). CSS Modules для изоляции стилей компонентов. Vanilla Extract для type-safe тем |
 | **Routing** | Vue Router 4 | Стандартный роутер для Vue 3, guards для auth |
 | **Canvas/Sketcher** | HTML5 Canvas API + самописный solver | Никакая библиотека не решает CAD-скетчер из коробки |
 | **Web Workers** | Comlink | Параллельные вычисления (tessellation, raytracing для selection) |
@@ -303,7 +303,7 @@ export const useDocument = createSharedComposable(() => {
 **Пример компонента (диалог на zag.js):**
 
 ```vue
-<!-- CsDialog.vue -->
+<!-- KrDialog.vue -->
 <script setup lang="ts">
 import * as dialog from '@zag-js/dialog'
 import { useMachine, normalizeProps } from '@zag-js/vue'
@@ -339,10 +339,10 @@ const api = computed(() => dialog.connect(state.value, send, normalizeProps))
 
 <style module>
 .dialog { /* ... */ }
-.backdrop { background: var(--cs-overlay); }
-.content { background: var(--cs-surface); border-radius: var(--cs-radius-lg); }
-.title { font: var(--cs-font-heading); }
-.body { padding: var(--cs-spacing-md); }
+.backdrop { background: var(--kr-overlay); }
+.content { background: var(--kr-surface); border-radius: var(--kr-radius-lg); }
+.title { font: var(--kr-font-heading); }
+.body { padding: var(--kr-spacing-md); }
 .close { /* ... */ }
 </style>
 ```
@@ -798,7 +798,7 @@ interface TimelineEntry {
 - Vue 3 + createSharedComposable (VueUse) + Vue Router: dashboard, editor shell
 - Three.js viewport (орбита, zoom, pan, view cube) через template ref
 - Базовое отображение геометрии (mesh из файла)
-- Дизайн-система: CSS-переменные, базовые компоненты на zag.js (CsDialog, CsButton, CsInput)
+- Дизайн-система: CSS-переменные, базовые компоненты на zag.js (KrDialog, KrButton, KrInput)
 
 **Месяцы 4-6: Sketcher**
 - 2D Canvas скетчер (линия, круг, прямоугольник, дуга)

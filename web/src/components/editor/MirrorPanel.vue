@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsCheckbox from "@/components/ui/CsCheckbox.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrCheckbox from "@/components/ui/KrCheckbox.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { MIRROR_BASE_PLANES } from "@/lib/mirrorPlane";
 import PropsPanelShell from "./PropsPanelShell.vue";
@@ -38,7 +38,7 @@ const statusText = computed(() => {
       <div :class="$style.field">
         <span :class="$style.label">Плоскость</span>
         <div :class="$style.planes">
-          <CsButton
+          <KrButton
             v-for="plane in MIRROR_BASE_PLANES"
             :key="plane"
             size="sm"
@@ -47,21 +47,21 @@ const statusText = computed(() => {
             @click="mirror.selectBasePlane(plane)"
           >
             {{ plane }}
-          </CsButton>
-          <CsButton
+          </KrButton>
+          <KrButton
             size="sm"
             :variant="usesFace ? 'primary' : 'secondary'"
             data-testid="mirror-plane-face"
             @click="mirror.selectFacePlane"
           >
             Грань
-          </CsButton>
+          </KrButton>
         </div>
       </div>
 
       <div v-if="!usesFace" :class="$style.field">
         <span :class="$style.label">Смещение плоскости</span>
-        <CsNumberInput
+        <KrNumberInput
           :model-value="mirror.offset.value"
           :step="1"
           suffix="мм"
@@ -71,7 +71,7 @@ const statusText = computed(() => {
         <span :class="$style.hint">Вдоль оси, перпендикулярной плоскости</span>
       </div>
 
-      <CsCheckbox
+      <KrCheckbox
         :model-value="mirror.merge.value"
         label="Объединить с исходным телом"
         data-testid="mirror-merge"
@@ -87,10 +87,10 @@ const statusText = computed(() => {
     </div>
 
     <template #foot>
-      <CsButton variant="primary" :disabled="!mirror.canApply.value" data-testid="mirror-apply" @click="mirror.apply">
+      <KrButton variant="primary" :disabled="!mirror.canApply.value" data-testid="mirror-apply" @click="mirror.apply">
         {{ mirror.loading.value ? "Строю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" @click="mirror.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" @click="mirror.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -99,19 +99,19 @@ const statusText = computed(() => {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .status {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .statusReady {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .field {
@@ -121,13 +121,13 @@ const statusText = computed(() => {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .hint {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .planes {
@@ -138,8 +138,8 @@ const statusText = computed(() => {
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-danger);
+  color: var(--kr-danger);
 }
 </style>

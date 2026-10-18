@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 
 const router = useRouter();
 </script>
@@ -14,7 +14,7 @@ const router = useRouter();
         Крометра теперь считает модель в браузере, и такие тела нельзя открыть или изменить.
         Создайте новый проект и постройте деталь заново.
       </p>
-      <CsButton @click="router.push('/')">К проектам</CsButton>
+      <KrButton @click="router.push('/')">К проектам</KrButton>
     </div>
   </div>
 </template>
@@ -28,7 +28,7 @@ const router = useRouter();
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: color-mix(in oklch, var(--cs-surface) 80%, transparent);
+  background: color-mix(in oklch, var(--kr-surface) 80%, transparent);
 }
 
 .card {
@@ -38,22 +38,22 @@ const router = useRouter();
   align-items: flex-start;
   gap: 12px;
   padding: 24px;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 12px;
-  background: var(--cs-surface-raised, var(--cs-surface));
+  background: var(--kr-surface-raised, var(--kr-surface));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
 .title {
   margin: 0;
   font-size: 16px;
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .text {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 </style>

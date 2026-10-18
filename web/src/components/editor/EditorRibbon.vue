@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import type { RibbonAction } from "@/composables/editor/types";
 import { LOFT_ICON } from "@/lib/loftFeature";
 
@@ -114,7 +114,7 @@ function onToolClick(t: Tool) {
     </template>
 
     <button :class="[$style.tool, $style.help]" title="Горячие клавиши — ?" @click="emit('show-shortcuts')">
-      <CsIcon name="keyboard" :size="20" />
+      <KrIcon name="keyboard" :size="20" />
       <span :class="$style.toolLabel">Клавиши</span>
     </button>
   </div>
@@ -124,8 +124,8 @@ function onToolClick(t: Tool) {
 .ribbon {
   height: 62px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface-alt);
+  border-bottom: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface-alt);
   display: flex;
   align-items: stretch;
   padding: 0 12px;
@@ -134,7 +134,7 @@ function onToolClick(t: Tool) {
 
 .ribbonDiv {
   width: 1px;
-  background: var(--cs-border);
+  background: var(--kr-border);
   margin: 12px 8px;
 }
 
@@ -147,17 +147,17 @@ function onToolClick(t: Tool) {
   min-width: 58px;
   padding: 0 6px;
   cursor: pointer;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   background: transparent;
   border: none;
   border-radius: 8px;
   margin: 7px 0;
-  transition: background var(--cs-transition-fast), color var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), color var(--kr-transition-fast);
 }
 
 .tool:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .toolLabel {
@@ -178,7 +178,7 @@ function onToolClick(t: Tool) {
 .toolDisabled,
 .toolDisabled:hover {
   background: transparent;
-  color: var(--cs-text-disabled);
+  color: var(--kr-text-disabled);
   cursor: default;
 }
 </style>

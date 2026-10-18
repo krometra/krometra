@@ -38,7 +38,7 @@ const axes = computed(() => {
           :x="axis.x"
           :y="axis.y"
           :fill="axis.color"
-          font-family="var(--cs-font-mono)"
+          font-family="var(--kr-font-mono)"
           font-size="10"
           text-anchor="middle"
           dominant-baseline="central"

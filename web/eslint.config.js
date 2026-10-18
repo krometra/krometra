@@ -6,7 +6,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 /**
  * Файлы с сырыми <button>/<input>, унаследованными до введения гейта
  * (20.08.2026, 74 контрола). Список только сокращается: перевёл файл на
- * CsButton/CsInput — убери строку отсюда. Новый файл сюда не добавляется.
+ * KrButton/KrInput — убери строку отсюда. Новый файл сюда не добавляется.
  */
 const RAW_CONTROL_DEBTORS = [
   "src/components/editor/EditorRibbon.vue",
@@ -114,12 +114,12 @@ export default [
         "error",
         {
           element: "button",
-          message: "Используй CsButton из components/ui вместо сырого <button>.",
+          message: "Используй KrButton из components/ui вместо сырого <button>.",
         },
         {
           element: "input",
           message:
-            "Используй CsInput/CsNumberInput из components/ui вместо сырого <input>.",
+            "Используй KrInput/KrNumberInput из components/ui вместо сырого <input>.",
         },
       ],
     },

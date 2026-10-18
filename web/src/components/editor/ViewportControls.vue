@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import NavigationMenu from "./NavigationMenu.vue";
 import type { IconName } from "@/components/ui/icons";
 import type { RenderingMode } from "@/composables/editor/types";
@@ -25,7 +25,7 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
 
 <template>
   <div :class="$style.viewControls">
-    <CsButton
+    <KrButton
       variant="ghost"
       size="sm"
       :class="$style.viewBtn"
@@ -33,9 +33,9 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       aria-label="Вписать всё в экран"
       @click="emit('fit-all')"
     >
-      <CsIcon name="fitAll" :size="17" />
-    </CsButton>
-    <CsButton
+      <KrIcon name="fitAll" :size="17" />
+    </KrButton>
+    <KrButton
       variant="ghost"
       size="sm"
       :class="$style.viewBtn"
@@ -44,9 +44,9 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       data-testid="view-look-at"
       @click="emit('look-at')"
     >
-      <CsIcon name="lookAt" :size="17" />
-    </CsButton>
-    <CsButton
+      <KrIcon name="lookAt" :size="17" />
+    </KrButton>
+    <KrButton
       variant="ghost"
       size="sm"
       :class="[$style.viewBtn, sectionActive && $style.viewBtnActive]"
@@ -56,10 +56,10 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       data-testid="view-section"
       @click="emit('toggle-section')"
     >
-      <CsIcon name="section" :size="17" />
-    </CsButton>
+      <KrIcon name="section" :size="17" />
+    </KrButton>
     <div :class="$style.vSep" />
-    <CsButton
+    <KrButton
       v-for="b in renderingBtns"
       variant="ghost"
       size="sm"
@@ -70,8 +70,8 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       :aria-pressed="renderingMode === b.mode"
       @click="renderingMode = b.mode"
     >
-      <CsIcon :name="b.icon" :size="17" />
-    </CsButton>
+      <KrIcon :name="b.icon" :size="17" />
+    </KrButton>
     <div :class="$style.vSep" />
     <NavigationMenu />
   </div>
@@ -86,39 +86,39 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
   align-items: center;
   gap: 6px;
   background: oklch(1 0 0 / 0.88);
-  box-shadow: var(--cs-shadow-sm);
-  border: 1px solid var(--cs-border-strong);
+  box-shadow: var(--kr-shadow-sm);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 9px;
   padding: 5px;
   backdrop-filter: blur(6px);
 }
 
-/* Квадратная иконочная кнопка: перебиваем размеры CsButton size="sm". */
+/* Квадратная иконочная кнопка: перебиваем размеры KrButton size="sm". */
 .viewBtn.viewBtn {
   width: 30px;
   height: 30px;
   padding: 0;
   border-radius: 6px;
-  color: var(--cs-text-secondary);
-  font-family: var(--cs-font-mono);
+  color: var(--kr-text-secondary);
+  font-family: var(--kr-font-mono);
   font-size: 13px;
 }
 
 .viewBtn:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .viewBtnActive.viewBtnActive,
 .viewBtnActive.viewBtnActive:hover {
-  background: var(--cs-primary);
-  color: var(--cs-primary-fg);
+  background: var(--kr-primary);
+  color: var(--kr-primary-fg);
 }
 
 .vSep {
   width: 1px;
   height: 20px;
-  background: var(--cs-border-strong);
+  background: var(--kr-border-strong);
   margin: 0 2px;
 }
 </style>

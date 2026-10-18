@@ -78,8 +78,8 @@ const localConnect = computed(() => localConnectCommand(props.origin, API_KEY_PL
 
 .title {
   margin: 0;
-  font-size: var(--cs-font-size-lg);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-lg);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .steps {
@@ -96,18 +96,18 @@ const localConnect = computed(() => localConnectCommand(props.origin, API_KEY_PL
 }
 
 .step::marker {
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text-secondary);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text-secondary);
 }
 
 .stepTitle {
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .text {
   margin: 0;
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
   line-height: 1.55;
 }
 
@@ -127,7 +127,7 @@ const localConnect = computed(() => localConnectCommand(props.origin, API_KEY_PL
 
 .more {
   align-self: flex-start;
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-primary);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-primary);
 }
 </style>

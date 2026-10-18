@@ -23,7 +23,7 @@ const emit = defineEmits<{
   "update:modelValue": [value: number];
 }>();
 
-const id = `cs-number-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-number-${Math.random().toString(36).slice(2, 9)}`;
 
 const [state, send] = useMachine(
   numberInput.machine({
@@ -107,29 +107,29 @@ watch(
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-xs);
+  gap: var(--kr-spacing-xs);
   width: 100%;
   min-width: 0;
 }
 
 .label {
-  font-size: var(--cs-font-size-sm);
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text-secondary);
 }
 
 .control {
   display: flex;
   align-items: center;
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-md);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-md);
   overflow: hidden;
-  transition: border-color var(--cs-transition-fast);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .control:focus-within {
-  border-color: var(--cs-border-focus);
+  border-color: var(--kr-border-focus);
 }
 
 .btn {
@@ -140,37 +140,37 @@ watch(
   height: 32px;
   background: transparent;
   border: none;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 16px;
   cursor: pointer;
-  transition: background var(--cs-transition-fast), color var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), color var(--kr-transition-fast);
   flex-shrink: 0;
 }
 
 .btn:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .input {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--cs-text);
-  font-family: var(--cs-font-mono);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text);
+  font-family: var(--kr-font-mono);
+  font-size: var(--kr-font-size-sm);
   text-align: center;
   outline: none;
-  padding: var(--cs-spacing-xs) 0;
+  padding: var(--kr-spacing-xs) 0;
   width: 0;
   min-width: 0;
 }
 
 .suffix {
-  padding: 0 var(--cs-spacing-sm);
-  font-family: var(--cs-font-mono);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-amber-strong);
+  padding: 0 var(--kr-spacing-sm);
+  font-family: var(--kr-font-mono);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-amber-strong);
   flex-shrink: 0;
 }
 </style>

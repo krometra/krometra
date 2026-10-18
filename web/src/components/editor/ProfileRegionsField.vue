@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import type { ProfileRegionsApi } from "@/composables/editor/useProfileRegions";
 import { profileRegionsLabel } from "@/lib/profileRegionSelection";
 
@@ -15,9 +15,9 @@ const label = computed(() => profileRegionsLabel(selected.value.length, regions.
     <div :class="$style.label">Профиль</div>
     <div :class="$style.row">
       <span :class="$style.value" data-testid="profile-regions">{{ label }}</span>
-      <CsButton v-if="selected.length > 0" variant="ghost" size="sm" data-testid="profile-regions-reset" @click="reset">
+      <KrButton v-if="selected.length > 0" variant="ghost" size="sm" data-testid="profile-regions-reset" @click="reset">
         Весь эскиз
-      </CsButton>
+      </KrButton>
     </div>
     <div v-if="pickable" :class="$style.hint">Клик по области эскиза выбирает её, Shift добавляет или убирает</div>
   </div>
@@ -30,7 +30,7 @@ const label = computed(() => profileRegionsLabel(selected.value.length, regions.
 
 .label {
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   margin-bottom: 6px;
 }
 
@@ -38,20 +38,20 @@ const label = computed(() => profileRegionsLabel(selected.value.length, regions.
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
   min-height: 28px;
 }
 
 .value {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 13px;
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .hint {
   margin-top: 4px;
   font-size: 11px;
   line-height: 1.4;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 </style>

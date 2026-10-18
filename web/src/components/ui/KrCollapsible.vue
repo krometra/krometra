@@ -18,7 +18,7 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
-const id = `cs-collapsible-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-collapsible-${Math.random().toString(36).slice(2, 9)}`;
 
 const [state, send] = useMachine(
   collapsible.machine({
@@ -66,32 +66,32 @@ watch(
 
 <style module>
 .root {
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .trigger {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
   width: 100%;
   background: transparent;
   border: none;
-  color: var(--cs-text);
-  font-size: var(--cs-font-size-sm);
-  font-weight: var(--cs-font-weight-bold);
-  padding: var(--cs-spacing-sm) 0;
+  color: var(--kr-text);
+  font-size: var(--kr-font-size-sm);
+  font-weight: var(--kr-font-weight-bold);
+  padding: var(--kr-spacing-sm) 0;
   cursor: pointer;
-  transition: color var(--cs-transition-fast);
+  transition: color var(--kr-transition-fast);
 }
 
 .trigger:hover {
-  color: var(--cs-primary);
+  color: var(--kr-primary);
 }
 
 .chevron {
   font-size: 10px;
-  color: var(--cs-text-muted);
-  transition: transform var(--cs-transition-fast);
+  color: var(--kr-text-muted);
+  transition: transform var(--kr-transition-fast);
   display: inline-block;
 }
 
@@ -102,10 +102,10 @@ watch(
 .label {
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
 }
 
 .content {
-  padding: var(--cs-spacing-sm) 0 var(--cs-spacing-md);
+  padding: var(--kr-spacing-sm) 0 var(--kr-spacing-md);
 }
 </style>

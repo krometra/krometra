@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsInput from "@/components/ui/CsInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
 import styles from "./dimension-overlay.module.css";
 
 defineProps<{
@@ -33,7 +33,7 @@ onMounted(() => {
   <div ref="rootRef" :class="styles.overlay" data-sketch-ui data-testid="dimension-input" :style="{ left: x + 'px', top: y + 'px' }">
     <div :class="styles.fieldLabel">
       <span>{{ title }}</span>
-      <CsInput
+      <KrInput
         :class="[styles.input, $style.input]"
         :model-value="text"
         :error="error ?? undefined"
@@ -47,8 +47,8 @@ onMounted(() => {
       />
     </div>
     <div :class="styles.actions">
-      <CsButton variant="ghost" size="sm" :class="styles.okBtn" aria-label="Подтвердить значение" @click="emit('confirm')">✓</CsButton>
-      <CsButton variant="ghost" size="sm" :class="styles.cancelBtn" aria-label="Отменить ввод" @click="emit('cancel')">✕</CsButton>
+      <KrButton variant="ghost" size="sm" :class="styles.okBtn" aria-label="Подтвердить значение" @click="emit('confirm')">✓</KrButton>
+      <KrButton variant="ghost" size="sm" :class="styles.cancelBtn" aria-label="Отменить ввод" @click="emit('cancel')">✕</KrButton>
     </div>
   </div>
 </template>

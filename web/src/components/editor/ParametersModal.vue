@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsInput from "@/components/ui/CsInput.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
 import { useParameters } from "@/composables/useParameters";
 
 const emit = defineEmits<{ close: [] }>();
@@ -60,7 +60,7 @@ function handleSaveEdit() {
       <div :class="$style.modalHead">
         <span :class="[$style.mono, $style.modalIcon]">ƒx</span>
         <span :class="$style.modalTitle">Параметры модели</span>
-        <CsButton variant="ghost" size="sm" :class="$style.modalClose" aria-label="Закрыть параметры" @click="emit('close')">✕</CsButton>
+        <KrButton variant="ghost" size="sm" :class="$style.modalClose" aria-label="Закрыть параметры" @click="emit('close')">✕</KrButton>
       </div>
       <div :class="$style.modalCols">
         <span>ИМЯ</span><span>ЗНАЧЕНИЕ</span><span>ЕД.</span><span />
@@ -72,12 +72,12 @@ function handleSaveEdit() {
           :class="$style.modalRow"
         >
           <template v-if="editingParamId === p.id">
-            <CsInput
+            <KrInput
               v-model="newParamName"
               :class="$style.paramInput"
               placeholder="имя"
             />
-            <CsNumberInput
+            <KrNumberInput
               v-model="newParamValue"
               :class="$style.paramInput"
               placeholder="значение"
@@ -88,8 +88,8 @@ function handleSaveEdit() {
               <option>безразм.</option>
             </select>
             <div :class="$style.paramActions">
-              <CsButton variant="ghost" size="sm" :class="$style.paramSaveBtn" aria-label="Сохранить параметр" @click="handleSaveEdit">✓</CsButton>
-              <CsButton variant="ghost" size="sm" :class="$style.paramCancelBtn" aria-label="Отменить редактирование" @click="resetForm">✕</CsButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramSaveBtn" aria-label="Сохранить параметр" @click="handleSaveEdit">✓</KrButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramCancelBtn" aria-label="Отменить редактирование" @click="resetForm">✕</KrButton>
             </div>
           </template>
           <template v-else>
@@ -97,8 +97,8 @@ function handleSaveEdit() {
             <span :class="$style.paramValue">{{ p.value }}</span>
             <span :class="$style.paramUnit">{{ p.unit }}</span>
             <div :class="$style.paramActions">
-              <CsButton variant="ghost" size="sm" :class="$style.paramEditBtn" :aria-label="`Изменить параметр ${p.name}`" @click="handleEdit(p.id)">✎</CsButton>
-              <CsButton variant="ghost" size="sm" :class="$style.paramDelBtn" :aria-label="`Удалить параметр ${p.name}`" @click="paramsStore.remove(p.id)">🗑</CsButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramEditBtn" :aria-label="`Изменить параметр ${p.name}`" @click="handleEdit(p.id)">✎</KrButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramDelBtn" :aria-label="`Удалить параметр ${p.name}`" @click="paramsStore.remove(p.id)">🗑</KrButton>
             </div>
           </template>
         </div>
@@ -109,13 +109,13 @@ function handleSaveEdit() {
           <span />
         </div>
         <div v-if="!editingParamId" :class="$style.modalRow">
-          <CsInput
+          <KrInput
             v-model="newParamName"
             :class="$style.paramInput"
             placeholder="имя параметра"
             @keyup.enter="handleAdd"
           />
-          <CsNumberInput
+          <KrNumberInput
             v-model="newParamValue"
             :class="$style.paramInput"
             placeholder="значение"
@@ -126,12 +126,12 @@ function handleSaveEdit() {
             <option>°</option>
             <option>безразм.</option>
           </select>
-          <CsButton variant="ghost" size="sm" :class="$style.paramAddBtn" aria-label="Добавить параметр" @click="handleAdd">＋</CsButton>
+          <KrButton variant="ghost" size="sm" :class="$style.paramAddBtn" aria-label="Добавить параметр" @click="handleAdd">＋</KrButton>
         </div>
       </div>
       <div :class="$style.modalFoot">
         <span :class="$style.paramCount">{{ paramsStore.count.value }} параметров</span>
-        <CsButton size="sm" :class="$style.doneBtn" @click="emit('close')">Готово</CsButton>
+        <KrButton size="sm" :class="$style.doneBtn" @click="emit('close')">Готово</KrButton>
       </div>
     </div>
   </div>
@@ -141,7 +141,7 @@ function handleSaveEdit() {
 .overlay {
   position: fixed;
   inset: 0;
-  background: var(--cs-overlay);
+  background: var(--kr-overlay);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
@@ -151,37 +151,37 @@ function handleSaveEdit() {
 
 .modal {
   width: 620px;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 14px;
-  background: var(--cs-surface-raised);
+  background: var(--kr-surface-raised);
   overflow: hidden;
-  box-shadow: var(--cs-shadow-lg);
+  box-shadow: var(--kr-shadow-lg);
 }
 
 .modalHead {
   display: flex;
   align-items: center;
   padding: 18px 22px;
-  border-bottom: 1px solid var(--cs-border);
+  border-bottom: 1px solid var(--kr-border);
 }
 
 .mono {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
 }
 
 .modalIcon {
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
   margin-right: 9px;
 }
 
 .modalTitle {
   font-size: 16px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .modalClose.modalClose {
   margin-left: auto;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 18px;
   min-height: 26px;
   width: 26px;
@@ -189,7 +189,7 @@ function handleSaveEdit() {
 }
 
 .modalClose.modalClose:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .modalCols,
@@ -201,10 +201,10 @@ function handleSaveEdit() {
 
 .modalCols {
   padding: 8px 22px 10px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
-  border-bottom: 1px solid var(--cs-border);
+  color: var(--kr-text-secondary);
+  border-bottom: 1px solid var(--kr-border);
 }
 
 .modalRows {
@@ -214,37 +214,37 @@ function handleSaveEdit() {
 
 .modalRow {
   padding: 11px 22px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
   font-size: 13px;
 }
 
 .modalRow:hover {
-  background: var(--cs-surface-hover);
+  background: var(--kr-surface-hover);
 }
 
 .paramName {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-primary);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-primary);
 }
 
 .emptyParamName {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .paramExpr {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-secondary);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-secondary);
 }
 
 .paramValue {
-  font-family: var(--cs-font-mono);
-  font-weight: var(--cs-font-weight-medium);
+  font-family: var(--kr-font-mono);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .paramUnit {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-amber-strong);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-amber-strong);
 }
 
 .paramInput {
@@ -253,13 +253,13 @@ function handleSaveEdit() {
 
 .paramSelect {
   min-width: 0;
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-sm);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-sm);
   padding: 5px 8px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-text);
+  color: var(--kr-text);
   cursor: pointer;
 }
 
@@ -278,49 +278,49 @@ function handleSaveEdit() {
   min-height: 26px;
   height: 26px;
   padding: 0;
-  border: 1px solid var(--cs-border);
+  border: 1px solid var(--kr-border);
   font-size: 13px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .paramEditBtn.paramEditBtn:hover {
-  color: var(--cs-primary);
-  border-color: var(--cs-primary);
-  background: var(--cs-primary-soft);
+  color: var(--kr-primary);
+  border-color: var(--kr-primary);
+  background: var(--kr-primary-soft);
 }
 
 .paramDelBtn.paramDelBtn:hover {
-  color: var(--cs-red-strong);
-  border-color: var(--cs-error);
-  background: var(--cs-surface-hover);
+  color: var(--kr-red-strong);
+  border-color: var(--kr-error);
+  background: var(--kr-surface-hover);
 }
 
 .paramSaveBtn.paramSaveBtn:hover {
-  color: var(--cs-green-strong);
-  border-color: var(--cs-green);
-  background: var(--cs-surface-hover);
+  color: var(--kr-green-strong);
+  border-color: var(--kr-green);
+  background: var(--kr-surface-hover);
 }
 
 .paramCancelBtn.paramCancelBtn:hover {
-  color: var(--cs-text);
-  border-color: var(--cs-text-secondary);
+  color: var(--kr-text);
+  border-color: var(--kr-text-secondary);
 }
 
 .paramAddBtn.paramAddBtn {
-  color: var(--cs-primary);
-  border-color: var(--cs-primary-border);
+  color: var(--kr-primary);
+  border-color: var(--kr-primary-border);
   font-size: 16px;
 }
 
 .paramAddBtn.paramAddBtn:hover {
-  background: var(--cs-primary-soft);
-  border-color: var(--cs-primary);
+  background: var(--kr-primary-soft);
+  border-color: var(--kr-primary);
 }
 
 .paramCount {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .modalFoot {
@@ -328,12 +328,12 @@ function handleSaveEdit() {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-top: 1px solid var(--cs-border);
+  border-top: 1px solid var(--kr-border);
 }
 
 .doneBtn.doneBtn {
   margin-left: auto;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 13px;
   padding-inline: 18px;
 }

@@ -34,12 +34,12 @@ function onInput(event: Event) {
 .slider {
   width: 100%;
   margin: 0;
-  accent-color: var(--cs-primary);
+  accent-color: var(--kr-primary);
   cursor: pointer;
 }
 
 .slider:focus-visible {
-  outline: 2px solid var(--cs-border-focus);
+  outline: 2px solid var(--kr-border-focus);
   outline-offset: 2px;
 }
 </style>

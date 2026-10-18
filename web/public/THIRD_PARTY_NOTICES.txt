@@ -39,7 +39,7 @@ web/public/licenses/LGPL-2.1.txt).
   vue-router 4                       https://github.com/vuejs/router
   @vueuse/core 11                    https://github.com/vueuse/vueuse
   @zag-js/* 0.77                     https://github.com/chakra-ui/zag
-  foxy-ui-kit 0.2                    https://github.com/nia-sempai/foxy-ui-kit
+  @krometra/ui-kit 0.3               https://github.com/krometra/ui-kit
   @types/three 0.170.0               https://github.com/DefinitelyTyped/DefinitelyTyped
 
 

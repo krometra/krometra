@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FxButton } from "foxy-ui-kit";
+import { KButton } from "@krometra/ui-kit";
 
 defineProps<{
   variant?: "primary" | "secondary" | "danger" | "ghost";
@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <FxButton
+  <KButton
     :variant="variant || 'primary'"
     :size="size || 'md'"
     :disabled="disabled"
@@ -19,5 +19,5 @@ defineProps<{
     :html-type="type || 'button'"
   >
     <slot />
-  </FxButton>
+  </KButton>
 </template>

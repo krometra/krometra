@@ -1,97 +1,97 @@
 :root {
   /* --- Surfaces --- */
-  --cs-surface: oklch(0.985 0.006 95);
-  --cs-surface-alt: oklch(0.965 0.008 95);
-  --cs-surface-raised: oklch(1 0 0);
-  --cs-surface-sunken: oklch(0.945 0.009 95);
-  --cs-surface-hover: oklch(0.93 0.014 233);
+  --kr-surface: oklch(0.985 0.006 95);
+  --kr-surface-alt: oklch(0.965 0.008 95);
+  --kr-surface-raised: oklch(1 0 0);
+  --kr-surface-sunken: oklch(0.945 0.009 95);
+  --kr-surface-hover: oklch(0.93 0.014 233);
 
   /* --- Brand / accents --- */
-  --cs-primary: oklch(0.52 0.15 244);
-  --cs-primary-hover: oklch(0.47 0.15 244);
-  --cs-primary-active: oklch(0.42 0.14 244);
-  --cs-primary-fg: oklch(0.99 0.004 244);
-  --cs-primary-border: oklch(0.72 0.09 244);
-  --cs-primary-soft: oklch(0.93 0.035 244);
-  --cs-logo-face-light: oklch(0.68 0.12 244);
-  --cs-logo-face-dark: oklch(0.40 0.14 244);
+  --kr-primary: oklch(0.52 0.15 244);
+  --kr-primary-hover: oklch(0.47 0.15 244);
+  --kr-primary-active: oklch(0.42 0.14 244);
+  --kr-primary-fg: oklch(0.99 0.004 244);
+  --kr-primary-border: oklch(0.72 0.09 244);
+  --kr-primary-soft: oklch(0.93 0.035 244);
+  --kr-logo-face-light: oklch(0.68 0.12 244);
+  --kr-logo-face-dark: oklch(0.40 0.14 244);
 
-  --cs-amber: oklch(0.62 0.14 75);
-  --cs-amber-border: oklch(0.75 0.09 75);
-  --cs-green: oklch(0.56 0.13 150);
-  --cs-green-border: oklch(0.72 0.08 150);
-  --cs-red: oklch(0.55 0.20 25);
-  --cs-amber-strong: oklch(0.52 0.12 75);
-  --cs-red-strong: oklch(0.50 0.17 25);
-  --cs-teal-strong: oklch(0.50 0.10 165);
-  --cs-green-strong: oklch(0.50 0.12 150);
-  --cs-accent: oklch(0.56 0.18 25);
+  --kr-amber: oklch(0.62 0.14 75);
+  --kr-amber-border: oklch(0.75 0.09 75);
+  --kr-green: oklch(0.56 0.13 150);
+  --kr-green-border: oklch(0.72 0.08 150);
+  --kr-red: oklch(0.55 0.20 25);
+  --kr-amber-strong: oklch(0.52 0.12 75);
+  --kr-red-strong: oklch(0.50 0.17 25);
+  --kr-teal-strong: oklch(0.50 0.10 165);
+  --kr-green-strong: oklch(0.50 0.12 150);
+  --kr-accent: oklch(0.56 0.18 25);
 
   /* --- Text --- */
-  --cs-text: oklch(0.27 0.022 250);
-  --cs-text-secondary: oklch(0.44 0.018 250);
-  --cs-text-muted: oklch(0.52 0.014 250);
-  --cs-text-disabled: oklch(0.62 0.01 250);
+  --kr-text: oklch(0.27 0.022 250);
+  --kr-text-secondary: oklch(0.44 0.018 250);
+  --kr-text-muted: oklch(0.52 0.014 250);
+  --kr-text-disabled: oklch(0.62 0.01 250);
 
   /* --- Lines --- */
-  --cs-border: oklch(0.86 0.012 250);
-  --cs-border-strong: oklch(0.79 0.016 250);
-  --cs-border-subtle: oklch(0.91 0.009 250);
-  --cs-border-focus: oklch(0.52 0.15 244);
-  --cs-grid-line: oklch(0.76 0.012 250 / 0.55);
-  --cs-overlay: oklch(0.22 0.02 250 / 0.38);
+  --kr-border: oklch(0.86 0.012 250);
+  --kr-border-strong: oklch(0.79 0.016 250);
+  --kr-border-subtle: oklch(0.91 0.009 250);
+  --kr-border-focus: oklch(0.52 0.15 244);
+  --kr-grid-line: oklch(0.76 0.012 250 / 0.55);
+  --kr-overlay: oklch(0.22 0.02 250 / 0.38);
 
-  --cs-success: oklch(0.74 0.13 150);
-  --cs-warning: oklch(0.78 0.13 75);
-  --cs-error: oklch(0.60 0.20 25);
+  --kr-success: oklch(0.74 0.13 150);
+  --kr-warning: oklch(0.78 0.13 75);
+  --kr-error: oklch(0.60 0.20 25);
 
   /* --- Typography --- */
-  --cs-font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --cs-font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
-  --cs-font-size-xs: 0.75rem;
-  --cs-font-size-sm: 0.875rem;
-  --cs-font-size-md: 1rem;
-  --cs-font-size-lg: 1.25rem;
-  --cs-font-size-xl: 1.5rem;
-  --cs-font-size-2xl: 2rem;
-  --cs-font-weight-normal: 400;
-  --cs-font-weight-medium: 500;
-  --cs-font-weight-bold: 600;
-  --cs-line-height: 1.5;
-  --cs-tracking: -0.01em;
+  --kr-font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --kr-font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
+  --kr-font-size-xs: 0.75rem;
+  --kr-font-size-sm: 0.875rem;
+  --kr-font-size-md: 1rem;
+  --kr-font-size-lg: 1.25rem;
+  --kr-font-size-xl: 1.5rem;
+  --kr-font-size-2xl: 2rem;
+  --kr-font-weight-normal: 400;
+  --kr-font-weight-medium: 500;
+  --kr-font-weight-bold: 600;
+  --kr-line-height: 1.5;
+  --kr-tracking: -0.01em;
 
   /* --- Spacing --- */
-  --cs-spacing-xs: 4px;
-  --cs-spacing-sm: 8px;
-  --cs-spacing-md: 16px;
-  --cs-spacing-lg: 24px;
-  --cs-spacing-xl: 32px;
-  --cs-spacing-2xl: 48px;
+  --kr-spacing-xs: 4px;
+  --kr-spacing-sm: 8px;
+  --kr-spacing-md: 16px;
+  --kr-spacing-lg: 24px;
+  --kr-spacing-xl: 32px;
+  --kr-spacing-2xl: 48px;
 
   /* --- Border Radius --- */
-  --cs-radius-sm: 4px;
-  --cs-radius-md: 8px;
-  --cs-radius-lg: 12px;
-  --cs-radius-xl: 16px;
-  --cs-radius-full: 9999px;
+  --kr-radius-sm: 4px;
+  --kr-radius-md: 8px;
+  --kr-radius-lg: 12px;
+  --kr-radius-xl: 16px;
+  --kr-radius-full: 9999px;
 
   /* --- Shadows --- */
-  --cs-shadow-sm: 0 1px 3px oklch(0.30 0.02 250 / 0.10);
-  --cs-shadow-md: 0 10px 28px -12px oklch(0.30 0.02 250 / 0.18);
-  --cs-shadow-lg: 0 32px 72px -28px oklch(0.30 0.02 250 / 0.24);
+  --kr-shadow-sm: 0 1px 3px oklch(0.30 0.02 250 / 0.10);
+  --kr-shadow-md: 0 10px 28px -12px oklch(0.30 0.02 250 / 0.18);
+  --kr-shadow-lg: 0 32px 72px -28px oklch(0.30 0.02 250 / 0.24);
 
   /* --- Transitions --- */
-  --cs-transition-fast: 120ms ease;
-  --cs-transition-normal: 250ms ease;
-  --cs-transition-slow: 400ms ease;
+  --kr-transition-fast: 120ms ease;
+  --kr-transition-normal: 250ms ease;
+  --kr-transition-slow: 400ms ease;
 
   /* --- Layout --- */
-  --cs-toolbar-height: 48px;
-  --cs-sidebar-width: 280px;
+  --kr-toolbar-height: 48px;
+  --kr-sidebar-width: 280px;
 
   /* --- Engineering grid backdrop (viewport / hero / cards) --- */
-  --cs-grid-backdrop:
+  --kr-grid-backdrop:
     radial-gradient(130% 110% at 50% 36%, oklch(0.99 0.012 244), oklch(0.94 0.009 250)),
-    linear-gradient(var(--cs-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--cs-grid-line) 1px, transparent 1px);
+    linear-gradient(var(--kr-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kr-grid-line) 1px, transparent 1px);
 }

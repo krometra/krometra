@@ -460,7 +460,7 @@ const selectionLabel = useSelectionLabel();
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--cs-surface);
+  background: var(--kr-surface);
 }
 
 .middle {
@@ -485,19 +485,19 @@ const selectionLabel = useSelectionLabel();
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: var(--cs-surface-raised, #252535);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-raised, #252535);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 8px;
   font-size: 12.5px;
-  color: var(--cs-text);
+  color: var(--kr-text);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .busySpinner {
   width: 13px;
   height: 13px;
-  border: 2px solid var(--cs-border-strong);
-  border-top-color: var(--cs-primary);
+  border: 2px solid var(--kr-border-strong);
+  border-top-color: var(--kr-primary);
   border-radius: 50%;
   animation: busySpin 0.8s linear infinite;
 }
@@ -512,21 +512,21 @@ const selectionLabel = useSelectionLabel();
   position: absolute;
   top: 44px;
   left: 16px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   line-height: 1.7;
 }
 
 .readoutSel {
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 
 .props {
   width: 298px;
   flex-shrink: 0;
-  border-left: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface-alt);
+  border-left: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface-alt);
   display: flex;
   flex-direction: column;
 }

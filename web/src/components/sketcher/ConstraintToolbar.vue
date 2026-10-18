@@ -60,9 +60,9 @@ const emit = defineEmits<{
 
 .constraintCtx {
   font-size: 11px;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
   margin-right: 6px;
-  font-family: var(--cs-font-mono, monospace);
+  font-family: var(--kr-font-mono, monospace);
 }
 
 .constraintBtn {
@@ -72,12 +72,12 @@ const emit = defineEmits<{
   align-items: center;
   gap: 4px;
   padding: 0 8px;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 5px;
   background: transparent;
-  color: var(--cs-text-disabled);
+  color: var(--kr-text-disabled);
   cursor: pointer;
-  font-family: var(--cs-font-mono, monospace);
+  font-family: var(--kr-font-mono, monospace);
   font-size: 12px;
   transition: all 0.12s;
 }
@@ -87,7 +87,7 @@ const emit = defineEmits<{
 }
 
 .constraintBtnActive {
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
   border-color: oklch(0.78 0.13 75 / 0.4);
 }
 
@@ -96,8 +96,8 @@ const emit = defineEmits<{
 }
 
 .constraintBtn:disabled {
-  color: var(--cs-text-disabled);
-  border-color: var(--cs-border-subtle);
+  color: var(--kr-text-disabled);
+  border-color: var(--kr-border-subtle);
   cursor: not-allowed;
 }
 
@@ -108,17 +108,17 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 5px;
   background: transparent;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   cursor: pointer;
   font-size: 13px;
   margin-left: 4px;
 }
 
 .constraintClearBtn:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 </style>

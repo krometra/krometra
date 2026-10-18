@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsCheckbox from "@/components/ui/CsCheckbox.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrCheckbox from "@/components/ui/KrCheckbox.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import type { BooleanModeApi } from "@/composables/editor/useBooleanMode";
 import type { BooleanOperation } from "@/types/api";
@@ -47,7 +47,7 @@ function addTool(bodyId: string) {
       <div :class="$style.field">
         <span :class="$style.label">Операция</span>
         <div :class="$style.operations">
-          <CsButton
+          <KrButton
             v-for="op in OPERATIONS"
             :key="op.value"
             size="sm"
@@ -56,11 +56,11 @@ function addTool(bodyId: string) {
             @click="boolean.setOperation(op.value)"
           >
             {{ op.label }}
-          </CsButton>
+          </KrButton>
         </div>
       </div>
 
-      <CsSelect
+      <KrSelect
         :model-value="boolean.targetId.value ?? ''"
         :options="targetOptions"
         label="Целевое тело"
@@ -77,7 +77,7 @@ function addTool(bodyId: string) {
           test-id="boolean-tools"
           @remove="boolean.removeTool"
         />
-        <CsSelect
+        <KrSelect
           v-if="toolOptions.length > 0"
           :key="boolean.toolIds.value.join()"
           model-value=""
@@ -88,7 +88,7 @@ function addTool(bodyId: string) {
         />
       </div>
 
-      <CsCheckbox
+      <KrCheckbox
         :model-value="boolean.keepTools.value"
         label="Сохранить инструменты"
         data-testid="boolean-keep-tools"
@@ -102,11 +102,11 @@ function addTool(bodyId: string) {
     </div>
 
     <template #foot>
-      <CsButton variant="primary" :disabled="!canApply" data-testid="boolean-apply" @click="boolean.apply">
+      <KrButton variant="primary" :disabled="!canApply" data-testid="boolean-apply" @click="boolean.apply">
         {{ boolean.loading.value ? "Строю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" data-testid="boolean-clear" @click="boolean.clear">Сбросить</CsButton>
-      <CsButton variant="ghost" @click="boolean.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" data-testid="boolean-clear" @click="boolean.clear">Сбросить</KrButton>
+      <KrButton variant="ghost" @click="boolean.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -115,15 +115,15 @@ function addTool(bodyId: string) {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .status {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .field {
@@ -133,8 +133,8 @@ function addTool(bodyId: string) {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .operations {
@@ -143,13 +143,13 @@ function addTool(bodyId: string) {
 }
 
 .hint {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-red-strong);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-red-strong);
 }
 </style>

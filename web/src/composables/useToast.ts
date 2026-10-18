@@ -1,4 +1,4 @@
-// Глобальные тосты через CsToast (регистрирует window.__csToast в App.vue)
+// Глобальные тосты через KrToast (регистрирует window.__csToast в App.vue)
 
 type ToastType = "success" | "error" | "warning" | "info";
 

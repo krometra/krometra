@@ -16,12 +16,12 @@ html {
 }
 
 body {
-  font-family: var(--cs-font-family);
-  font-size: var(--cs-font-size-md);
-  line-height: var(--cs-line-height);
-  letter-spacing: var(--cs-tracking);
-  color: var(--cs-text);
-  background-color: var(--cs-surface);
+  font-family: var(--kr-font-family);
+  font-size: var(--kr-font-size-md);
+  line-height: var(--kr-line-height);
+  letter-spacing: var(--kr-tracking);
+  color: var(--kr-text);
+  background-color: var(--kr-surface);
   overflow: hidden;
   height: 100vh;
 }
@@ -33,12 +33,12 @@ body {
 }
 
 a {
-  color: var(--cs-primary);
+  color: var(--kr-primary);
   text-decoration: none;
 }
 
 a:hover {
-  color: var(--cs-primary-hover);
+  color: var(--kr-primary-hover);
 }
 
 button {
@@ -54,8 +54,8 @@ select {
 }
 
 ::selection {
-  background-color: var(--cs-primary);
-  color: var(--cs-surface);
+  background-color: var(--kr-primary);
+  color: var(--kr-surface);
 }
 
 ::-webkit-scrollbar {
@@ -64,14 +64,14 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--cs-surface);
+  background: var(--kr-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--cs-border);
-  border-radius: var(--cs-radius-full);
+  background: var(--kr-border);
+  border-radius: var(--kr-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--cs-text-secondary);
+  background: var(--kr-text-secondary);
 }

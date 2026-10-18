@@ -23,7 +23,7 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
-const id = `cs-tabs-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-tabs-${Math.random().toString(36).slice(2, 9)}`;
 
 const [state, send] = useMachine(
   zagTabs.machine({
@@ -83,20 +83,20 @@ watch(
 
 .list {
   display: flex;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .trigger {
   flex: 1;
-  padding: var(--cs-spacing-xs) var(--cs-spacing-sm);
+  padding: var(--kr-spacing-xs) var(--kr-spacing-sm);
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
-  font-weight: var(--cs-font-weight-medium);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  font-weight: var(--kr-font-weight-medium);
   cursor: pointer;
-  transition: color var(--cs-transition-fast), border-color var(--cs-transition-fast);
+  transition: color var(--kr-transition-fast), border-color var(--kr-transition-fast);
 }
 
 .trigger:focus {
@@ -104,21 +104,21 @@ watch(
 }
 
 .trigger:focus-visible {
-  outline: 2px solid var(--cs-border-focus);
+  outline: 2px solid var(--kr-border-focus);
   outline-offset: -2px;
-  border-radius: var(--cs-radius-sm);
+  border-radius: var(--kr-radius-sm);
 }
 
 .trigger:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .triggerActive {
-  color: var(--cs-text);
-  border-bottom-color: var(--cs-primary);
+  color: var(--kr-text);
+  border-bottom-color: var(--kr-primary);
 }
 
 .content {
-  padding: var(--cs-spacing-sm) 0;
+  padding: var(--kr-spacing-sm) 0;
 }
 </style>

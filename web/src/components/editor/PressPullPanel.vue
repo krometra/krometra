@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
-import CsInput from "@/components/ui/CsInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
+import KrInput from "@/components/ui/KrInput.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { pressPullDirectionHint } from "@/lib/browserPressPull";
 import { pluralize } from "@/lib/plural";
@@ -39,21 +39,21 @@ function updateDistance(text: string) {
         <li v-for="(row, index) in pressPull.faceRows.value" :key="String(row.faceId)" :class="$style.row" data-testid="press-pull-face-row">
           <span :class="$style.index">{{ index + 1 }}</span>
           <span :class="$style.label">{{ row.label }}</span>
-          <CsButton
+          <KrButton
             variant="ghost"
             size="sm"
             :aria-label="`Снять с выбора: ${row.label}`"
             data-testid="press-pull-face-remove"
             @click="pressPull.removeFace(row.faceId)"
           >
-            <CsIcon name="close" :size="12" />
-          </CsButton>
+            <KrIcon name="close" :size="12" />
+          </KrButton>
         </li>
       </ul>
 
       <div :class="$style.field" data-testid="press-pull-distance">
         <span :class="$style.fieldLabel">Смещение, мм</span>
-        <CsInput
+        <KrInput
           :model-value="field.text.value"
           :error="field.error.value ?? undefined"
           inputmode="decimal"
@@ -67,22 +67,22 @@ function updateDistance(text: string) {
       <div :class="$style.field">
         <span :class="$style.fieldLabel">Результат</span>
         <div :class="$style.modes">
-          <CsButton
+          <KrButton
             size="sm"
             :variant="pressPull.newBody.value ? 'secondary' : 'primary'"
             data-testid="press-pull-move"
             @click="pressPull.setNewBody(false)"
           >
             Сдвинуть грань
-          </CsButton>
-          <CsButton
+          </KrButton>
+          <KrButton
             size="sm"
             :variant="pressPull.newBody.value ? 'primary' : 'secondary'"
             data-testid="press-pull-new-body"
             @click="pressPull.setNewBody(true)"
           >
             Новое тело
-          </CsButton>
+          </KrButton>
         </div>
       </div>
 
@@ -90,16 +90,16 @@ function updateDistance(text: string) {
     </div>
 
     <template #foot>
-      <CsButton
+      <KrButton
         variant="primary"
         :disabled="!pressPull.canApply.value"
         data-testid="press-pull-apply"
         @click="pressPull.apply"
       >
         {{ pressPull.loading.value ? "Строю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" :disabled="!hasFaces" data-testid="press-pull-clear" @click="pressPull.clear">Сброс</CsButton>
-      <CsButton variant="ghost" @click="pressPull.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="press-pull-clear" @click="pressPull.clear">Сброс</KrButton>
+      <KrButton variant="ghost" @click="pressPull.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -108,19 +108,19 @@ function updateDistance(text: string) {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .status {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .statusReady {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .list {
@@ -129,29 +129,29 @@ function updateDistance(text: string) {
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-md);
-  background: var(--cs-surface-sunken);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-md);
+  background: var(--kr-surface-sunken);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-sm);
-  padding: 0 var(--cs-spacing-xs) 0 var(--cs-spacing-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  gap: var(--kr-spacing-sm);
+  padding: 0 var(--kr-spacing-xs) 0 var(--kr-spacing-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .row + .row {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 
 .index {
   flex-shrink: 0;
-  min-width: var(--cs-spacing-md);
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  min-width: var(--kr-spacing-md);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .label {
@@ -169,8 +169,8 @@ function updateDistance(text: string) {
 }
 
 .fieldLabel {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .modes {
@@ -179,14 +179,14 @@ function updateDistance(text: string) {
 }
 
 .hint {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-danger);
+  color: var(--kr-danger);
 }
 </style>

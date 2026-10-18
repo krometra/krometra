@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsDialog from "@/components/ui/CsDialog.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
-import CsTabs from "@/components/ui/CsTabs.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrDialog from "@/components/ui/KrDialog.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
+import KrTabs from "@/components/ui/KrTabs.vue";
 import type { ExportApi } from "@/composables/editor/useExport";
 import { useMeshExportDialog } from "@/composables/editor/useMeshExportDialog";
 import { ANGLE_RANGE_DEG, QUALITY_LABELS, TOLERANCE_RANGE, type QualityPreset } from "@/lib/meshQuality";
@@ -32,14 +32,14 @@ function onOpenChange(open: boolean) {
 </script>
 
 <template>
-  <CsDialog :open="target !== null" @update:open="onOpenChange">
+  <KrDialog :open="target !== null" @update:open="onOpenChange">
     <template #title>Экспорт {{ formatLabel }}</template>
     <div v-if="target" :class="$style.body" data-testid="mesh-export-dialog">
       <div :class="$style.scope">{{ exportApi.targetLabel(target.bodyIds) }}</div>
       <div :class="$style.caption">Качество сетки</div>
-      <CsTabs v-model="presetValue" :tabs="PRESET_TABS" />
+      <KrTabs v-model="presetValue" :tabs="PRESET_TABS" />
       <div v-if="choice.preset === 'custom'" :class="$style.custom">
-        <CsNumberInput
+        <KrNumberInput
           v-model="choice.custom.tolerance"
           label="Линейный допуск"
           suffix="мм"
@@ -47,7 +47,7 @@ function onOpenChange(open: boolean) {
           :max="TOLERANCE_RANGE.max"
           :step="0.001"
         />
-        <CsNumberInput
+        <KrNumberInput
           v-model="choice.custom.angleDeg"
           label="Угловой допуск"
           suffix="°"
@@ -62,46 +62,46 @@ function onOpenChange(open: boolean) {
       </div>
     </div>
     <template #footer>
-      <CsButton variant="secondary" size="md" @click="dialog.close">Отмена</CsButton>
-      <CsButton variant="primary" size="md" :disabled="Boolean(dialog.qualityError.value)" @click="dialog.confirm">
+      <KrButton variant="secondary" size="md" @click="dialog.close">Отмена</KrButton>
+      <KrButton variant="primary" size="md" :disabled="Boolean(dialog.qualityError.value)" @click="dialog.confirm">
         Скачать {{ formatLabel }}
-      </CsButton>
+      </KrButton>
     </template>
-  </CsDialog>
+  </KrDialog>
 </template>
 
 <style module>
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
   min-width: 340px;
 }
 
 .scope {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text);
 }
 
 .caption {
-  font-size: var(--cs-font-size-sm);
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text-secondary);
 }
 
 .custom {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
 }
 
 .hint,
 .estimate {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-secondary);
 }
 
 .error {
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 </style>

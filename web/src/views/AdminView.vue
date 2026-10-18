@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { FxSegmented } from "foxy-ui-kit";
+import { KSegmented } from "@krometra/ui-kit";
 import { ADMIN_PERIODS, useAdminOverview, type AdminPeriod } from "@/composables/admin/useAdminOverview";
 import { errorMessage } from "@/lib/apiError";
 import { formatDate } from "@/lib/admin/format";
@@ -10,9 +10,9 @@ import AdminKpiGrid from "@/components/admin/AdminKpiGrid.vue";
 import AdminOperationBars from "@/components/admin/AdminOperationBars.vue";
 import AdminProjectsPanel from "@/components/admin/AdminProjectsPanel.vue";
 import AdminUsersPanel from "@/components/admin/AdminUsersPanel.vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
-import CsTabs from "@/components/ui/CsTabs.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
+import KrTabs from "@/components/ui/KrTabs.vue";
 
 const overview = useAdminOverview();
 const tab = ref("users");
@@ -30,7 +30,7 @@ onMounted(overview.load);
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <router-link to="/" :class="$style.back"><CsIcon name="arrowLeft" :size="16" />К проектам</router-link>
+      <router-link to="/" :class="$style.back"><KrIcon name="arrowLeft" :size="16" />К проектам</router-link>
     </header>
 
     <main :class="$style.content">
@@ -42,7 +42,7 @@ onMounted(overview.load);
             {{ formatDate(overview.overview.value.since) }}
           </p>
         </div>
-        <FxSegmented
+        <KSegmented
           :model-value="overview.period.value"
           :options="periodOptions"
           size="sm"
@@ -53,7 +53,7 @@ onMounted(overview.load);
 
       <div v-if="overview.failure.value" :class="$style.failure" role="alert">
         {{ errorMessage(overview.failure.value, "Не удалось загрузить аналитику.") }}
-        <CsButton variant="secondary" size="sm" @click="overview.load">Повторить</CsButton>
+        <KrButton variant="secondary" size="sm" @click="overview.load">Повторить</KrButton>
       </div>
 
       <template v-if="overview.overview.value">
@@ -74,10 +74,10 @@ onMounted(overview.load);
       </template>
       <p v-else-if="overview.loading.value" :class="$style.muted">Загрузка аналитики…</p>
 
-      <CsTabs v-model="tab" :tabs="tabs">
+      <KrTabs v-model="tab" :tabs="tabs">
         <AdminUsersPanel v-if="tab === 'users'" />
         <AdminProjectsPanel v-else />
-      </CsTabs>
+      </KrTabs>
     </main>
   </div>
 </template>
@@ -86,8 +86,8 @@ onMounted(overview.load);
 .page {
   height: 100vh;
   overflow-y: auto;
-  background: var(--cs-surface);
-  color: var(--cs-text);
+  background: var(--kr-surface);
+  color: var(--kr-text);
 }
 
 .header {
@@ -95,21 +95,21 @@ onMounted(overview.load);
   display: flex;
   align-items: center;
   padding: 0 30px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   text-decoration: none;
-  font-size: var(--cs-font-size-sm);
-  transition: color var(--cs-transition-fast);
+  font-size: var(--kr-font-size-sm);
+  transition: color var(--kr-transition-fast);
 }
 
 .back:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .content {
@@ -118,36 +118,36 @@ onMounted(overview.load);
   padding: 32px 30px 64px;
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-lg);
+  gap: var(--kr-spacing-lg);
 }
 
 .heading {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
   flex-wrap: wrap;
 }
 
 .title {
   margin: 0 0 6px;
-  font-size: var(--cs-font-size-2xl);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-2xl);
+  font-weight: var(--kr-font-weight-bold);
   letter-spacing: -0.02em;
 }
 
 .muted {
   margin: 0;
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
 }
 
 .failure {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--cs-error);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-error);
+  font-size: var(--kr-font-size-sm);
 }
 
 .stale {
@@ -157,23 +157,23 @@ onMounted(overview.load);
 .panels {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md) var(--cs-spacing-lg);
-  border: 1px solid var(--cs-border-subtle);
-  border-radius: var(--cs-radius-lg);
-  background: var(--cs-surface-raised);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md) var(--kr-spacing-lg);
+  border: 1px solid var(--kr-border-subtle);
+  border-radius: var(--kr-radius-lg);
+  background: var(--kr-surface-raised);
 }
 
 .cardTitle {
   margin: 0;
-  font-size: var(--cs-font-size-md);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-md);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 @media (max-width: 960px) {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { BrowserExtrudeOperation } from "@/lib/browserBoolean";
 import type { LoftTransition } from "@/lib/browserLoftSetup";
@@ -38,7 +38,7 @@ const applyLabel = computed(() => {
           <li v-for="(profile, index) in profiles" :key="profile.id" :class="$style.row" data-testid="loft-profile-row">
             <span :class="$style.index">{{ index + 1 }}</span>
             <span :class="$style.label">{{ profile.label }}</span>
-            <CsButton
+            <KrButton
               variant="ghost"
               size="sm"
               :disabled="index === 0"
@@ -46,9 +46,9 @@ const applyLabel = computed(() => {
               data-testid="loft-profile-up"
               @click="loft.moveProfile(index, -1)"
             >
-              <CsIcon name="arrowUp" :size="12" />
-            </CsButton>
-            <CsButton
+              <KrIcon name="arrowUp" :size="12" />
+            </KrButton>
+            <KrButton
               variant="ghost"
               size="sm"
               :disabled="index === profiles.length - 1"
@@ -56,20 +56,20 @@ const applyLabel = computed(() => {
               data-testid="loft-profile-down"
               @click="loft.moveProfile(index, 1)"
             >
-              <CsIcon name="arrowDown" :size="12" />
-            </CsButton>
-            <CsButton
+              <KrIcon name="arrowDown" :size="12" />
+            </KrButton>
+            <KrButton
               variant="ghost"
               size="sm"
               :aria-label="`Убрать из лофта: ${profile.label}`"
               data-testid="loft-profile-remove"
               @click="loft.removeProfile(index)"
             >
-              <CsIcon name="close" :size="12" />
-            </CsButton>
+              <KrIcon name="close" :size="12" />
+            </KrButton>
           </li>
         </ol>
-        <CsSelect
+        <KrSelect
           v-if="addOptions.length > 0"
           model-value=""
           :options="addOptions"
@@ -78,14 +78,14 @@ const applyLabel = computed(() => {
           @update:model-value="$event && loft.addProfile($event)"
         />
       </div>
-      <CsSelect
+      <KrSelect
         :model-value="operation"
         :options="OPERATIONS"
         label="Операция"
         data-testid="loft-operation"
         @update:model-value="loft.setOperation($event as BrowserExtrudeOperation)"
       />
-      <CsSelect
+      <KrSelect
         v-if="operation !== 'new_body'"
         :model-value="targetBodyId ?? ''"
         :options="targetOptions"
@@ -93,7 +93,7 @@ const applyLabel = computed(() => {
         data-testid="loft-target"
         @update:model-value="targetBodyId = $event || null"
       />
-      <CsSelect
+      <KrSelect
         :model-value="transition"
         :options="TRANSITIONS"
         label="Переход"
@@ -104,7 +104,7 @@ const applyLabel = computed(() => {
         Профиль - один замкнутый контур эскиза. Кликните эскиз в дереве или на ленте истории, чтобы добавить его. Гладкий переход плавно огибает промежуточные профили, линейный соединяет соседние прямыми.
       </p>
       <p v-if="message" :class="$style.error" data-testid="loft-error">{{ message }}</p>
-      <CsButton
+      <KrButton
         variant="primary"
         :disabled="loading || setupError !== null"
         :loading="loading"
@@ -112,10 +112,10 @@ const applyLabel = computed(() => {
         @click="loft.apply"
       >
         {{ applyLabel }}
-      </CsButton>
+      </KrButton>
     </div>
     <template #foot>
-      <CsButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="loft.exit">Отмена (Esc)</CsButton>
+      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="loft.exit">Отмена (Esc)</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -124,47 +124,47 @@ const applyLabel = computed(() => {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
 }
 
 .caption {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-secondary);
 }
 
 .list {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-md);
-  background: var(--cs-surface-sunken);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-md);
+  background: var(--kr-surface-sunken);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-xs);
-  padding: 0 var(--cs-spacing-xs) 0 var(--cs-spacing-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  gap: var(--kr-spacing-xs);
+  padding: 0 var(--kr-spacing-xs) 0 var(--kr-spacing-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .row + .row {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 
 .index {
   flex-shrink: 0;
-  min-width: var(--cs-spacing-md);
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  min-width: var(--kr-spacing-md);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .label {
@@ -177,31 +177,31 @@ const applyLabel = computed(() => {
 
 .hint {
   margin: 0;
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-muted);
   line-height: 1.45;
 }
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-error);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-error);
   line-height: 1.45;
 }
 
 .cancelBtn.cancelBtn {
   flex: 1;
   height: auto;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .cancelBtn.cancelBtn:hover {
   background: transparent;
-  border-color: var(--cs-text-muted);
-  color: var(--cs-text);
+  border-color: var(--kr-text-muted);
+  color: var(--kr-text);
 }
 </style>

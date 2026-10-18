@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import { useTimelineMarkerDrag } from "@/composables/editor/useTimelineMarkerDrag";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { mirrorDetail } from "@/lib/mirrorPlane";
@@ -172,14 +172,14 @@ function timelineDetail(entry: TimelineEntry): string {
           <div :class="$style.nodeDetail">{{ timelineDetail(slot.entry) }}</div>
         </div>
       </template>
-      <CsButton
+      <KrButton
         variant="ghost"
         size="sm"
         :class="$style.addNode"
         :disabled="!!lockReason"
         :title="lockReason ?? 'Новая операция — начните с эскиза (S)'"
         @click="emit('add-sketch')"
-        >＋</CsButton
+        >＋</KrButton
       >
     </div>
   </div>
@@ -189,8 +189,8 @@ function timelineDetail(entry: TimelineEntry): string {
 .timeline {
   height: 92px;
   flex-shrink: 0;
-  border-top: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface-alt);
+  border-top: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface-alt);
   display: flex;
   align-items: stretch;
 }
@@ -221,16 +221,16 @@ function timelineDetail(entry: TimelineEntry): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--cs-surface-raised);
-  border: 1.5px solid var(--cs-border-strong);
-  color: var(--cs-text-secondary);
-  transition: all var(--cs-transition-fast);
+  background: var(--kr-surface-raised);
+  border: 1.5px solid var(--kr-border-strong);
+  color: var(--kr-text-secondary);
+  transition: all var(--kr-transition-fast);
 }
 
 .nodeIconActive {
-  background: var(--cs-primary-soft);
-  border-color: var(--cs-primary);
-  color: var(--cs-primary);
+  background: var(--kr-primary-soft);
+  border-color: var(--kr-primary);
+  color: var(--kr-primary);
   box-shadow: 0 0 0 4px oklch(0.52 0.15 244 / 0.12);
 }
 
@@ -244,8 +244,8 @@ function timelineDetail(entry: TimelineEntry): string {
 }
 
 .nodeIconError {
-  border-color: var(--cs-red-strong);
-  color: var(--cs-red-strong);
+  border-color: var(--kr-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .nodeLabelSuppressed {
@@ -271,7 +271,7 @@ function timelineDetail(entry: TimelineEntry): string {
   bottom: 0;
   width: 2px;
   border-radius: 1px;
-  background: var(--cs-primary);
+  background: var(--kr-primary);
 }
 
 .marker::after {
@@ -282,11 +282,11 @@ function timelineDetail(entry: TimelineEntry): string {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--cs-primary);
+  background: var(--kr-primary);
 }
 
 .marker:focus-visible {
-  outline: 2px solid var(--cs-primary);
+  outline: 2px solid var(--kr-primary);
   outline-offset: 2px;
 }
 
@@ -297,41 +297,41 @@ function timelineDetail(entry: TimelineEntry): string {
 
 .markerDragging::before,
 .markerDragging::after {
-  background: var(--cs-primary-active);
+  background: var(--kr-primary-active);
 }
 
 .nodeLabel {
   font-size: 10px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   margin-top: 5px;
   white-space: nowrap;
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .nodeDetail {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 9px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   white-space: nowrap;
 }
 
-/* Пунктирная квадратная кнопка «плюс»: перебиваем геометрию CsButton size="sm". */
+/* Пунктирная квадратная кнопка «плюс»: перебиваем геометрию KrButton size="sm". */
 .addNode.addNode {
   width: 38px;
   height: 38px;
   padding: 0;
   border-radius: 9px;
-  border: 1.5px dashed var(--cs-border-strong);
-  color: var(--cs-text-secondary);
+  border: 1.5px dashed var(--kr-border-strong);
+  color: var(--kr-text-secondary);
   font-size: 18px;
-  background: var(--cs-surface-alt);
+  background: var(--kr-surface-alt);
   flex-shrink: 0;
   margin: 0 16px;
 }
 
 .addNode.addNode:hover {
-  background: var(--cs-surface-alt);
-  border-color: var(--cs-primary);
-  color: var(--cs-primary);
+  background: var(--kr-surface-alt);
+  border-color: var(--kr-primary);
+  color: var(--kr-primary);
 }
 </style>

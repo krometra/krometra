@@ -22,7 +22,7 @@ const emit = defineEmits<{
   "update:expandedIds": [value: string[]];
 }>();
 
-const id = `cs-tree-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-tree-${Math.random().toString(36).slice(2, 9)}`;
 
 function makeCollection(nodes: TreeNode[]) {
   return treeView.collection({
@@ -129,29 +129,29 @@ watch(
 }
 
 .tree {
-  padding: var(--cs-spacing-xs) 0;
+  padding: var(--kr-spacing-xs) 0;
 }
 
 .node {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-xs);
-  padding: var(--cs-spacing-xs) var(--cs-spacing-sm);
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
+  gap: var(--kr-spacing-xs);
+  padding: var(--kr-spacing-xs) var(--kr-spacing-sm);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
   cursor: pointer;
-  transition: background var(--cs-transition-fast), color var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), color var(--kr-transition-fast);
   user-select: none;
 }
 
 .node:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .selected {
-  color: var(--cs-text);
-  background: var(--cs-primary-soft);
+  color: var(--kr-text);
+  background: var(--kr-primary-soft);
 }
 
 .chevron {
@@ -161,7 +161,7 @@ watch(
   width: 16px;
   height: 16px;
   font-size: 10px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   flex-shrink: 0;
 }
 

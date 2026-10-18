@@ -20,7 +20,7 @@
 
 ## Дублирование
 
-- **Сырые `<button>`/`<input>` вне `components/ui/`** (19 файлов в `RAW_CONTROL_DEBTORS`, `web/eslint.config.js`) при существующих `CsButton`/`CsInput`/`CsNumberInput`. Рост остановлен ESLint `vue/no-restricted-html-elements`, мигрировать попутно с декомпозицией — ROADMAP п. 8.
+- **Сырые `<button>`/`<input>` вне `components/ui/`** (19 файлов в `RAW_CONTROL_DEBTORS`, `web/eslint.config.js`) при существующих `KrButton`/`KrInput`/`KrNumberInput`. Рост остановлен ESLint `vue/no-restricted-html-elements`, мигрировать попутно с декомпозицией — ROADMAP п. 8.
 - **`web/src/types/api.ts`** — часть типов по-прежнему описана руками рядом с генерируемым `api.generated.ts` (`npm run gen:api`, CI-джоба `api-types`). По мере правок переводить на схему — ROADMAP п. 6.
 
 ## Обходы и особые пути

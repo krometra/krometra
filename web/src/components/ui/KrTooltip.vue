@@ -13,7 +13,7 @@ const props = withDefaults(
   }
 );
 
-const id = `cs-tooltip-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-tooltip-${Math.random().toString(36).slice(2, 9)}`;
 
 const [state, send] = useMachine(
   tooltip.machine({
@@ -53,13 +53,13 @@ const api = computed(() =>
 .content {
   position: fixed;
   z-index: 1500;
-  padding: var(--cs-spacing-xs) var(--cs-spacing-sm);
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text);
-  box-shadow: var(--cs-shadow-md);
+  padding: var(--kr-spacing-xs) var(--kr-spacing-sm);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text);
+  box-shadow: var(--kr-shadow-md);
   white-space: nowrap;
   pointer-events: none;
 }

@@ -21,7 +21,7 @@ const props = withDefaults(
   }
 );
 
-const id = `cs-splitter-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-splitter-${Math.random().toString(36).slice(2, 9)}`;
 
 const [state, send] = useMachine(
   splitter.machine({

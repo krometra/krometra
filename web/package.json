@@ -38,7 +38,7 @@
     "@zag-js/tooltip": "^0.77.1",
     "@zag-js/tree-view": "^0.77.1",
     "@zag-js/vue": "^0.77.0",
-    "foxy-ui-kit": "^0.2.2",
+    "@krometra/ui-kit": "^0.3.0",
     "replicad": "1.1.0",
     "replicad-opencascadejs": "1.1.0",
     "three": "^0.170.0",

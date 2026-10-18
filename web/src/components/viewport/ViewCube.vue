@@ -11,7 +11,7 @@
  */
 import { computed, ref } from "vue";
 import * as THREE from "three";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import {
   CANONICAL_VIEWS,
   type CanonicalView,
@@ -144,7 +144,7 @@ const faceDefs = [
       aria-label="Изометрия"
       @click="handleHomeClick"
     >
-      <CsIcon name="home" :size="14" />
+      <KrIcon name="home" :size="14" />
     </button>
 
     <!-- 3D CSS Cube scene -->
@@ -225,22 +225,22 @@ const faceDefs = [
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   background: oklch(1 0 0 / 0.90);
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   cursor: pointer;
   font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(6px);
-  transition: all var(--cs-transition-fast);
+  transition: all var(--kr-transition-fast);
 }
 
 .homeBtn:hover {
-  background: var(--cs-primary-soft);
-  color: var(--cs-text);
-  border-color: var(--cs-primary);
+  background: var(--kr-primary-soft);
+  color: var(--kr-text);
+  border-color: var(--kr-primary);
 }
 
 /* 3D scene with perspective */
@@ -277,28 +277,28 @@ const faceDefs = [
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   background: oklch(0.985 0.006 244);
   backface-visibility: hidden;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
 }
 
 .face:hover {
-  background: var(--cs-primary-soft);
+  background: var(--kr-primary-soft);
 }
 
 .faceLabel {
-  font-family: var(--cs-font-family);
+  font-family: var(--kr-font-family);
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   letter-spacing: 0.04em;
-  color: var(--cs-text);
+  color: var(--kr-text);
   user-select: none;
   pointer-events: none;
 }
 
 .face:hover .faceLabel {
-  color: var(--cs-primary-active);
+  color: var(--kr-primary-active);
 }
 
 /* Each face positioned with CSS 3D transform */
@@ -329,7 +329,7 @@ const faceDefs = [
 /* -- Edges (thin clickable strips along face borders) -- */
 .edge {
   position: absolute;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
   z-index: 2;
 }
 
@@ -442,7 +442,7 @@ const faceDefs = [
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
   z-index: 3;
 }
 

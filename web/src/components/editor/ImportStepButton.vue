@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 
 defineProps<{
   loading: boolean;
@@ -11,7 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <CsButton
+  <KrButton
     variant="ghost"
     size="sm"
     :loading="loading"
@@ -20,5 +20,5 @@ const emit = defineEmits<{
     @click="emit('import')"
   >
     Импорт STEP ↑
-  </CsButton>
+  </KrButton>
 </template>

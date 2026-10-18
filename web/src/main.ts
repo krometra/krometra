@@ -1,9 +1,9 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import "foxy-ui-kit/style.css";
+import "@krometra/ui-kit/style.css";
 import "./styles/sketcher.css";
-import { applyTheme } from "foxy-ui-kit";
+import { applyTheme } from "@krometra/ui-kit";
 import { useI18n } from "./composables/shared/useI18n";
 
 applyTheme({

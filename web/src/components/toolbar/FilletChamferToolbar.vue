@@ -181,9 +181,9 @@ function handleApply() {
 
 <style module>
 .toolbar {
-  border: 1px solid var(--cs-border);
+  border: 1px solid var(--kr-border);
   border-radius: 10px;
-  background: var(--cs-surface-raised);
+  background: var(--kr-surface-raised);
   overflow: hidden;
 }
 
@@ -192,13 +192,13 @@ function handleApply() {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .title {
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text);
 }
 
 .closeBtn {
@@ -211,13 +211,13 @@ function handleApply() {
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 14px;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
 }
 
 .closeBtn:hover {
-  background: var(--cs-surface-hover);
+  background: var(--kr-surface-hover);
 }
 
 .body {
@@ -237,23 +237,23 @@ function handleApply() {
   cursor: pointer;
   padding: 7px 8px;
   font-size: 12px;
-  font-family: var(--cs-font-mono);
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border);
+  font-family: var(--kr-font-mono);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border);
   border-radius: 6px;
-  color: var(--cs-text-secondary);
-  transition: all var(--cs-transition-fast);
+  color: var(--kr-text-secondary);
+  transition: all var(--kr-transition-fast);
 }
 
 .modeBtn:hover {
-  border-color: var(--cs-primary-border);
-  color: var(--cs-text);
+  border-color: var(--kr-primary-border);
+  color: var(--kr-text);
 }
 
 .modeBtnActive {
-  background: var(--cs-primary-soft);
-  border-color: var(--cs-primary-border);
-  color: var(--cs-primary-active);
+  background: var(--kr-primary-soft);
+  border-color: var(--kr-primary-border);
+  color: var(--kr-primary-active);
 }
 
 .field {
@@ -264,34 +264,34 @@ function handleApply() {
 
 .fieldLabel {
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   display: flex;
   justify-content: space-between;
 }
 
 .fieldExpr {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .fieldInput {
   display: flex;
   align-items: center;
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 7px;
   padding: 9px 12px;
-  transition: border-color var(--cs-transition-fast);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .fieldInput:hover {
-  border-color: var(--cs-primary-border);
+  border-color: var(--kr-primary-border);
 }
 
 .fieldUnit {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 
 .numberInput {
@@ -299,10 +299,10 @@ function handleApply() {
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 14px;
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text);
   -moz-appearance: textfield;
 }
 
@@ -316,11 +316,11 @@ function handleApply() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   padding: 6px 10px;
-  background: var(--cs-surface-sunken);
+  background: var(--kr-surface-sunken);
   border-radius: 6px;
 }
 
@@ -329,7 +329,7 @@ function handleApply() {
   font-size: 12px;
   line-height: 1.5;
   align-items: flex-start;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 
 .statusPrompt .statusDot {
@@ -341,7 +341,7 @@ function handleApply() {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--cs-text-muted);
+  background: var(--kr-text-muted);
 }
 
 .statusDotActive {
@@ -351,7 +351,7 @@ function handleApply() {
 .error {
   padding: 8px 10px;
   font-size: 12px;
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
   background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
   border-radius: 6px;
@@ -373,21 +373,21 @@ function handleApply() {
   gap: 6px;
   padding: 9px;
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
-  background: var(--cs-primary);
-  color: var(--cs-primary-fg);
+  font-weight: var(--kr-font-weight-bold);
+  background: var(--kr-primary);
+  color: var(--kr-primary-fg);
   border: none;
   border-radius: 7px;
-  transition: background var(--cs-transition-fast), opacity var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), opacity var(--kr-transition-fast);
 }
 
 .applyBtn:hover:not(:disabled) {
-  background: var(--cs-primary-hover);
+  background: var(--kr-primary-hover);
 }
 
 .applyBtn:disabled {
-  background: var(--cs-surface-sunken);
-  color: var(--cs-text-disabled);
+  background: var(--kr-surface-sunken);
+  color: var(--kr-text-disabled);
   cursor: not-allowed;
 }
 
@@ -410,14 +410,14 @@ function handleApply() {
   padding: 9px 14px;
   font-size: 13px;
   background: transparent;
-  border: 1px solid var(--cs-border);
+  border: 1px solid var(--kr-border);
   border-radius: 7px;
-  color: var(--cs-text-secondary);
-  transition: all var(--cs-transition-fast);
+  color: var(--kr-text-secondary);
+  transition: all var(--kr-transition-fast);
 }
 
 .clearBtn:hover {
-  border-color: var(--cs-text-muted);
-  color: var(--cs-text);
+  border-color: var(--kr-text-muted);
+  color: var(--kr-text);
 }
 </style>

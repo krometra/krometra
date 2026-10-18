@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FilletChamferToolbar from "@/components/toolbar/FilletChamferToolbar.vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import EdgeSelectionList from "./EdgeSelectionList.vue";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { FilletChamferApi } from "@/composables/editor/useFilletChamfer";
@@ -35,7 +35,7 @@ defineProps<{ fillet: FilletChamferApi }>();
       </template>
     </FilletChamferToolbar>
     <template #foot>
-      <CsButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="fillet.exit">Закрыть</CsButton>
+      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="fillet.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -45,17 +45,17 @@ defineProps<{ fillet: FilletChamferApi }>();
   flex: 1;
   height: auto;
   background: transparent;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: var(--cs-text-secondary);
-  transition: border-color var(--cs-transition-fast);
+  color: var(--kr-text-secondary);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .cancelBtn.cancelBtn:hover {
   background: transparent;
-  border-color: var(--cs-text-muted);
-  color: var(--cs-text);
+  border-color: var(--kr-text-muted);
+  color: var(--kr-text);
 }
 </style>

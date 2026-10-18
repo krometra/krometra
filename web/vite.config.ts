@@ -8,9 +8,9 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: "@", replacement: resolve(__dirname, "src") },
-      // Условие "development" отдаёт исходники foxy-ui-kit с голыми импортами
+      // Условие "development" отдаёт исходники @krometra/ui-kit с голыми импортами
       // @zag-js 1.x, и в dev они сталкиваются с нашими @zag-js 0.77 в кэше Vite.
-      { find: /^foxy-ui-kit$/, replacement: resolve(__dirname, "node_modules/foxy-ui-kit/dist/foxy-ui-kit.js") },
+      { find: /^@krometra\/ui-kit$/, replacement: resolve(__dirname, "node_modules/@krometra/ui-kit/dist/ui-kit.js") },
     ],
   },
   server: {

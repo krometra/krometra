@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FxInput } from "foxy-ui-kit";
+import { KInput } from "@krometra/ui-kit";
 
 defineProps<{
   modelValue?: string;
@@ -15,7 +15,7 @@ defineProps<{
 </script>
 
 <template>
-  <FxInput
+  <KInput
     :model-value="modelValue"
     :label="label"
     :type="type || 'text'"

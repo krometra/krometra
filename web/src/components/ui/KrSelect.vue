@@ -27,7 +27,7 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
-const id = `cs-select-${Math.random().toString(36).slice(2, 9)}`;
+const id = `kr-select-${Math.random().toString(36).slice(2, 9)}`;
 
 function makeCollection(opts: Option[]) {
   return new ListCollection({
@@ -122,34 +122,34 @@ watch(
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-xs);
+  gap: var(--kr-spacing-xs);
   width: 100%;
   position: relative;
 }
 
 .label {
-  font-size: var(--cs-font-size-sm);
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text-secondary);
 }
 
 .trigger {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-sm);
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-md);
-  color: var(--cs-text);
-  font-size: var(--cs-font-size-sm);
-  padding: var(--cs-spacing-sm) var(--cs-spacing-md);
+  gap: var(--kr-spacing-sm);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-md);
+  color: var(--kr-text);
+  font-size: var(--kr-font-size-sm);
+  padding: var(--kr-spacing-sm) var(--kr-spacing-md);
   cursor: pointer;
   height: 36px;
-  transition: border-color var(--cs-transition-fast);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .trigger:hover {
-  border-color: var(--cs-primary-border);
+  border-color: var(--kr-primary-border);
 }
 
 .triggerText {
@@ -162,8 +162,8 @@ watch(
 
 .arrow {
   font-size: 10px;
-  color: var(--cs-text-muted);
-  transition: transform var(--cs-transition-fast);
+  color: var(--kr-text-muted);
+  transition: transform var(--kr-transition-fast);
 }
 
 .arrowOpen {
@@ -176,17 +176,17 @@ watch(
   left: 0;
   right: 0;
   z-index: 100;
-  margin-top: var(--cs-spacing-xs);
+  margin-top: var(--kr-spacing-xs);
 }
 
 .options {
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-md);
-  box-shadow: var(--cs-shadow-md);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-md);
+  box-shadow: var(--kr-shadow-md);
   list-style: none;
   margin: 0;
-  padding: var(--cs-spacing-xs);
+  padding: var(--kr-spacing-xs);
   max-height: 240px;
   overflow: auto;
 }
@@ -195,26 +195,26 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--cs-spacing-xs) var(--cs-spacing-sm);
-  border-radius: var(--cs-radius-sm);
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-secondary);
+  padding: var(--kr-spacing-xs) var(--kr-spacing-sm);
+  border-radius: var(--kr-radius-sm);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-secondary);
   cursor: pointer;
-  transition: background var(--cs-transition-fast), color var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), color var(--kr-transition-fast);
 }
 
 .option:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .optionSelected {
-  color: var(--cs-text);
-  background: var(--cs-primary-soft);
+  color: var(--kr-text);
+  background: var(--kr-primary-soft);
 }
 
 .check {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-primary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-primary);
 }
 </style>

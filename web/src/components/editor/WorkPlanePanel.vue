@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsInput from "@/components/ui/CsInput.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { WORK_PLANE_BASES, WORK_PLANE_KIND_LABELS, type AxisRef, type PlaneRef, type PointRef, type WorkPlaneKind } from "@/lib/workPlane";
 import type { QuantityField } from "@/composables/editor/useQuantityField";
@@ -56,7 +56,7 @@ const statusText = computed(() => {
   <PropsPanelShell :title="editingId ? 'Изменить плоскость' : 'Рабочая плоскость'" kind="CONSTRUCTION" dot-color="oklch(0.76 0.13 80)">
     <div :class="$style.body" data-testid="work-plane-panel">
       <div :class="$style.row">
-        <CsButton
+        <KrButton
           v-for="option in kinds"
           :key="option"
           size="sm"
@@ -65,7 +65,7 @@ const statusText = computed(() => {
           @click="tool.setKind(option)"
         >
           {{ WORK_PLANE_KIND_LABELS[option] }}
-        </CsButton>
+        </KrButton>
       </div>
 
       <p :class="[$style.status, canApply && $style.statusReady]" data-testid="work-plane-status">{{ statusText }}</p>
@@ -73,11 +73,11 @@ const statusText = computed(() => {
       <div v-if="kind === 'angle'" :class="$style.field">
         <span :class="$style.label">Ось: {{ axisText(axis) }}</span>
         <div :class="$style.row">
-          <CsButton size="sm" :variant="picking === 'axis' ? 'primary' : 'secondary'" data-testid="work-plane-axis-edge" @click="tool.startPicking('axis')">
+          <KrButton size="sm" :variant="picking === 'axis' ? 'primary' : 'secondary'" data-testid="work-plane-axis-edge" @click="tool.startPicking('axis')">
             Ребро
-          </CsButton>
+          </KrButton>
         </div>
-        <CsSelect
+        <KrSelect
           v-if="sketchLineOptions.length > 0"
           :model-value="axisSketchValue"
           :options="sketchLineOptions"
@@ -90,7 +90,7 @@ const statusText = computed(() => {
       <div v-if="usesReference" :class="$style.field">
         <span :class="$style.label">{{ kind === 'angle' ? 'Угол отсчитывается от' : 'Опорная плоскость' }}: {{ referenceText(reference) }}</span>
         <div :class="$style.row">
-          <CsButton
+          <KrButton
             v-for="plane in WORK_PLANE_BASES"
             :key="plane"
             size="sm"
@@ -99,20 +99,20 @@ const statusText = computed(() => {
             @click="tool.selectBasePlane(plane)"
           >
             {{ plane }}
-          </CsButton>
-          <CsButton
+          </KrButton>
+          <KrButton
             size="sm"
             :variant="picking === 'reference' || reference.kind === 'face' ? 'primary' : 'secondary'"
             data-testid="work-plane-ref-face"
             @click="tool.startPicking('reference')"
           >
             Грань
-          </CsButton>
+          </KrButton>
         </div>
       </div>
 
       <div v-if="kind === 'offset'" :class="$style.field" data-testid="work-plane-distance">
-        <CsInput
+        <KrInput
           :model-value="tool.distanceField.text.value"
           label="Расстояние, мм"
           :error="tool.distanceField.error.value ?? undefined"
@@ -122,7 +122,7 @@ const statusText = computed(() => {
       </div>
 
       <div v-if="kind === 'angle'" :class="$style.field" data-testid="work-plane-angle">
-        <CsInput
+        <KrInput
           :model-value="tool.angleField.text.value"
           label="Угол, °"
           :error="tool.angleField.error.value ?? undefined"
@@ -135,32 +135,32 @@ const statusText = computed(() => {
         <span :class="$style.label">Точки</span>
         <div v-for="(point, index) in points" :key="index" :class="$style.item">
           <span>{{ index + 1 }}. {{ pointText(point) }}</span>
-          <CsButton size="sm" variant="ghost" @click="tool.removePoint(index)">Убрать</CsButton>
+          <KrButton size="sm" variant="ghost" @click="tool.removePoint(index)">Убрать</KrButton>
         </div>
-        <CsButton size="sm" :variant="picking === 'points' ? 'primary' : 'secondary'" data-testid="work-plane-points-pick" @click="tool.startPicking('points')">
+        <KrButton size="sm" :variant="picking === 'points' ? 'primary' : 'secondary'" data-testid="work-plane-points-pick" @click="tool.startPicking('points')">
           Выбрать вершины
-        </CsButton>
+        </KrButton>
       </div>
 
       <div v-if="kind === 'midplane'" :class="$style.field">
         <span :class="$style.label">Грани</span>
         <div v-for="(face, index) in faces" :key="index" :class="$style.item">
           <span>{{ index + 1 }}. Грань {{ face.faceName }} · {{ names.bodyLabel(face.bodyId) }}</span>
-          <CsButton size="sm" variant="ghost" @click="tool.removeFace(index)">Убрать</CsButton>
+          <KrButton size="sm" variant="ghost" @click="tool.removeFace(index)">Убрать</KrButton>
         </div>
-        <CsButton size="sm" :variant="picking === 'faces' ? 'primary' : 'secondary'" data-testid="work-plane-faces-pick" @click="tool.startPicking('faces')">
+        <KrButton size="sm" :variant="picking === 'faces' ? 'primary' : 'secondary'" data-testid="work-plane-faces-pick" @click="tool.startPicking('faces')">
           Выбрать грани
-        </CsButton>
+        </KrButton>
       </div>
 
       <p v-if="error" :class="$style.error" data-testid="work-plane-error">{{ error }}</p>
     </div>
 
     <template #foot>
-      <CsButton variant="primary" :disabled="!canApply" data-testid="work-plane-apply" @click="tool.apply">
+      <KrButton variant="primary" :disabled="!canApply" data-testid="work-plane-apply" @click="tool.apply">
         {{ loading ? "Сохраняю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" @click="tool.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" @click="tool.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -169,8 +169,8 @@ const statusText = computed(() => {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .row {
@@ -181,13 +181,13 @@ const statusText = computed(() => {
 
 .status {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .statusReady {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .field {
@@ -197,23 +197,23 @@ const statusText = computed(() => {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--cs-spacing-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text);
+  gap: var(--kr-spacing-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text);
 }
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-danger);
+  color: var(--kr-danger);
 }
 </style>

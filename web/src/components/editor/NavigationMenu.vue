@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onClickOutside } from "@vueuse/core";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsCheckbox from "@/components/ui/CsCheckbox.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrCheckbox from "@/components/ui/KrCheckbox.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import { NAVIGATION_PRESETS, presetHints } from "@/lib/navigation/navigationPresets";
 import { useNavigationSettings } from "@/composables/shared/useNavigationSettings";
 
@@ -17,7 +17,7 @@ onClickOutside(root, () => (open.value = false));
 
 <template>
   <div ref="root" :class="$style.root">
-    <CsButton
+    <KrButton
       variant="ghost"
       size="sm"
       :class="[$style.trigger, open && $style.triggerActive]"
@@ -27,13 +27,13 @@ onClickOutside(root, () => (open.value = false));
       data-testid="navigation-menu"
       @click="open = !open"
     >
-      <CsIcon name="mouse" :size="17" />
-    </CsButton>
+      <KrIcon name="mouse" :size="17" />
+    </KrButton>
 
     <div v-if="open" :class="$style.panel" role="dialog" aria-label="Навигация" data-testid="navigation-panel">
       <div :class="$style.title">Мышь как в</div>
       <div :class="$style.presets" role="radiogroup" aria-label="Пресет мыши">
-        <CsButton
+        <KrButton
           v-for="preset in NAVIGATION_PRESETS"
           :key="preset.id"
           variant="ghost"
@@ -45,7 +45,7 @@ onClickOutside(root, () => (open.value = false));
           @click="navigation.setPreset(preset.id)"
         >
           {{ preset.label }}
-        </CsButton>
+        </KrButton>
       </div>
       <ul :class="$style.hints" data-testid="navigation-hints">
         <li v-for="hint in hints" :key="hint">{{ hint }}</li>
@@ -57,7 +57,7 @@ onClickOutside(root, () => (open.value = false));
         <li>{{ navigation.settings.value.trackpadPan ? "Два пальца - панорама" : "Колесо и два пальца - зум" }}</li>
         <li v-if="navigation.settings.value.trackpadPan">Shift + два пальца - вращение</li>
       </ul>
-      <CsCheckbox
+      <KrCheckbox
         label="Трекпад: два пальца - панорама"
         :model-value="navigation.settings.value.trackpadPan"
         data-testid="navigation-trackpad-pan"
@@ -78,17 +78,17 @@ onClickOutside(root, () => (open.value = false));
   height: 30px;
   padding: 0;
   border-radius: 6px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .trigger:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .triggerActive.triggerActive {
-  background: var(--cs-primary-soft);
-  color: var(--cs-primary-active);
+  background: var(--kr-primary-soft);
+  color: var(--kr-primary-active);
 }
 
 .panel {
@@ -98,19 +98,19 @@ onClickOutside(root, () => (open.value = false));
   width: 250px;
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-xs);
-  padding: var(--cs-spacing-sm);
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border-strong);
-  border-radius: var(--cs-radius-md);
-  box-shadow: var(--cs-shadow-md);
+  gap: var(--kr-spacing-xs);
+  padding: var(--kr-spacing-sm);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius-md);
+  box-shadow: var(--kr-shadow-md);
   z-index: 20;
 }
 
 .title {
-  font-size: var(--cs-font-size-xs);
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -123,24 +123,24 @@ onClickOutside(root, () => (open.value = false));
 
 .preset.preset {
   padding: 2px 8px;
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .presetActive.presetActive,
 .presetActive.presetActive:hover {
-  background: var(--cs-primary);
-  border-color: var(--cs-primary);
-  color: var(--cs-primary-fg);
+  background: var(--kr-primary);
+  border-color: var(--kr-primary);
+  color: var(--kr-primary-fg);
 }
 
 .hints {
-  margin: 0 0 var(--cs-spacing-xs);
-  padding-left: var(--cs-spacing-md);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  margin: 0 0 var(--kr-spacing-xs);
+  padding-left: var(--kr-spacing-md);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
   line-height: 1.5;
 }
 </style>

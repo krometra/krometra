@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "@/composables/shared/useI18n";
 import { connectCommand } from "@/lib/mcpConnect";
 import type { ApiKeyCreated } from "@/types/api";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import AgentPromptCopy from "./AgentPromptCopy.vue";
 import CopyField from "./CopyField.vue";
 
@@ -22,7 +22,7 @@ const command = computed(() => connectCommand(props.origin, props.created.key));
     <CopyField :label="t('account.created.commandLabel')" :value="command" test-id="api-key-command" />
     <div :class="$style.actions">
       <AgentPromptCopy :origin="origin" :api-key="created.key" />
-      <CsButton variant="secondary" size="md" @click="emit('dismiss')">{{ t("account.created.done") }}</CsButton>
+      <KrButton variant="secondary" size="md" @click="emit('dismiss')">{{ t("account.created.done") }}</KrButton>
     </div>
   </div>
 </template>
@@ -33,23 +33,23 @@ const command = computed(() => connectCommand(props.origin, props.created.key));
   flex-direction: column;
   gap: 14px;
   padding: 18px;
-  border: 1px solid var(--cs-green-border);
-  border-radius: var(--cs-radius-lg);
-  background: var(--cs-surface-raised);
+  border: 1px solid var(--kr-green-border);
+  border-radius: var(--kr-radius-lg);
+  background: var(--kr-surface-raised);
 }
 
 .title {
-  font-size: var(--cs-font-size-lg);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-lg);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .warning {
   margin: 0;
   padding: 10px 12px;
-  border: 1px solid var(--cs-amber-border);
-  border-radius: var(--cs-radius-md);
-  color: var(--cs-text);
-  font-size: var(--cs-font-size-sm);
+  border: 1px solid var(--kr-amber-border);
+  border-radius: var(--kr-radius-md);
+  color: var(--kr-text);
+  font-size: var(--kr-font-size-sm);
 }
 
 .actions {

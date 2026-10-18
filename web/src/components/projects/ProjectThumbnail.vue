@@ -41,6 +41,6 @@ onUnmounted(revoke);
   height: 100%;
   object-fit: contain;
   display: block;
-  background: var(--cs-surface-2);
+  background: var(--kr-surface-2);
 }
 </style>

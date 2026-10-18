@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--cs-surface-raised, #252535);
+  background: var(--kr-surface-raised, #252535);
   border: 1px solid oklch(0.78 0.13 75 / 0.5);
   border-radius: 8px;
   padding: 6px 10px;
@@ -15,16 +15,16 @@
   width: 80px;
 }
 
-.input :global(.fx-input__box) {
+.input :global(.k-input__box) {
   height: 30px;
   padding: 0 8px;
-  background: var(--cs-surface-sunken);
-  border-color: var(--cs-border-strong);
+  background: var(--kr-surface-sunken);
+  border-color: var(--kr-border-strong);
 }
 
-.input :global(.fx-input__field) {
-  color: var(--cs-text);
-  font-family: var(--cs-font-mono);
+.input :global(.k-input__field) {
+  color: var(--kr-text);
+  font-family: var(--kr-font-mono);
   font-size: 13px;
 }
 
@@ -39,19 +39,19 @@
   min-height: 26px;
   height: 26px;
   padding: 0;
-  border: 1px solid var(--cs-border-strong);
-  color: var(--cs-text-secondary);
+  border: 1px solid var(--kr-border-strong);
+  color: var(--kr-text-secondary);
   font-size: 13px;
 }
 
 .okBtn.okBtn:hover {
-  background: var(--cs-primary-soft);
-  color: var(--cs-primary);
+  background: var(--kr-primary-soft);
+  color: var(--kr-primary);
 }
 
 .cancelBtn.cancelBtn:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-red-strong);
+  background: var(--kr-surface-hover);
+  color: var(--kr-red-strong);
 }
 
 .fieldLabel {
@@ -59,8 +59,8 @@
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-secondary);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-secondary);
 }
 
 .fieldInput {

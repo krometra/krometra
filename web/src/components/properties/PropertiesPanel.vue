@@ -2,8 +2,8 @@
 import { ref, computed } from "vue";
 import { usePropertiesPanel } from "@/composables/usePropertiesPanel";
 import { useDisplayNames } from "@/composables/useDisplayNames";
-import CsTabs from "@/components/ui/CsTabs.vue";
-import CsCollapsible from "@/components/ui/CsCollapsible.vue";
+import KrTabs from "@/components/ui/KrTabs.vue";
+import KrCollapsible from "@/components/ui/KrCollapsible.vue";
 import FeatureParamsEditor from "./FeatureParamsEditor.vue";
 import { editableValues, featureParamFields } from "@/lib/browserFeatureParams";
 import { transformParams } from "@/lib/bodyTransform";
@@ -176,7 +176,7 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
 
     <template v-else>
       <!-- Tabs -->
-      <CsTabs :tabs="TAB_OPTIONS" v-model="activeTab" />
+      <KrTabs :tabs="TAB_OPTIONS" v-model="activeTab" />
 
       <!-- Properties tab -->
       <div v-if="activeTab === 'properties'" :class="$style.body">
@@ -191,7 +191,7 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
         <template v-if="panel.mode.value.type === 'feature'">
           <!-- Sketch feature -->
           <template v-if="isSketchFeature">
-            <CsCollapsible label="Эскиз" :open="true">
+            <KrCollapsible label="Эскиз" :open="true">
               <div :class="$style.fieldGroup">
                 <div :class="$style.readonly">
                   <span :class="$style.readonlyLabel">Плоскость</span>
@@ -209,11 +209,11 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
                   Редактировать эскиз
                 </button>
               </div>
-            </CsCollapsible>
+            </KrCollapsible>
           </template>
 
           <!-- Feature parameters -->
-          <CsCollapsible v-if="isReadonlyFeature" label="Параметры операции" :open="true">
+          <KrCollapsible v-if="isReadonlyFeature" label="Параметры операции" :open="true">
             <div :class="$style.fieldGroup">
               <FeatureParamsEditor v-if="isEditableFeature" :entry="featureEntry" @rebuilt="emit('rebuilt', $event)" />
               <template v-for="row in readonlyParams" :key="row.label">
@@ -226,22 +226,22 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
                 Редактирование этой операции задним числом пока не поддерживается
               </div>
             </div>
-          </CsCollapsible>
+          </KrCollapsible>
 
           <!-- Selection / context section -->
-          <CsCollapsible v-if="selectionInfo.length > 0" label="Связи" :open="true">
+          <KrCollapsible v-if="selectionInfo.length > 0" label="Связи" :open="true">
             <div :class="$style.fieldGroup">
               <div v-for="row in selectionInfo" :key="row.label" :class="$style.readonly">
                 <span :class="$style.readonlyLabel">{{ row.label }}</span>
                 <span :class="$style.readonlyValue">{{ row.value }}</span>
               </div>
             </div>
-          </CsCollapsible>
+          </KrCollapsible>
         </template>
 
         <!-- ── Face properties ── -->
         <template v-if="isFace">
-          <CsCollapsible label="Геометрия" :open="true">
+          <KrCollapsible label="Геометрия" :open="true">
             <div :class="$style.fieldGroup">
               <div :class="$style.readonly">
                 <span :class="$style.readonlyLabel">Тело</span>
@@ -252,12 +252,12 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
                 <span :class="$style.readonlyValue">#{{ panel.mode.value.type === 'face' ? panel.mode.value.props.faceId : '' }}</span>
               </div>
             </div>
-          </CsCollapsible>
+          </KrCollapsible>
         </template>
 
         <!-- ── Edge properties ── -->
         <template v-if="isEdge">
-          <CsCollapsible label="Геометрия" :open="true">
+          <KrCollapsible label="Геометрия" :open="true">
             <div :class="$style.fieldGroup">
               <div :class="$style.readonly">
                 <span :class="$style.readonlyLabel">Тело</span>
@@ -268,25 +268,25 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
                 <span :class="$style.readonlyValue">#{{ panel.mode.value.type === 'edge' ? panel.mode.value.props.edgeId : '' }}</span>
               </div>
             </div>
-          </CsCollapsible>
+          </KrCollapsible>
         </template>
 
         <!-- ── Vertex properties ── -->
         <template v-if="isVertex">
-          <CsCollapsible label="Геометрия" :open="true">
+          <KrCollapsible label="Геометрия" :open="true">
             <div :class="$style.fieldGroup">
               <div :class="$style.readonly">
                 <span :class="$style.readonlyLabel">Тело</span>
                 <span :class="$style.readonlyValue">{{ panel.mode.value.type === 'vertex' ? names.bodyLabel(panel.mode.value.props.bodyId) : '' }}</span>
               </div>
             </div>
-          </CsCollapsible>
+          </KrCollapsible>
         </template>
       </div>
 
       <!-- Data tab -->
       <div v-else-if="activeTab === 'data'" :class="$style.body">
-        <CsCollapsible label="Данные фичи" :open="true">
+        <KrCollapsible label="Данные фичи" :open="true">
           <div :class="$style.fieldGroup">
             <div
               v-if="panel.mode.value.type === 'feature'"
@@ -317,7 +317,7 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
               <span :class="$style.readonlyValue">{{ panel.mode.value.props.entry.body_id }}</span>
             </div>
           </div>
-        </CsCollapsible>
+        </KrCollapsible>
       </div>
     </template>
   </div>
@@ -328,68 +328,68 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--cs-surface-alt);
+  background: var(--kr-surface-alt);
 }
 
 .body {
   flex: 1;
   overflow: auto;
-  padding: var(--cs-spacing-sm) var(--cs-spacing-md);
+  padding: var(--kr-spacing-sm) var(--kr-spacing-md);
 }
 
 .head {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: var(--cs-spacing-sm) 0;
-  margin-bottom: var(--cs-spacing-sm);
-  border-bottom: 1px solid var(--cs-border-subtle);
+  padding: var(--kr-spacing-sm) 0;
+  margin-bottom: var(--kr-spacing-sm);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--cs-primary);
+  background: var(--kr-primary);
   flex-shrink: 0;
 }
 
 .title {
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text);
 }
 
 .kind {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 10px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
-  padding-bottom: var(--cs-spacing-xs);
+  gap: var(--kr-spacing-sm);
+  padding-bottom: var(--kr-spacing-xs);
 }
 
 .readonly {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--cs-spacing-xs) 0;
-  font-size: var(--cs-font-size-sm);
+  padding: var(--kr-spacing-xs) 0;
+  font-size: var(--kr-font-size-sm);
 }
 
 .readonlyLabel {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .readonlyValue {
-  font-family: var(--cs-font-mono);
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-amber-strong);
+  font-family: var(--kr-font-mono);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-amber-strong);
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -400,21 +400,21 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
   cursor: pointer;
   align-self: flex-start;
   padding: 6px 12px;
-  border: 1px solid var(--cs-primary);
-  border-radius: var(--cs-radius-md);
+  border: 1px solid var(--kr-primary);
+  border-radius: var(--kr-radius-md);
   background: transparent;
-  color: var(--cs-primary);
-  font-size: var(--cs-font-size-sm);
-  transition: background var(--cs-transition-fast);
+  color: var(--kr-primary);
+  font-size: var(--kr-font-size-sm);
+  transition: background var(--kr-transition-fast);
 }
 
 .actionBtn:hover {
-  background: var(--cs-primary-soft);
+  background: var(--kr-primary-soft);
 }
 
 .autoHint {
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 /* ── Placeholder ── */
@@ -425,26 +425,26 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: var(--cs-spacing-xl);
+  padding: var(--kr-spacing-xl);
   text-align: center;
 }
 
 .placeholderIcon {
   font-size: 32px;
-  color: var(--cs-text-muted);
-  margin-bottom: var(--cs-spacing-md);
+  color: var(--kr-text-muted);
+  margin-bottom: var(--kr-spacing-md);
 }
 
 .placeholderTitle {
-  font-size: var(--cs-font-size-md);
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text-secondary);
-  margin-bottom: var(--cs-spacing-xs);
+  font-size: var(--kr-font-size-md);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text-secondary);
+  margin-bottom: var(--kr-spacing-xs);
 }
 
 .placeholderHint {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-muted);
   line-height: 1.5;
   max-width: 200px;
 }

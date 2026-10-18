@@ -38,7 +38,7 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
-    <Transition name="cs-dialog" @enter="(el) => (node = el as HTMLElement)">
+    <Transition name="kr-dialog" @enter="(el) => (node = el as HTMLElement)">
       <div v-if="open" :class="$style.root">
         <div :class="$style.backdrop" @click="close" />
         <div :class="$style.positioner">
@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
 .backdrop {
   position: absolute;
   inset: 0;
-  background: var(--cs-overlay);
+  background: var(--kr-overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -76,17 +76,17 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--cs-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .content {
   position: relative;
   width: 100%;
   max-width: 440px;
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 14px;
-  box-shadow: var(--cs-shadow-lg);
+  box-shadow: var(--kr-shadow-lg);
   overflow: hidden;
 }
 
@@ -94,27 +94,27 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   padding: 18px 22px;
-  border-bottom: 1px solid var(--cs-border);
+  border-bottom: 1px solid var(--kr-border);
 }
 
 .title {
   font-size: 16px;
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text);
 }
 
 .close {
   margin-left: auto;
   background: transparent;
   border: none;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 16px;
   cursor: pointer;
-  transition: color var(--cs-transition-fast);
+  transition: color var(--kr-transition-fast);
 }
 
 .close:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .body {
@@ -124,20 +124,20 @@ onBeforeUnmount(() => {
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
   padding: 14px 22px;
-  border-top: 1px solid var(--cs-border);
+  border-top: 1px solid var(--kr-border);
 }
 </style>
 
 <style>
-.cs-dialog-enter-active,
-.cs-dialog-leave-active {
-  transition: opacity var(--cs-transition-fast);
+.kr-dialog-enter-active,
+.kr-dialog-leave-active {
+  transition: opacity var(--kr-transition-fast);
 }
 
-.cs-dialog-enter-from,
-.cs-dialog-leave-to {
+.kr-dialog-enter-from,
+.kr-dialog-leave-to {
   opacity: 0;
 }
 </style>

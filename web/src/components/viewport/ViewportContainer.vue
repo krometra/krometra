@@ -374,7 +374,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: var(--cs-surface);
+  background: var(--kr-surface);
 }
 
 .viewport :deep(canvas) {
@@ -383,32 +383,32 @@ defineExpose({
 
 .modeIndicator {
   position: absolute;
-  top: var(--cs-spacing-md);
-  left: var(--cs-spacing-md);
+  top: var(--kr-spacing-md);
+  left: var(--kr-spacing-md);
   z-index: 10;
 }
 
 .modeLabel {
-  padding: var(--cs-spacing-xs) var(--cs-spacing-sm);
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  padding: var(--kr-spacing-xs) var(--kr-spacing-sm);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .selectionModeBadge {
   position: absolute;
-  top: var(--cs-spacing-md);
+  top: var(--kr-spacing-md);
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
   padding: 4px 12px;
-  background: var(--cs-primary-soft);
-  border: 1px solid var(--cs-primary-border);
-  border-radius: var(--cs-radius-sm);
-  color: var(--cs-primary-active);
-  font-size: var(--cs-font-size-xs);
-  font-weight: var(--cs-font-weight-bold);
+  background: var(--kr-primary-soft);
+  border: 1px solid var(--kr-primary-border);
+  border-radius: var(--kr-radius-sm);
+  color: var(--kr-primary-active);
+  font-size: var(--kr-font-size-xs);
+  font-weight: var(--kr-font-weight-bold);
 }
 </style>

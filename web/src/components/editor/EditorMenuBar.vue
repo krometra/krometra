@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "@/composables/shared/useAuth";
-import CsLogo from "@/components/ui/CsLogo.vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrLogo from "@/components/ui/KrLogo.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import ExportMenu from "@/components/editor/ExportMenu.vue";
 import ImportStepButton from "@/components/editor/ImportStepButton.vue";
 import type { DocStatus } from "@/composables/editor/useDocumentStatus";
@@ -37,13 +37,13 @@ const avatarInitial = computed(() => {
 
 <template>
   <header :class="$style.menuBar">
-    <CsLogo :size="22" :show-text="false" :class="$style.homeBtn" @click="router.push('/')" />
+    <KrLogo :size="22" :show-text="false" :class="$style.homeBtn" @click="router.push('/')" />
     <div :class="$style.breadcrumb">
       <span :class="$style.crumbLink" @click="router.push('/')">Мои проекты</span>
       <span :class="$style.crumbSep">/</span>
       <span :class="$style.crumbActive">{{ projectName }}</span>
       <span :class="[$style.versionTag, $style[docStatus]]">v{{ docVersion }} · {{ statusLabel }}</span>
-      <CsButton v-if="docStatus === 'conflict'" variant="ghost" size="sm" :class="$style.reloadBtn" @click="emit('reload')">Обновить</CsButton>
+      <KrButton v-if="docStatus === 'conflict'" variant="ghost" size="sm" :class="$style.reloadBtn" @click="emit('reload')">Обновить</KrButton>
     </div>
     <div :class="$style.menuRight">
       <ImportStepButton :loading="importLoading" @import="emit('import-step')" />
@@ -62,8 +62,8 @@ const avatarInitial = computed(() => {
 .menuBar {
   height: 46px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface-alt);
+  border-bottom: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface-alt);
   display: flex;
   align-items: center;
   padding: 0 14px;
@@ -79,7 +79,7 @@ const avatarInitial = computed(() => {
   align-items: center;
   gap: 7px;
   font-size: 13px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .crumbLink {
@@ -87,56 +87,56 @@ const avatarInitial = computed(() => {
 }
 
 .crumbLink:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .crumbSep {
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .crumbActive {
-  color: var(--cs-text);
-  font-weight: var(--cs-font-weight-medium);
+  color: var(--kr-text);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .versionTag {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-muted);
-  border: 1px solid var(--cs-border-strong);
+  color: var(--kr-text-muted);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 4px;
   padding: 1px 6px;
   margin-left: 4px;
 }
 
 .versionTag.saved {
-  color: var(--cs-green-strong);
-  border-color: var(--cs-green-border);
+  color: var(--kr-green-strong);
+  border-color: var(--kr-green-border);
 }
 
 .versionTag.saving,
 .versionTag.unsaved {
-  color: var(--cs-amber-strong);
-  border-color: var(--cs-amber-border);
+  color: var(--kr-amber-strong);
+  border-color: var(--kr-amber-border);
 }
 
 .versionTag.conflict {
-  color: var(--cs-red-strong);
-  border-color: var(--cs-error);
+  color: var(--kr-red-strong);
+  border-color: var(--kr-error);
 }
 
 .reloadBtn.reloadBtn {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
   background: transparent;
-  border: 1px solid var(--cs-error);
+  border: 1px solid var(--kr-error);
   border-radius: 4px;
   padding: 1px 8px;
 }
 
 .reloadBtn.reloadBtn:hover {
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
   background: transparent;
 }
 
@@ -151,11 +151,11 @@ const avatarInitial = computed(() => {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--cs-red);
+  background: var(--kr-red);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 13px;
   color: #fff;
 }

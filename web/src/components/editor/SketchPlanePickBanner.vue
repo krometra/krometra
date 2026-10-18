@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 
 defineProps<{ error: string | null }>();
 
@@ -10,7 +10,7 @@ const emit = defineEmits<{ cancel: [] }>();
   <div :class="$style.banner" data-testid="sketch-plane-pick-banner">
     <span>Кликните базовую плоскость или плоскую грань тела, либо рабочую плоскость</span>
     <span v-if="error" :class="$style.error">{{ error }}</span>
-    <CsButton variant="secondary" size="sm" @click="emit('cancel')">Отмена (Esc)</CsButton>
+    <KrButton variant="secondary" size="sm" @click="emit('cancel')">Отмена (Esc)</KrButton>
   </div>
 </template>
 
@@ -26,16 +26,16 @@ const emit = defineEmits<{ cancel: [] }>();
   gap: 12px;
   max-width: 90%;
   padding: 10px 16px;
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-primary);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-primary);
   border-radius: 10px;
-  color: var(--cs-text);
+  color: var(--kr-text);
   font-size: 13px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .error {
-  color: var(--cs-error);
+  color: var(--kr-error);
   font-size: 12px;
 }
 </style>

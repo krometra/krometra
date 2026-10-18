@@ -2,8 +2,8 @@
 import { useI18n } from "@/composables/shared/useI18n";
 import { LOCALE_HTML_LANG } from "@/lib/i18n/locale";
 import type { ApiKey } from "@/types/api";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 
 defineProps<{ keys: ApiKey[] }>();
 const emit = defineEmits<{ remove: [key: ApiKey] }>();
@@ -35,16 +35,16 @@ function formatDate(iso: string): string {
           </span>
         </div>
       </div>
-      <CsButton
+      <KrButton
         variant="ghost"
         size="sm"
         :aria-label="t('account.keys.deleteAria', { name: key.name })"
         data-testid="api-key-delete"
         @click="emit('remove', key)"
       >
-        <CsIcon name="trash" :size="14" />
+        <KrIcon name="trash" :size="14" />
         {{ t("account.keys.delete") }}
-      </CsButton>
+      </KrButton>
     </li>
   </ul>
 </template>
@@ -52,17 +52,17 @@ function formatDate(iso: string): string {
 <style module>
 .empty {
   margin: 0;
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
 }
 
 .list {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-lg);
-  background: var(--cs-surface-raised);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-lg);
+  background: var(--kr-surface-raised);
 }
 
 .row {
@@ -73,7 +73,7 @@ function formatDate(iso: string): string {
 }
 
 .row + .row {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 
 .meta {
@@ -82,7 +82,7 @@ function formatDate(iso: string): string {
 }
 
 .name {
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -93,11 +93,11 @@ function formatDate(iso: string): string {
   flex-wrap: wrap;
   gap: 4px 14px;
   margin-top: 3px;
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .prefix {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
 }
 </style>

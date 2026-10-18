@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
-import CsDialog from "@/components/ui/CsDialog.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrDialog from "@/components/ui/KrDialog.vue";
 import type { PendingSketchDelete } from "@/composables/editor/useTimelineEdits";
 
 defineProps<{ pending: PendingSketchDelete | null }>();
@@ -9,7 +9,7 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>();
 </script>
 
 <template>
-  <CsDialog :open="pending !== null" @update:open="emit('cancel')">
+  <KrDialog :open="pending !== null" @update:open="emit('cancel')">
     <template #title>Удалить эскиз?</template>
     <div data-testid="sketch-delete-dialog">
       <p :class="$style.text">
@@ -21,16 +21,16 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>();
       </ul>
     </div>
     <template #footer>
-      <CsButton variant="secondary" size="md" @click="emit('cancel')">Отмена</CsButton>
-      <CsButton variant="danger" size="md" @click="emit('confirm')">Удалить эскиз</CsButton>
+      <KrButton variant="secondary" size="md" @click="emit('cancel')">Отмена</KrButton>
+      <KrButton variant="danger" size="md" @click="emit('confirm')">Удалить эскиз</KrButton>
     </template>
-  </CsDialog>
+  </KrDialog>
 </template>
 
 <style module>
 .text {
   margin: 0 0 8px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -38,7 +38,7 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>();
 .list {
   margin: 0;
   padding-left: 20px;
-  color: var(--cs-text);
+  color: var(--kr-text);
   font-size: 13px;
 }
 </style>

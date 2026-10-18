@@ -281,22 +281,22 @@ defineExpose({ startRename, cancelRename, isRenaming });
 .tree {
   width: 266px;
   flex-shrink: 0;
-  border-right: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface-alt);
+  border-right: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface-alt);
   display: flex;
   flex-direction: column;
 }
 
 .panelHead {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   letter-spacing: 0.04em;
   height: 38px;
   display: flex;
   align-items: center;
   padding: 0 14px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .treeBody {
@@ -312,18 +312,18 @@ defineExpose({ startRename, cancelRename, isRenaming });
   padding: 6px 14px;
   cursor: pointer;
   font-size: 13px;
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text);
 }
 
 .treeGroup:hover {
-  background: var(--cs-surface-hover);
+  background: var(--kr-surface-hover);
 }
 
 .caret {
   display: inline-block;
   font-size: 9px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   transition: transform 0.12s;
 }
 
@@ -333,9 +333,9 @@ defineExpose({ startRename, cancelRename, isRenaming });
 
 .treeCount {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 10px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .treeRow {
@@ -345,22 +345,22 @@ defineExpose({ startRename, cancelRename, isRenaming });
   padding: 5px 14px 5px 30px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   border-left: 2px solid transparent;
 }
 
 .treeRow:hover {
-  background: var(--cs-surface-hover);
+  background: var(--kr-surface-hover);
 }
 
 .treeRowActive {
-  color: var(--cs-text);
-  background: var(--cs-primary-soft);
-  border-left-color: var(--cs-primary);
+  color: var(--kr-text);
+  background: var(--kr-primary-soft);
+  border-left-color: var(--kr-primary);
 }
 
 .treeRowDirty {
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 
 .treeRowInactive {
@@ -368,7 +368,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
 }
 
 .treeRowError {
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .dirtyIcon {
@@ -386,23 +386,23 @@ defineExpose({ startRename, cancelRename, isRenaming });
 
 .treeMeta {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 10px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .treeMeta:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
   text-decoration: underline;
 }
 
 .renameInput {
   flex: 1;
   min-width: 0;
-  background: var(--cs-surface);
-  border: 1px solid var(--cs-primary);
+  background: var(--kr-surface);
+  border: 1px solid var(--kr-primary);
   border-radius: 4px;
-  color: var(--cs-text);
+  color: var(--kr-text);
   font-size: 12.5px;
   padding: 1px 6px;
   outline: none;

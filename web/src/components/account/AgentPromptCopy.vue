@@ -4,8 +4,8 @@ import { useClipboard } from "@vueuse/core";
 import { useI18n } from "@/composables/shared/useI18n";
 import { toast } from "@/composables/useToast";
 import { API_KEY_PLACEHOLDER, MCP_README_URL, VERIFY_COMMAND, connectCommand } from "@/lib/mcpConnect";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 
 const props = defineProps<{ origin: string; apiKey?: string }>();
 
@@ -32,8 +32,8 @@ async function copyPrompt() {
 </script>
 
 <template>
-  <CsButton variant="primary" size="md" data-testid="mcp-agent-prompt" @click="copyPrompt">
-    <CsIcon name="copy" :size="14" />
+  <KrButton variant="primary" size="md" data-testid="mcp-agent-prompt" @click="copyPrompt">
+    <KrIcon name="copy" :size="14" />
     {{ copied ? t("account.copied") : t("account.guide.agent") }}
-  </CsButton>
+  </KrButton>
 </template>

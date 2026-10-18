@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsLogo from "@/components/ui/CsLogo.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrLogo from "@/components/ui/KrLogo.vue";
 import editorPreview from "@/assets/landing/editor-preview.webp";
 import { useAuth } from "@/composables/shared/useAuth";
 
@@ -64,7 +64,7 @@ const features = [
 <template>
   <div :class="$style.page">
     <nav :class="$style.nav">
-      <CsLogo @click="router.push('/landing')" :class="$style.clickable" />
+      <KrLogo @click="router.push('/landing')" :class="$style.clickable" />
       <div :class="$style.navLinks">
         <a
           v-for="link in nav"
@@ -77,11 +77,11 @@ const features = [
             <span :class="$style.avatar">{{ userInitial }}</span>
             <span :class="$style.accountName">{{ userName }}</span>
           </div>
-          <CsButton :class="$style.cta" size="sm" @click="openWorkspace">Мои проекты</CsButton>
+          <KrButton :class="$style.cta" size="sm" @click="openWorkspace">Мои проекты</KrButton>
         </template>
         <template v-else>
           <RouterLink :class="[$style.navLink, $style.navLinkStrong]" to="/login">Войти</RouterLink>
-          <CsButton :class="$style.cta" size="sm" @click="router.push('/login')">Начать бесплатно</CsButton>
+          <KrButton :class="$style.cta" size="sm" @click="router.push('/login')">Начать бесплатно</KrButton>
         </template>
       </div>
     </nav>
@@ -97,8 +97,8 @@ const features = [
           для 3D-печати или производства.
         </p>
         <div :class="$style.heroActions">
-          <CsButton :class="$style.cta" @click="openWorkspace">Открыть редактор</CsButton>
-          <CsButton variant="ghost" :class="$style.ghostBtn" @click="openWorkspace">Открыть проекты</CsButton>
+          <KrButton :class="$style.cta" @click="openWorkspace">Открыть редактор</KrButton>
+          <KrButton variant="ghost" :class="$style.ghostBtn" @click="openWorkspace">Открыть проекты</KrButton>
         </div>
         <div :class="$style.stats">
           <template v-for="(s, i) in stats" :key="s.label">
@@ -157,7 +157,7 @@ const features = [
 .page {
   height: 100vh;
   overflow-y: auto;
-  background: radial-gradient(100% 70% at 80% -10%, oklch(0.93 0.035 244) 0%, var(--cs-surface) 58%);
+  background: radial-gradient(100% 70% at 80% -10%, oklch(0.93 0.035 244) 0%, var(--kr-surface) 58%);
 }
 
 .nav {
@@ -178,22 +178,22 @@ const features = [
   align-items: center;
   gap: 30px;
   font-size: 14px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .navLink {
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  transition: color var(--cs-transition-fast);
+  transition: color var(--kr-transition-fast);
 }
 
 .navLink:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .navLinkStrong {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .account {
@@ -208,12 +208,12 @@ const features = [
   height: 28px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--cs-primary);
-  color: var(--cs-primary-fg);
+  background: var(--kr-primary);
+  color: var(--kr-primary-fg);
   display: grid;
   place-items: center;
   font-size: 12px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .accountName {
@@ -221,12 +221,12 @@ const features = [
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--cs-text);
-  font-weight: var(--cs-font-weight-medium);
+  color: var(--kr-text);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .cta.cta {
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 15px;
   padding: 13px 24px;
   border-radius: 9px;
@@ -251,10 +251,10 @@ const features = [
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-primary);
-  border: 1px solid var(--cs-primary-border);
+  color: var(--kr-primary);
+  border: 1px solid var(--kr-primary-border);
   border-radius: 20px;
   padding: 5px 13px;
   margin-bottom: 26px;
@@ -264,13 +264,13 @@ const features = [
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--cs-green);
+  background: var(--kr-green);
 }
 
 .h1 {
   font-size: 54px;
   line-height: 1.04;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   letter-spacing: -0.03em;
   margin: 0 0 22px;
 }
@@ -278,7 +278,7 @@ const features = [
 .lead {
   font-size: 18px;
   line-height: 1.55;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   margin: 0 0 34px;
   max-width: 480px;
   text-wrap: pretty;
@@ -291,58 +291,58 @@ const features = [
 }
 
 .ghostBtn.ghostBtn {
-  border: 1px solid var(--cs-border-strong);
-  color: var(--cs-text);
-  font-weight: var(--cs-font-weight-medium);
+  border: 1px solid var(--kr-border-strong);
+  color: var(--kr-text);
+  font-weight: var(--kr-font-weight-medium);
   font-size: 15px;
   padding: 13px 22px;
   border-radius: 9px;
 }
 
 .ghostBtn.ghostBtn:hover {
-  border-color: var(--cs-text-muted);
+  border-color: var(--kr-text-muted);
 }
 
 .stats {
   display: flex;
   gap: 26px;
   margin-top: 46px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
 }
 
 .statDiv {
   width: 1px;
-  background: var(--cs-border-strong);
+  background: var(--kr-border-strong);
 }
 
 .statValue {
   font-size: 22px;
   white-space: nowrap;
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .statAccent {
-  color: var(--cs-primary);
+  color: var(--kr-primary);
 }
 
 .statLabel {
   font-size: 12px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   margin-top: 3px;
 }
 
 .preview {
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 12px;
   overflow: hidden;
-  background: var(--cs-surface-raised);
-  box-shadow: var(--cs-shadow-lg);
+  background: var(--kr-surface-raised);
+  box-shadow: var(--kr-shadow-lg);
 }
 
 .previewBar {
   height: 34px;
-  background: var(--cs-surface-alt);
-  border-bottom: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-alt);
+  border-bottom: 1px solid var(--kr-border-strong);
   display: flex;
   align-items: center;
   gap: 7px;
@@ -353,13 +353,13 @@ const features = [
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--cs-border-strong);
+  background: var(--kr-border-strong);
 }
 
 .previewTitle {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   margin-left: 8px;
 }
 
@@ -380,35 +380,35 @@ const features = [
 }
 
 .featureCard {
-  border: 1px solid var(--cs-border);
+  border: 1px solid var(--kr-border);
   border-radius: 11px;
   padding: 26px;
-  background: var(--cs-surface-raised);
-  box-shadow: var(--cs-shadow-sm);
-  transition: border-color var(--cs-transition-fast);
+  background: var(--kr-surface-raised);
+  box-shadow: var(--kr-shadow-sm);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .featureCard:hover {
-  border-color: var(--cs-primary-border);
+  border-color: var(--kr-primary-border);
 }
 
 .featureTag {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-primary);
+  color: var(--kr-primary);
   margin-bottom: 14px;
 }
 
 .featureTitle {
   font-size: 18px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   margin-bottom: 9px;
 }
 
 .featureBody {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   text-wrap: pretty;
 }
 
@@ -420,7 +420,7 @@ const features = [
 
 .h2 {
   font-size: 30px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   letter-spacing: -0.02em;
   margin: 0 0 28px;
 }
@@ -432,23 +432,23 @@ const features = [
 }
 
 .coreItem {
-  border-top: 1px solid var(--cs-border-strong);
+  border-top: 1px solid var(--kr-border-strong);
   padding-top: 16px;
 }
 
 .coreTitle {
   font-size: 16px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   margin-bottom: 8px;
 }
 
 .footer {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
   padding: 26px 40px;
   text-align: center;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .footerLink {
@@ -458,6 +458,6 @@ const features = [
 }
 
 .footerLink:hover {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 </style>

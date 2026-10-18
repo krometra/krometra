@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { FxTable } from "foxy-ui-kit";
+import { KTable } from "@krometra/ui-kit";
 import { useAdminProjects } from "@/composables/admin/useAdminProjects";
 import { formatCount, formatDate, formatRelative, formatStorage } from "@/lib/admin/format";
 import { operationLabel } from "@/lib/admin/operationLabels";
@@ -40,7 +40,7 @@ onMounted(projects.load);
       data-testid="admin-projects-search"
       @search="projects.setSearch"
     />
-    <FxTable
+    <KTable
       :columns="columns"
       :rows="projects.rows.value"
       :loading="projects.loading.value && !projects.rows.value.length"
@@ -62,7 +62,7 @@ onMounted(projects.load);
       <template #cell-top_operations="{ row }"><span :class="$style.sub">{{ topOperations(row.top_operations) }}</span></template>
       <template #cell-storage_bytes="{ row }">{{ formatStorage(row.storage_bytes) }}</template>
       <template #cell-document_version="{ row }">{{ row.document_version ?? "—" }}</template>
-    </FxTable>
+    </KTable>
   </div>
 </template>
 
@@ -70,15 +70,15 @@ onMounted(projects.load);
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 
 .name {
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .sub {
-  color: var(--cs-text-muted);
-  font-size: var(--cs-font-size-xs);
+  color: var(--kr-text-muted);
+  font-size: var(--kr-font-size-xs);
 }
 </style>

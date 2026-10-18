@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { toRef } from "vue";
 import { useRoute } from "vue-router";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import { useFeatureParams } from "@/composables/editor/useFeatureParams";
 import type { MeshData, TimelineEntry } from "@/types/api";
 
@@ -25,14 +25,14 @@ function numberValue(key: string): number {
 <template>
   <div v-if="params.fields.value.length > 0" :class="$style.fields">
     <template v-for="field in params.fields.value" :key="field.key">
-      <CsSelect
+      <KrSelect
         v-if="field.kind === 'select'"
         :model-value="String(params.values.value[field.key])"
         :options="field.options"
         :label="field.label"
         @update:model-value="params.update(field.key, $event)"
       />
-      <CsNumberInput
+      <KrNumberInput
         v-else
         :model-value="numberValue(field.key)"
         :min="field.min"
@@ -52,22 +52,22 @@ function numberValue(key: string): number {
 .fields {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
 }
 
 .pending {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-amber-strong);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-amber-strong);
 }
 
 .error {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-red-strong);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-red-strong);
   line-height: 1.4;
 }
 
 .hint {
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 </style>

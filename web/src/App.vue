@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import CsToast from "@/components/ui/CsToast.vue";
+import KrToast from "@/components/ui/KrToast.vue";
 </script>
 
 <template>
   <router-view />
-  <CsToast />
+  <KrToast />
 </template>
 
 <style>

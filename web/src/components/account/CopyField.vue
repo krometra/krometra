@@ -2,8 +2,8 @@
 import { useClipboard } from "@vueuse/core";
 import { useI18n } from "@/composables/shared/useI18n";
 import { toast } from "@/composables/useToast";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 
 const props = defineProps<{ value: string; label?: string; testId?: string }>();
 
@@ -24,10 +24,10 @@ async function copyValue() {
     <div v-if="label" :class="$style.label">{{ label }}</div>
     <div :class="$style.box">
       <pre :class="$style.value" :data-testid="testId">{{ value }}</pre>
-      <CsButton variant="secondary" size="sm" :class="$style.copy" @click="copyValue">
-        <CsIcon name="copy" :size="14" />
+      <KrButton variant="secondary" size="sm" :class="$style.copy" @click="copyValue">
+        <KrIcon name="copy" :size="14" />
         {{ copied ? t("account.copied") : t("account.copy") }}
-      </CsButton>
+      </KrButton>
     </div>
   </div>
 </template>
@@ -41,8 +41,8 @@ async function copyValue() {
 }
 
 .label {
-  font-size: var(--cs-font-size-sm);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-sm);
+  color: var(--kr-text-secondary);
 }
 
 .box {
@@ -50,19 +50,19 @@ async function copyValue() {
   align-items: flex-start;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-md);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-md);
 }
 
 .value {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--cs-text);
+  color: var(--kr-text);
   white-space: pre-wrap;
   word-break: break-all;
 }

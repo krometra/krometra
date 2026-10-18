@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FxCheckbox } from "foxy-ui-kit";
+import { KCheckbox } from "@krometra/ui-kit";
 
 defineProps<{
   modelValue?: boolean;
@@ -11,7 +11,7 @@ defineEmits<{ "update:modelValue": [value: boolean] }>();
 </script>
 
 <template>
-  <FxCheckbox
+  <KCheckbox
     :model-value="modelValue"
     :label="label"
     :disabled="disabled"

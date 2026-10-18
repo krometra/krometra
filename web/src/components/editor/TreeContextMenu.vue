@@ -62,8 +62,8 @@ function onItemClick(item: CtxItem) {
   z-index: 1300;
   min-width: 190px;
   padding: 4px;
-  background: var(--cs-surface-raised, #252535);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-raised, #252535);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   max-height: calc(100vh - 16px);
@@ -74,27 +74,27 @@ function onItemClick(item: CtxItem) {
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 13px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   cursor: pointer;
 }
 
 .ctxItem:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .ctxItemDanger {
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .ctxItemDanger:hover {
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .ctxItemDisabled,
 .ctxItemDisabled:hover {
   background: none;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   cursor: not-allowed;
 }
 </style>

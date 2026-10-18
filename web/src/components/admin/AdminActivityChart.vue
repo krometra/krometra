@@ -10,9 +10,9 @@ const props = defineProps<{ points: AdminDailyPoint[] }>();
 const WIDTH = 720;
 const HEIGHT = 220;
 const COLORS: Record<string, string> = {
-  registrations: "var(--cs-primary)",
-  projects: "var(--cs-amber-strong)",
-  active_users: "var(--cs-teal-strong)",
+  registrations: "var(--kr-primary)",
+  projects: "var(--kr-amber-strong)",
+  active_users: "var(--kr-teal-strong)",
 };
 
 const chart = computed(() =>
@@ -68,7 +68,7 @@ const drawOrder = computed(() => [...chart.value.lines].reverse());
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
 }
 
 .svg {
@@ -78,12 +78,12 @@ const drawOrder = computed(() => [...chart.value.lines].reverse());
 }
 
 .grid {
-  stroke: var(--cs-border-subtle);
+  stroke: var(--kr-border-subtle);
   stroke-width: 1;
 }
 
 .tick {
-  fill: var(--cs-text-muted);
+  fill: var(--kr-text-muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
@@ -105,16 +105,16 @@ const drawOrder = computed(() => [...chart.value.lines].reverse());
 }
 
 .hover:hover {
-  fill: var(--cs-surface-hover);
+  fill: var(--kr-surface-hover);
   fill-opacity: 0.5;
 }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--cs-spacing-md);
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-xs);
+  gap: var(--kr-spacing-md);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-xs);
 }
 
 .legendItem {
@@ -126,6 +126,6 @@ const drawOrder = computed(() => [...chart.value.lines].reverse());
 .swatch {
   width: 12px;
   height: 3px;
-  border-radius: var(--cs-radius-full);
+  border-radius: var(--kr-radius-full);
 }
 </style>

@@ -30,15 +30,15 @@ const kernelTitle = computed(() => kernel.failure.value ?? `Тел в ядре: 
 .statusBar {
   height: 26px;
   flex-shrink: 0;
-  border-top: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface);
+  border-top: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface);
   display: flex;
   align-items: center;
   padding: 0 14px;
   gap: 18px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .kernel {
@@ -51,21 +51,21 @@ const kernelTitle = computed(() => kernel.failure.value ?? `Тел в ядре: 
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--cs-text-muted);
+  background: var(--kr-text-muted);
 }
 
 .ready {
-  background: var(--cs-green);
+  background: var(--kr-green);
 }
 
 .loading,
 .restarting {
-  background: var(--cs-amber);
+  background: var(--kr-amber);
   animation: pulse 1s ease-in-out infinite;
 }
 
 .failed {
-  background: var(--cs-error);
+  background: var(--kr-error);
 }
 
 .statusSpacer {

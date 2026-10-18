@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import type { GlobalAxis, PatternAxisRef } from "@/lib/bodyPattern";
 import { axisRefLabel } from "@/lib/bodyPatternParams";
@@ -44,7 +44,7 @@ function isActive(kind: string): boolean {
   <div :class="$style.field" :data-testid="testId">
     <span :class="$style.label">{{ label }}</span>
     <div :class="$style.row">
-      <CsButton
+      <KrButton
         v-for="option in GLOBAL_AXES"
         :key="option.axis"
         size="sm"
@@ -53,8 +53,8 @@ function isActive(kind: string): boolean {
         @click="emit('global', option.axis)"
       >
         {{ option.label }}
-      </CsButton>
-      <CsButton
+      </KrButton>
+      <KrButton
         v-for="option in PICKS"
         :key="option.kind"
         size="sm"
@@ -63,11 +63,11 @@ function isActive(kind: string): boolean {
         @click="emit('pick', option.kind)"
       >
         {{ option.label }}
-      </CsButton>
+      </KrButton>
     </div>
     <span :class="[$style.hint, picking && $style.hintActive]" :data-testid="`${testId}-status`">
       {{ status }}
-      <CsButton v-if="picking" size="sm" variant="ghost" @click="emit('cancel')">Отмена</CsButton>
+      <KrButton v-if="picking" size="sm" variant="ghost" @click="emit('cancel')">Отмена</KrButton>
     </span>
   </div>
 </template>
@@ -80,8 +80,8 @@ function isActive(kind: string): boolean {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .row {
@@ -94,11 +94,11 @@ function isActive(kind: string): boolean {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .hintActive {
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 </style>

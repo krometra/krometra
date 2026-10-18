@@ -35,16 +35,16 @@ const bars = computed(() => operationBars(props.operations));
 
 .empty {
   margin: 0;
-  color: var(--cs-text-muted);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text-muted);
+  font-size: var(--kr-font-size-sm);
 }
 
 .row {
   display: grid;
   grid-template-columns: 130px 1fr 48px 200px;
   align-items: center;
-  gap: var(--cs-spacing-sm);
-  font-size: var(--cs-font-size-sm);
+  gap: var(--kr-spacing-sm);
+  font-size: var(--kr-font-size-sm);
 }
 
 .label {
@@ -55,26 +55,26 @@ const bars = computed(() => operationBars(props.operations));
 
 .track {
   height: 10px;
-  border-radius: var(--cs-radius-full);
-  background: var(--cs-surface-sunken);
+  border-radius: var(--kr-radius-full);
+  background: var(--kr-surface-sunken);
   overflow: hidden;
 }
 
 .fill {
   height: 100%;
-  border-radius: var(--cs-radius-full);
-  background: var(--cs-primary);
+  border-radius: var(--kr-radius-full);
+  background: var(--kr-primary);
 }
 
 .count {
   text-align: right;
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
   font-variant-numeric: tabular-nums;
 }
 
 .meta {
-  color: var(--cs-text-muted);
-  font-size: var(--cs-font-size-xs);
+  color: var(--kr-text-muted);
+  font-size: var(--kr-font-size-xs);
 }
 
 @media (max-width: 720px) {

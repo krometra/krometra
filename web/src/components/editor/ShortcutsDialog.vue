@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsDialog from "@/components/ui/CsDialog.vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrDialog from "@/components/ui/KrDialog.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 import { EDITOR_SHORTCUTS } from "@/composables/editor/useEditorHotkeys";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -18,7 +18,7 @@ const groups = computed(() => {
 </script>
 
 <template>
-  <CsDialog v-model:open="open">
+  <KrDialog v-model:open="open">
     <template #title>Горячие клавиши</template>
     <div :class="$style.groups">
       <section v-for="[group, items] in groups" :key="group">
@@ -30,9 +30,9 @@ const groups = computed(() => {
       </section>
     </div>
     <template #footer>
-      <CsButton variant="secondary" size="md" @click="open = false">Закрыть</CsButton>
+      <KrButton variant="secondary" size="md" @click="open = false">Закрыть</KrButton>
     </template>
-  </CsDialog>
+  </KrDialog>
 </template>
 
 <style module>
@@ -48,8 +48,8 @@ const groups = computed(() => {
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--cs-text-muted);
-  font-weight: var(--cs-font-weight-medium);
+  color: var(--kr-text-muted);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .row {
@@ -62,17 +62,17 @@ const groups = computed(() => {
 
 .desc {
   font-size: 13px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .key {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11.5px;
   padding: 3px 8px;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 5px;
-  background: var(--cs-surface-sunken, var(--cs-surface));
-  color: var(--cs-text);
+  background: var(--kr-surface-sunken, var(--kr-surface));
+  color: var(--kr-text);
   white-space: nowrap;
 }
 </style>

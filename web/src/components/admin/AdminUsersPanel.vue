@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { FxSwitch, FxTable } from "foxy-ui-kit";
+import { KSwitch, KTable } from "@krometra/ui-kit";
 import { useAuth } from "@/composables/shared/useAuth";
 import { useAdminUsers } from "@/composables/admin/useAdminUsers";
 import { formatAuthMethods, formatCount, formatDate, formatRelative, formatStorage } from "@/lib/admin/format";
 import type { AdminUserRow } from "@/types/api";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsDialog from "@/components/ui/CsDialog.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrDialog from "@/components/ui/KrDialog.vue";
 import AdminTableToolbar from "./AdminTableToolbar.vue";
 
 const auth = useAuth();
@@ -41,7 +41,7 @@ onMounted(users.load);
       data-testid="admin-users-search"
       @search="users.setSearch"
     />
-    <FxTable
+    <KTable
       :columns="columns"
       :rows="users.rows.value"
       :loading="users.loading.value && !users.rows.value.length"
@@ -67,7 +67,7 @@ onMounted(users.load);
       <template #cell-last_activity_at="{ row }">{{ formatRelative(row.last_activity_at) }}</template>
       <template #cell-auth_methods="{ row }">{{ formatAuthMethods(row.auth_methods) }}</template>
       <template #cell-is_admin="{ row }">
-        <FxSwitch
+        <KSwitch
           :model-value="row.is_admin"
           :disabled="isSelf(row)"
           :title="isSelf(row) ? 'Свою роль снять нельзя' : undefined"
@@ -75,9 +75,9 @@ onMounted(users.load);
           @update:model-value="users.requestRoleChange(row, $event)"
         />
       </template>
-    </FxTable>
+    </KTable>
 
-    <CsDialog :open="users.roleChange.value !== null" @update:open="users.cancelRoleChange">
+    <KrDialog :open="users.roleChange.value !== null" @update:open="users.cancelRoleChange">
       <template #title>{{ users.roleChange.value?.isAdmin ? "Назначить администратором?" : "Снять роль администратора?" }}</template>
       <p :class="$style.sub">
         {{
@@ -87,17 +87,17 @@ onMounted(users.load);
         }}
       </p>
       <template #footer>
-        <CsButton variant="secondary" @click="users.cancelRoleChange">Отмена</CsButton>
-        <CsButton
+        <KrButton variant="secondary" @click="users.cancelRoleChange">Отмена</KrButton>
+        <KrButton
           :variant="users.roleChange.value?.isAdmin ? 'primary' : 'danger'"
           :loading="users.savingRole.value"
           data-testid="admin-role-confirm"
           @click="users.confirmRoleChange"
         >
           {{ users.roleChange.value?.isAdmin ? "Назначить" : "Снять роль" }}
-        </CsButton>
+        </KrButton>
       </template>
-    </CsDialog>
+    </KrDialog>
   </div>
 </template>
 
@@ -105,16 +105,16 @@ onMounted(users.load);
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 
 .name {
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .sub {
   margin: 0;
-  color: var(--cs-text-muted);
-  font-size: var(--cs-font-size-xs);
+  color: var(--kr-text-muted);
+  font-size: var(--kr-font-size-xs);
 }
 </style>

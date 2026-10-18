@@ -4,11 +4,11 @@ import { useRouter } from "vue-router";
 import { useAuth } from "@/composables/shared/useAuth";
 import { useProjects } from "@/composables/shared/useProjects";
 import { useI18n } from "@/composables/shared/useI18n";
-import CsLogo from "@/components/ui/CsLogo.vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsInput from "@/components/ui/CsInput.vue";
-import CsDialog from "@/components/ui/CsDialog.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrLogo from "@/components/ui/KrLogo.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
+import KrDialog from "@/components/ui/KrDialog.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import ProjectThumbnail from "@/components/projects/ProjectThumbnail.vue";
 import type { IconName } from "@/components/ui/icons";
 import { pluralize } from "@/lib/plural";
@@ -127,9 +127,9 @@ function formatDate(dateStr: string) {
   <div :class="$style.page">
     <!-- sidebar -->
     <aside :class="$style.sidebar">
-      <CsLogo :size="24" :class="$style.brand" @click="router.push('/landing')" />
+      <KrLogo :size="24" :class="$style.brand" @click="router.push('/landing')" />
       <button :class="$style.newBtn" @click="showCreateDialog = true">
-        <CsIcon name="plus" :size="16" />Новый проект
+        <KrIcon name="plus" :size="16" />Новый проект
       </button>
 
       <nav :class="$style.nav">
@@ -138,7 +138,7 @@ function formatDate(dateStr: string) {
           :key="n.label"
           :class="[$style.navItem, n.active && $style.navItemActive]"
         >
-          <CsIcon :name="n.icon" :size="15" />
+          <KrIcon :name="n.icon" :size="15" />
           {{ n.label }}
         </div>
       </nav>
@@ -157,7 +157,7 @@ function formatDate(dateStr: string) {
           aria-label="Администрирование"
           data-testid="admin-link"
         >
-          <CsIcon name="shield" :size="16" />
+          <KrIcon name="shield" :size="16" />
         </router-link>
         <router-link
           to="/account"
@@ -166,10 +166,10 @@ function formatDate(dateStr: string) {
           :aria-label="t('account.title')"
           data-testid="account-link"
         >
-          <CsIcon name="user" :size="16" />
+          <KrIcon name="user" :size="16" />
         </router-link>
         <button :class="$style.userAction" title="Выйти" aria-label="Выйти" @click="handleLogout">
-          <CsIcon name="logout" :size="16" />
+          <KrIcon name="logout" :size="16" />
         </button>
       </div>
     </aside>
@@ -179,7 +179,7 @@ function formatDate(dateStr: string) {
       <header :class="$style.header">
         <div :class="$style.headerTitle">Мои проекты</div>
         <div :class="$style.search">
-          <CsIcon name="search" :size="15" />
+          <KrIcon name="search" :size="15" />
           <input v-model="search" :class="$style.searchInput" placeholder="Поиск по проектам…" aria-label="Поиск по проектам" />
         </div>
       </header>
@@ -201,7 +201,7 @@ function formatDate(dateStr: string) {
             <p :class="$style.emptyTitle">Пока нет проектов</p>
             <p :class="$style.muted">Создайте первый проект, чтобы начать.</p>
             <button :class="$style.newBtn" @click="showCreateDialog = true">
-              <CsIcon name="plus" :size="16" />Новый проект
+              <KrIcon name="plus" :size="16" />Новый проект
             </button>
           </div>
 
@@ -217,10 +217,10 @@ function formatDate(dateStr: string) {
                 <span :class="$style.badge">Личный</span>
                 <div :class="$style.cardActions" @click.stop>
                   <button :class="$style.actionBtn" title="Переименовать" aria-label="Переименовать" @click="openRename(p)">
-                    <CsIcon name="pencil" :size="14" />
+                    <KrIcon name="pencil" :size="14" />
                   </button>
                   <button :class="$style.actionBtn" title="Удалить" aria-label="Удалить" @click="deleteTarget = p">
-                    <CsIcon name="trash" :size="14" />
+                    <KrIcon name="trash" :size="14" />
                   </button>
                 </div>
               </div>
@@ -237,37 +237,37 @@ function formatDate(dateStr: string) {
       </div>
     </div>
 
-    <CsDialog v-model:open="showCreateDialog">
+    <KrDialog v-model:open="showCreateDialog">
       <template #title>Новый проект</template>
       <div :class="$style.dialogForm">
-        <CsInput v-model="newProjectName" label="Название проекта" placeholder="Мой CAD-проект" />
-        <CsInput v-model="newProjectDesc" label="Описание (необязательно)" placeholder="О чём этот проект?" />
+        <KrInput v-model="newProjectName" label="Название проекта" placeholder="Мой CAD-проект" />
+        <KrInput v-model="newProjectDesc" label="Описание (необязательно)" placeholder="О чём этот проект?" />
       </div>
       <template #footer>
-        <CsButton variant="secondary" size="md" @click="showCreateDialog = false">Отмена</CsButton>
-        <CsButton variant="primary" size="md" :loading="creating" @click="handleCreate">Создать</CsButton>
+        <KrButton variant="secondary" size="md" @click="showCreateDialog = false">Отмена</KrButton>
+        <KrButton variant="primary" size="md" :loading="creating" @click="handleCreate">Создать</KrButton>
       </template>
-    </CsDialog>
+    </KrDialog>
 
-    <CsDialog v-model:open="renameDialog">
+    <KrDialog v-model:open="renameDialog">
       <template #title>Переименовать проект</template>
-      <CsInput v-model="renameProjectName" label="Название проекта" />
+      <KrInput v-model="renameProjectName" label="Название проекта" />
       <template #footer>
-        <CsButton variant="secondary" size="md" @click="renameDialog = false">Отмена</CsButton>
-        <CsButton variant="primary" size="md" :loading="renaming" @click="handleRename">Сохранить</CsButton>
+        <KrButton variant="secondary" size="md" @click="renameDialog = false">Отмена</KrButton>
+        <KrButton variant="primary" size="md" :loading="renaming" @click="handleRename">Сохранить</KrButton>
       </template>
-    </CsDialog>
+    </KrDialog>
 
-    <CsDialog :open="deleteTarget !== null" @update:open="deleteTarget = null">
+    <KrDialog :open="deleteTarget !== null" @update:open="deleteTarget = null">
       <template #title>Удалить проект?</template>
       <p :class="$style.muted">
         Проект «{{ deleteTarget?.name }}» и вся его история построения будут удалены безвозвратно.
       </p>
       <template #footer>
-        <CsButton variant="secondary" size="md" @click="deleteTarget = null">Отмена</CsButton>
-        <CsButton variant="danger" size="md" :loading="deleting" @click="confirmDelete">Удалить</CsButton>
+        <KrButton variant="secondary" size="md" @click="deleteTarget = null">Отмена</KrButton>
+        <KrButton variant="danger" size="md" :loading="deleting" @click="confirmDelete">Удалить</KrButton>
       </template>
-    </CsDialog>
+    </KrDialog>
   </div>
 </template>
 
@@ -275,14 +275,14 @@ function formatDate(dateStr: string) {
 .page {
   display: flex;
   height: 100vh;
-  background: var(--cs-surface);
+  background: var(--kr-surface);
 }
 
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  border-right: 1px solid var(--cs-border-subtle);
-  background: var(--cs-surface-alt);
+  border-right: 1px solid var(--kr-border-subtle);
+  background: var(--kr-surface-alt);
   padding: 22px 16px;
   display: flex;
   flex-direction: column;
@@ -299,19 +299,19 @@ function formatDate(dateStr: string) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--cs-primary);
-  color: var(--cs-primary-fg);
-  font-weight: var(--cs-font-weight-bold);
+  background: var(--kr-primary);
+  color: var(--kr-primary-fg);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 14px;
   padding: 10px;
   border: none;
   border-radius: 8px;
   margin-bottom: 20px;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
 }
 
 .newBtn:hover {
-  background: var(--cs-primary-hover);
+  background: var(--kr-primary-hover);
 }
 
 .nav {
@@ -328,27 +328,27 @@ function formatDate(dateStr: string) {
   border-radius: 7px;
   cursor: pointer;
   font-size: 13.5px;
-  color: var(--cs-text-secondary);
-  transition: background var(--cs-transition-fast);
+  color: var(--kr-text-secondary);
+  transition: background var(--kr-transition-fast);
 }
 
 .navItem:hover {
-  background: var(--cs-surface-hover);
+  background: var(--kr-surface-hover);
 }
 
 .navItemActive {
-  color: var(--cs-text);
-  background: var(--cs-primary-soft);
+  color: var(--kr-text);
+  background: var(--kr-primary-soft);
 }
 
 .navItem svg {
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   flex-shrink: 0;
 }
 
 .user {
   margin-top: auto;
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
   padding-top: 14px;
   display: flex;
   align-items: center;
@@ -359,11 +359,11 @@ function formatDate(dateStr: string) {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--cs-red);
+  background: var(--kr-red);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 13px;
   color: #fff;
   flex-shrink: 0;
@@ -376,7 +376,7 @@ function formatDate(dateStr: string) {
 
 .userName {
   font-size: 13px;
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -384,7 +384,7 @@ function formatDate(dateStr: string) {
 
 .userEmail {
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -395,13 +395,13 @@ function formatDate(dateStr: string) {
   align-items: center;
   background: transparent;
   border: none;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   cursor: pointer;
-  transition: color var(--cs-transition-fast);
+  transition: color var(--kr-transition-fast);
 }
 
 .userAction:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .account {
@@ -413,12 +413,12 @@ function formatDate(dateStr: string) {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--cs-surface);
+  background: var(--kr-surface);
 }
 
 .header {
   height: 64px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
   display: flex;
   align-items: center;
   padding: 0 30px;
@@ -427,7 +427,7 @@ function formatDate(dateStr: string) {
 
 .headerTitle {
   font-size: 18px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   letter-spacing: -0.02em;
 }
 
@@ -436,12 +436,12 @@ function formatDate(dateStr: string) {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--cs-surface-raised);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-raised);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 8px;
   padding: 8px 13px;
   width: 240px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   font-size: 13px;
 }
 
@@ -450,7 +450,7 @@ function formatDate(dateStr: string) {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--cs-text);
+  color: var(--kr-text);
   font-family: inherit;
   font-size: 13px;
 }
@@ -463,9 +463,9 @@ function formatDate(dateStr: string) {
 
 .sectionLabel {
   margin-bottom: 18px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .grid {
@@ -476,16 +476,16 @@ function formatDate(dateStr: string) {
 
 .card {
   cursor: pointer;
-  border: 1px solid var(--cs-border);
+  border: 1px solid var(--kr-border);
   border-radius: 11px;
   overflow: hidden;
-  background: var(--cs-surface-raised);
-  box-shadow: var(--cs-shadow-sm);
-  transition: border-color var(--cs-transition-fast);
+  background: var(--kr-surface-raised);
+  box-shadow: var(--kr-shadow-sm);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .card:hover {
-  border-color: var(--cs-primary-border);
+  border-color: var(--kr-primary-border);
 }
 
 .cardThumb {
@@ -497,13 +497,13 @@ function formatDate(dateStr: string) {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 10px;
   padding: 3px 8px;
   border-radius: 20px;
   background: oklch(1 0 0 / 0.86);
-  border: 1px solid var(--cs-border-strong);
-  color: var(--cs-text-secondary);
+  border: 1px solid var(--kr-border-strong);
+  color: var(--kr-text-secondary);
 }
 
 .cardActions {
@@ -513,7 +513,7 @@ function formatDate(dateStr: string) {
   display: flex;
   gap: 6px;
   opacity: 0;
-  transition: opacity var(--cs-transition-fast);
+  transition: opacity var(--kr-transition-fast);
 }
 
 .card:hover .cardActions {
@@ -525,15 +525,15 @@ function formatDate(dateStr: string) {
   height: 28px;
   border-radius: 6px;
   background: oklch(1 0 0 / 0.92);
-  border: 1px solid var(--cs-border-strong);
-  color: var(--cs-text-secondary);
+  border: 1px solid var(--kr-border-strong);
+  color: var(--kr-text-secondary);
   cursor: pointer;
   font-size: 13px;
-  transition: color var(--cs-transition-fast);
+  transition: color var(--kr-transition-fast);
 }
 
 .actionBtn:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .cardInfo {
@@ -542,13 +542,13 @@ function formatDate(dateStr: string) {
 
 .cardName {
   font-size: 14px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   margin-bottom: 5px;
 }
 
 .cardDesc {
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
@@ -559,9 +559,9 @@ function formatDate(dateStr: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .empty {
@@ -573,17 +573,17 @@ function formatDate(dateStr: string) {
 
 .emptyTitle {
   font-size: 16px;
-  font-weight: var(--cs-font-weight-medium);
+  font-weight: var(--kr-font-weight-medium);
 }
 
 .muted {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 14px;
 }
 
 .dialogForm {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 </style>

@@ -338,9 +338,9 @@ function cancel() {
 
 <style module>
 .panelHead {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   letter-spacing: 0.04em;
   margin-bottom: 13px;
 }
@@ -351,43 +351,43 @@ function cancel() {
 
 .fieldLabel {
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
 }
 
 .fieldExpr {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .fieldInput {
   display: flex;
   align-items: center;
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 7px;
   padding: 9px 12px;
-  transition: border-color var(--cs-transition-fast);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .fieldInput:hover {
-  border-color: var(--cs-primary-border);
+  border-color: var(--kr-primary-border);
 }
 
 .fieldValue {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 14px;
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text);
 }
 
 .fieldUnit {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 
 .numberInput {
@@ -395,10 +395,10 @@ function cancel() {
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 14px;
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text);
   -moz-appearance: textfield;
 }
 
@@ -413,9 +413,9 @@ function cancel() {
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 13px;
-  color: var(--cs-text);
+  color: var(--kr-text);
   cursor: pointer;
 }
 
@@ -423,14 +423,14 @@ function cancel() {
   margin-top: 6px;
   font-size: 11px;
   line-height: 1.4;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .hint {
   margin-top: 6px;
   font-size: 11px;
   line-height: 1.4;
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .toggleRow {
@@ -438,20 +438,20 @@ function cancel() {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   cursor: pointer;
 }
 
 .toggleHint {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .inputInvalid {
-  border-color: var(--cs-error) !important;
-  color: var(--cs-red-strong);
+  border-color: var(--kr-error) !important;
+  color: var(--kr-red-strong);
 }
 
 .conflictWarning {
@@ -460,7 +460,7 @@ function cancel() {
   border-radius: 7px;
   background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -468,23 +468,23 @@ function cancel() {
 .extrudeBtn {
   width: 100%;
   cursor: pointer;
-  background: var(--cs-primary);
-  color: var(--cs-primary-fg);
-  font-weight: var(--cs-font-weight-bold);
+  background: var(--kr-primary);
+  color: var(--kr-primary-fg);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 14px;
   padding: 10px;
   border: none;
   border-radius: 7px;
-  transition: background var(--cs-transition-fast), opacity var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast), opacity var(--kr-transition-fast);
 }
 
 .extrudeBtn:hover:not(:disabled) {
-  background: var(--cs-primary-hover);
+  background: var(--kr-primary-hover);
 }
 
 .extrudeBtn:disabled {
-  background: var(--cs-surface-sunken);
-  color: var(--cs-text-disabled);
+  background: var(--kr-surface-sunken);
+  color: var(--kr-text-disabled);
   cursor: not-allowed;
 }
 
@@ -500,15 +500,15 @@ function cancel() {
   flex: 1;
   cursor: pointer;
   background: transparent;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: var(--cs-text);
-  transition: border-color var(--cs-transition-fast);
+  color: var(--kr-text);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .cancelBtn:hover {
-  border-color: var(--cs-text-muted);
+  border-color: var(--kr-text-muted);
 }
 </style>

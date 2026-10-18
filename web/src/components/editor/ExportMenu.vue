@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsMenu from "@/components/ui/CsMenu.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrMenu from "@/components/ui/KrMenu.vue";
 import type { MeshFormat } from "@/composables/editor/exportSource";
 import { toast } from "@/composables/useToast";
 
@@ -36,9 +36,9 @@ watch(
 </script>
 
 <template>
-  <CsMenu :items="menuItems">
-    <CsButton variant="ghost" size="sm" :loading="loading">
+  <KrMenu :items="menuItems">
+    <KrButton variant="ghost" size="sm" :loading="loading">
       Экспорт ↓
-    </CsButton>
-  </CsMenu>
+    </KrButton>
+  </KrMenu>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 
 defineProps<{
@@ -19,15 +19,15 @@ const names = useDisplayNames();
     <li v-for="(bodyId, index) in bodyIds" :key="bodyId" :class="$style.row" :data-testid="`${testId}-row`" :data-body-id="bodyId">
       <span :class="$style.index">{{ index + 1 }}</span>
       <span :class="$style.label">{{ names.bodyLabel(bodyId) }}</span>
-      <CsButton
+      <KrButton
         variant="ghost"
         size="sm"
         :aria-label="`Убрать из списка: ${names.bodyLabel(bodyId)}`"
         :data-testid="`${testId}-remove`"
         @click="emit('remove', bodyId)"
       >
-        <CsIcon name="close" :size="12" />
-      </CsButton>
+        <KrIcon name="close" :size="12" />
+      </KrButton>
     </li>
   </ul>
   <p v-else :class="$style.empty" :data-testid="`${testId}-empty`">{{ empty }}</p>
@@ -40,34 +40,34 @@ const names = useDisplayNames();
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-md);
-  background: var(--cs-surface-sunken);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-md);
+  background: var(--kr-surface-sunken);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-sm);
-  padding: 0 var(--cs-spacing-xs) 0 var(--cs-spacing-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  gap: var(--kr-spacing-sm);
+  padding: 0 var(--kr-spacing-xs) 0 var(--kr-spacing-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .row + .row {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 
 .row:hover {
-  background: var(--cs-surface-hover);
-  color: var(--cs-text);
+  background: var(--kr-surface-hover);
+  color: var(--kr-text);
 }
 
 .index {
   flex-shrink: 0;
-  min-width: var(--cs-spacing-md);
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  min-width: var(--kr-spacing-md);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .label {
@@ -80,8 +80,8 @@ const names = useDisplayNames();
 
 .empty {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
   font-style: italic;
 }
 </style>

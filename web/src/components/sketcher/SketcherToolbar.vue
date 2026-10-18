@@ -154,8 +154,8 @@ function select(tool: SketchToolName) {
   gap: 2px;
   padding: 4px 8px;
   box-sizing: border-box;
-  background: var(--cs-surface-alt, #1e1e30);
-  border-bottom: 1px solid var(--cs-border-subtle, #333);
+  background: var(--kr-surface-alt, #1e1e30);
+  border-bottom: 1px solid var(--kr-border-subtle, #333);
 }
 
 .toolBtn {
@@ -168,36 +168,36 @@ function select(tool: SketchToolName) {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--cs-text-secondary, #aaa);
+  color: var(--kr-text-secondary, #aaa);
   cursor: pointer;
   font-size: 12px;
   transition: all 0.12s;
 }
 
 .toolBtn:hover {
-  background: var(--cs-surface-hover, rgba(255, 255, 255, 0.05));
-  color: var(--cs-text, #eee);
+  background: var(--kr-surface-hover, rgba(255, 255, 255, 0.05));
+  color: var(--kr-text, #eee);
 }
 
 .toolBtn:disabled,
 .toolBtn:disabled:hover {
   background: transparent;
-  color: var(--cs-text-disabled);
+  color: var(--kr-text-disabled);
   cursor: default;
 }
 
 .toolBtn:disabled:hover {
   background: transparent;
-  color: var(--cs-text-secondary, #aaa);
+  color: var(--kr-text-secondary, #aaa);
 }
 
 .toolBtnActive {
-  background: color-mix(in oklch, var(--cs-primary, #4a7dff) 20%, transparent);
-  color: var(--cs-primary, #4a7dff);
+  background: color-mix(in oklch, var(--kr-primary, #4a7dff) 20%, transparent);
+  color: var(--kr-primary, #4a7dff);
 }
 
 .toolLabel {
-  font-family: var(--cs-font-mono, monospace);
+  font-family: var(--kr-font-mono, monospace);
   font-size: 11px;
 }
 
@@ -205,18 +205,18 @@ function select(tool: SketchToolName) {
   width: 1px;
   height: 24px;
   flex-shrink: 0;
-  background: var(--cs-border-subtle, #333);
+  background: var(--kr-border-subtle, #333);
   margin: 0 6px;
 }
 
 .auxBtn {
-  color: var(--cs-teal-strong);
+  color: var(--kr-teal-strong);
 }
 
 .auxHint {
   margin-left: 12px;
   font-size: 11px;
-  font-family: var(--cs-font-mono, monospace);
-  color: var(--cs-teal-strong);
+  font-family: var(--kr-font-mono, monospace);
+  color: var(--kr-teal-strong);
 }
 </style>

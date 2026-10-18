@@ -18,33 +18,33 @@ defineProps<{ tiles: KpiTile[] }>();
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
 }
 
 .tile {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: var(--cs-spacing-md);
-  border: 1px solid var(--cs-border-subtle);
-  border-radius: var(--cs-radius-lg);
-  background: var(--cs-surface-raised);
+  padding: var(--kr-spacing-md);
+  border: 1px solid var(--kr-border-subtle);
+  border-radius: var(--kr-radius-lg);
+  background: var(--kr-surface-raised);
 }
 
 .label {
-  color: var(--cs-text-secondary);
-  font-size: var(--cs-font-size-sm);
+  color: var(--kr-text-secondary);
+  font-size: var(--kr-font-size-sm);
 }
 
 .value {
-  font-size: var(--cs-font-size-xl);
-  font-weight: var(--cs-font-weight-bold);
+  font-size: var(--kr-font-size-xl);
+  font-weight: var(--kr-font-weight-bold);
   font-variant-numeric: tabular-nums;
 }
 
 .hint {
-  color: var(--cs-text-muted);
-  font-size: var(--cs-font-size-xs);
+  color: var(--kr-text-muted);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.4;
 }
 </style>

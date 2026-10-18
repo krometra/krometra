@@ -2,7 +2,7 @@
 import { useI18n } from "@/composables/shared/useI18n";
 import { toast } from "@/composables/useToast";
 import { LOCALES, LOCALE_HTML_LANG, LOCALE_NAMES, type Locale } from "@/lib/i18n/locale";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 
 const { locale, t, setLocale } = useI18n();
 
@@ -17,7 +17,7 @@ async function select(next: Locale) {
 
 <template>
   <div :class="$style.switcher" role="group" :aria-label="t('common.language')" data-testid="locale-switcher">
-    <CsButton
+    <KrButton
       v-for="option in LOCALES"
       :key="option"
       :variant="option === locale ? 'secondary' : 'ghost'"
@@ -28,7 +28,7 @@ async function select(next: Locale) {
       @click="select(option)"
     >
       {{ LOCALE_NAMES[option] }}
-    </CsButton>
+    </KrButton>
   </div>
 </template>
 

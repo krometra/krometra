@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsCheckbox from "@/components/ui/CsCheckbox.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
-import CsInput from "@/components/ui/CsInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrCheckbox from "@/components/ui/KrCheckbox.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
+import KrInput from "@/components/ui/KrInput.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { MIRROR_BASE_PLANES } from "@/lib/mirrorPlane";
 import { pluralize } from "@/lib/plural";
@@ -47,7 +47,7 @@ const pullText = computed(() => {
       <div :class="$style.field">
         <span :class="$style.label">Нейтральная плоскость</span>
         <div :class="$style.row">
-          <CsButton
+          <KrButton
             v-for="plane in MIRROR_BASE_PLANES"
             :key="plane"
             size="sm"
@@ -56,15 +56,15 @@ const pullText = computed(() => {
             @click="draft.selectBasePlane(plane)"
           >
             {{ plane }}
-          </CsButton>
-          <CsButton
+          </KrButton>
+          <KrButton
             size="sm"
             :variant="usesFace ? 'primary' : 'secondary'"
             data-testid="draft-neutral-face"
             @click="draft.startNeutralFacePick"
           >
             Грань
-          </CsButton>
+          </KrButton>
         </div>
         <span :class="$style.hint" data-testid="draft-neutral-status">{{ neutralText }}</span>
       </div>
@@ -75,18 +75,18 @@ const pullText = computed(() => {
           <li v-for="(row, index) in draft.faceRows.value" :key="String(row.faceId)" :class="$style.item" data-testid="draft-face-row">
             <span :class="$style.index">{{ index + 1 }}</span>
             <span :class="$style.itemLabel">{{ row.label }}</span>
-            <CsButton
+            <KrButton
               variant="ghost"
               size="sm"
               :aria-label="`Снять с выбора: ${row.label}`"
               data-testid="draft-face-remove"
               @click="draft.removeFace(row.faceId)"
             >
-              <CsIcon name="close" :size="12" />
-            </CsButton>
+              <KrIcon name="close" :size="12" />
+            </KrButton>
           </li>
         </ul>
-        <CsCheckbox
+        <KrCheckbox
           :model-value="draft.tangentChain.value"
           label="Касательная цепочка"
           data-testid="draft-tangent-chain"
@@ -95,7 +95,7 @@ const pullText = computed(() => {
       </div>
 
       <div :class="$style.field">
-        <CsInput
+        <KrInput
           :model-value="draft.angle.text.value"
           label="Угол уклона"
           suffix="°"
@@ -111,14 +111,14 @@ const pullText = computed(() => {
       <div :class="$style.field">
         <span :class="$style.label">Направление вытягивания</span>
         <div :class="$style.row">
-          <CsButton
+          <KrButton
             size="sm"
             :variant="draft.reverse.value ? 'primary' : 'secondary'"
             data-testid="draft-reverse"
             @click="draft.setReverse(!draft.reverse.value)"
           >
             Реверс
-          </CsButton>
+          </KrButton>
         </div>
         <span :class="$style.hint" data-testid="draft-pull">{{ pullText }}</span>
       </div>
@@ -127,11 +127,11 @@ const pullText = computed(() => {
     </div>
 
     <template #foot>
-      <CsButton variant="primary" :disabled="!draft.canApply.value" data-testid="draft-apply" @click="draft.apply">
+      <KrButton variant="primary" :disabled="!draft.canApply.value" data-testid="draft-apply" @click="draft.apply">
         {{ draft.loading.value ? "Строю…" : "Применить" }}
-      </CsButton>
-      <CsButton variant="ghost" :disabled="!hasFaces" data-testid="draft-clear" @click="draft.clear">Сброс</CsButton>
-      <CsButton variant="ghost" @click="draft.exit">Закрыть</CsButton>
+      </KrButton>
+      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="draft-clear" @click="draft.clear">Сброс</KrButton>
+      <KrButton variant="ghost" @click="draft.exit">Закрыть</KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -140,19 +140,19 @@ const pullText = computed(() => {
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-md);
-  padding: var(--cs-spacing-md);
+  gap: var(--kr-spacing-md);
+  padding: var(--kr-spacing-md);
 }
 
 .status {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .statusReady {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .field {
@@ -162,8 +162,8 @@ const pullText = computed(() => {
 }
 
 .label {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .row {
@@ -172,8 +172,8 @@ const pullText = computed(() => {
 }
 
 .hint {
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-muted);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-muted);
 }
 
 .list {
@@ -182,29 +182,29 @@ const pullText = computed(() => {
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-md);
-  background: var(--cs-surface-sunken);
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius-md);
+  background: var(--kr-surface-sunken);
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: var(--cs-spacing-sm);
-  padding: 0 var(--cs-spacing-xs) 0 var(--cs-spacing-sm);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
+  gap: var(--kr-spacing-sm);
+  padding: 0 var(--kr-spacing-xs) 0 var(--kr-spacing-sm);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
 }
 
 .item + .item {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 
 .index {
   flex-shrink: 0;
-  min-width: var(--cs-spacing-md);
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text-muted);
+  min-width: var(--kr-spacing-md);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text-muted);
 }
 
 .itemLabel {
@@ -217,8 +217,8 @@ const pullText = computed(() => {
 
 .error {
   margin: 0;
-  font-size: var(--cs-font-size-xs);
+  font-size: var(--kr-font-size-xs);
   line-height: 1.45;
-  color: var(--cs-danger);
+  color: var(--kr-danger);
 }
 </style>

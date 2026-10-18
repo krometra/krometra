@@ -56,15 +56,15 @@ const part = computed(() => buildPart(view.value));
           v-if="selected"
           :points="part.bossTop"
           fill="none"
-          stroke="var(--cs-primary)"
+          stroke="var(--kr-primary)"
           stroke-width="2"
         />
-        <polyline :points="part.dimPts" fill="none" stroke="var(--cs-amber)" stroke-width="1.2" />
+        <polyline :points="part.dimPts" fill="none" stroke="var(--kr-amber)" stroke-width="1.2" />
         <text
           :x="part.dimX"
           :y="part.dimY"
-          fill="var(--cs-amber)"
-          font-family="var(--cs-font-mono)"
+          fill="var(--kr-amber)"
+          font-family="var(--kr-font-mono)"
           font-size="14"
           text-anchor="middle"
         >120,0 мм</text>
@@ -80,8 +80,8 @@ const part = computed(() => buildPart(view.value));
   height: 100%;
   background:
     radial-gradient(120% 120% at 50% 30%, oklch(0.985 0.012 244), oklch(0.94 0.009 250)),
-    linear-gradient(var(--cs-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--cs-grid-line) 1px, transparent 1px);
+    linear-gradient(var(--kr-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kr-grid-line) 1px, transparent 1px);
 }
 
 .viewport {

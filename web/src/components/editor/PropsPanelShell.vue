@@ -28,7 +28,7 @@ defineProps<{
   align-items: center;
   gap: 9px;
   padding: 0 14px;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
 }
 
 .dot {
@@ -40,14 +40,14 @@ defineProps<{
 
 .propsTitle {
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .propsKind {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 10px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .propsBody {
@@ -57,7 +57,7 @@ defineProps<{
 }
 
 .propsFoot {
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
   padding: 12px 14px;
   display: flex;
   gap: 8px;

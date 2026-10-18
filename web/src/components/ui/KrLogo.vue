@@ -49,20 +49,20 @@ const gap = computed(() => `${Math.round(props.size * 0.24)}px`);
 }
 
 .face {
-  fill: var(--cs-primary);
+  fill: var(--kr-primary);
 }
 
 .faceLight {
-  fill: var(--cs-logo-face-light);
+  fill: var(--kr-logo-face-light);
 }
 
 .faceDark {
-  fill: var(--cs-logo-face-dark);
+  fill: var(--kr-logo-face-dark);
 }
 
 .letter {
   fill: none;
-  stroke: var(--cs-primary-fg);
+  stroke: var(--kr-primary-fg);
   stroke-width: 2.4;
   stroke-linecap: round;
 }

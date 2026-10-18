@@ -51,20 +51,20 @@ if (typeof window !== "undefined") {
 <style module>
 .container {
   position: fixed;
-  top: var(--cs-spacing-md);
-  right: var(--cs-spacing-md);
+  top: var(--kr-spacing-md);
+  right: var(--kr-spacing-md);
   z-index: 2000;
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
   pointer-events: none;
 }
 
 .toast {
-  padding: var(--cs-spacing-sm) var(--cs-spacing-md);
-  border-radius: var(--cs-radius-md);
-  font-size: var(--cs-font-size-sm);
-  box-shadow: var(--cs-shadow-md);
+  padding: var(--kr-spacing-sm) var(--kr-spacing-md);
+  border-radius: var(--kr-radius-md);
+  font-size: var(--kr-font-size-sm);
+  box-shadow: var(--kr-shadow-md);
   cursor: pointer;
   pointer-events: auto;
   max-width: 360px;
@@ -72,23 +72,23 @@ if (typeof window !== "undefined") {
 }
 
 .success {
-  background: var(--cs-green-strong);
+  background: var(--kr-green-strong);
   color: white;
 }
 
 .error {
-  background: var(--cs-red-strong);
+  background: var(--kr-red-strong);
   color: white;
 }
 
 .warning {
-  background: var(--cs-warning);
-  color: var(--cs-text);
+  background: var(--kr-warning);
+  color: var(--kr-text);
 }
 
 .info {
-  background: var(--cs-primary);
-  color: var(--cs-surface);
+  background: var(--kr-primary);
+  color: var(--kr-surface);
 }
 
 @keyframes slideIn {

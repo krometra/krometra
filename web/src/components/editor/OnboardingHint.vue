@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
 import type { OnboardingHint } from "@/composables/editor/useOnboarding";
 
 defineProps<{ hint: OnboardingHint }>();
@@ -10,7 +10,7 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
 
 <template>
   <div :class="[$style.root, hint.variant === 'pill' ? $style.pill : $style.center]">
-    <CsIcon v-if="hint.variant === 'pill'" name="lightbulb" :size="16" :class="$style.bulb" />
+    <KrIcon v-if="hint.variant === 'pill'" name="lightbulb" :size="16" :class="$style.bulb" />
 
     <div :class="$style.text">
       <div :class="$style.title">{{ hint.title }}</div>
@@ -18,11 +18,11 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
     </div>
 
     <div :class="$style.actions">
-      <CsButton size="sm" :class="$style.cta" @click="emit('act')">
+      <KrButton size="sm" :class="$style.cta" @click="emit('act')">
         {{ hint.cta }}
         <span :class="$style.key">{{ hint.hotkey }}</span>
-      </CsButton>
-      <CsButton
+      </KrButton>
+      <KrButton
         variant="ghost"
         size="sm"
         :class="$style.dismiss"
@@ -30,8 +30,8 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
         aria-label="Скрыть подсказку"
         @click="emit('dismiss')"
       >
-        <CsIcon name="close" :size="14" />
-      </CsButton>
+        <KrIcon name="close" :size="14" />
+      </KrButton>
     </div>
   </div>
 </template>
@@ -71,10 +71,10 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
   max-width: min(560px, calc(100% - 36px));
   padding: 10px 12px 10px 14px;
   background: oklch(1 0 0 / 0.94);
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 10px;
   backdrop-filter: blur(6px);
-  box-shadow: var(--cs-shadow-md);
+  box-shadow: var(--kr-shadow-md);
   pointer-events: auto;
 }
 
@@ -86,20 +86,20 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
 }
 
 .bulb {
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
   flex-shrink: 0;
 }
 
 .center .title {
   font-size: 19px;
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text);
 }
 
 .pill .title {
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text);
 }
 
 .center .body {
@@ -107,12 +107,12 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
   font-size: 13px;
   line-height: 1.6;
   max-width: 380px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .pill .body {
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .pill .text {
@@ -130,18 +130,18 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
   margin-top: 6px;
 }
 
-/* Размеры подсказки крупнее дефолтного CsButton size="sm" — держим прежний вид. */
+/* Размеры подсказки крупнее дефолтного KrButton size="sm" — держим прежний вид. */
 .cta.cta {
   gap: 8px;
   height: auto;
   padding: 9px 14px;
   font-size: 13px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   border-radius: 8px;
 }
 
 .key {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 10.5px;
   line-height: 1;
   padding: 3px 5px;
@@ -154,10 +154,10 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
   height: 28px;
   padding: 0;
   border-radius: 6px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
 }
 
 .dismiss.dismiss:hover {
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 </style>

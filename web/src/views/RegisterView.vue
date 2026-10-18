@@ -7,8 +7,8 @@ import { useFormErrors } from "@/composables/forms/useFormErrors";
 import { MIN_PASSWORD_LENGTH, validateEmail, validatePassword } from "@/lib/formValidation";
 import { msg } from "@/lib/i18n/catalog";
 import AuthLayout from "@/components/auth/AuthLayout.vue";
-import CsInput from "@/components/ui/CsInput.vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 
 const router = useRouter();
 const auth = useAuth();
@@ -49,12 +49,12 @@ async function handleRegister() {
 <template>
   <AuthLayout :title="t('auth.register.title')" :subtitle="t('auth.register.subtitle')">
     <form :class="$style.form" novalidate @submit.prevent="handleRegister">
-      <CsInput
+      <KrInput
         v-model="displayName"
         :label="t('auth.field.name.label')"
         :placeholder="t('auth.field.name.placeholder')"
       />
-      <CsInput
+      <KrInput
         v-model="email"
         :label="t('auth.field.email.label')"
         type="email"
@@ -63,7 +63,7 @@ async function handleRegister() {
         :error="fieldErrors['email']"
         @update:model-value="clearField('email')"
       />
-      <CsInput
+      <KrInput
         v-model="password"
         :label="t('auth.field.password.label')"
         type="password"
@@ -74,9 +74,9 @@ async function handleRegister() {
         @update:model-value="clearField('password')"
       />
       <div v-if="errorMsg" :class="$style.error" role="alert">{{ errorMsg }}</div>
-      <CsButton :class="$style.submit" type="submit" size="lg" :loading="loading">
+      <KrButton :class="$style.submit" type="submit" size="lg" :loading="loading">
         {{ loading ? t("auth.register.submitting") : t("auth.register.submit") }}
-      </CsButton>
+      </KrButton>
     </form>
 
     <p :class="$style.footer">
@@ -96,18 +96,18 @@ async function handleRegister() {
 .submit {
   width: 100%;
   margin-top: 4px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .error {
   font-size: 13px;
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .footer {
   text-align: center;
   margin: 14px 0 0;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 13px;
 }
 </style>

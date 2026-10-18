@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
-import CsSelect from "@/components/ui/CsSelect.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
+import KrSelect from "@/components/ui/KrSelect.vue";
 import type { MeasureApi } from "@/composables/editor/useMeasure";
 import { MATERIALS } from "@/lib/measureFormat";
 import PropsPanelShell from "./PropsPanelShell.vue";
@@ -28,25 +28,25 @@ const hint = computed(() => {
 </script>
 
 <template>
-  <PropsPanelShell title="Измерить" kind="INSPECT" dot-color="var(--cs-teal-strong)">
+  <PropsPanelShell title="Измерить" kind="INSPECT" dot-color="var(--kr-teal-strong)">
     <div :class="$style.body" data-testid="measure-panel">
       <div :class="$style.filter">
-        <CsButton
+        <KrButton
           size="sm"
           :variant="filter === 'entity' ? 'primary' : 'secondary'"
           data-testid="measure-filter-entity"
           @click="props.measure.setFilter('entity')"
         >
           Элементы
-        </CsButton>
-        <CsButton
+        </KrButton>
+        <KrButton
           size="sm"
           :variant="filter === 'body' ? 'primary' : 'secondary'"
           data-testid="measure-filter-body"
           @click="props.measure.setFilter('body')"
         >
           Тела
-        </CsButton>
+        </KrButton>
       </div>
 
       <p v-if="hint" :class="$style.hint" data-testid="measure-hint">{{ hint }}</p>
@@ -55,15 +55,15 @@ const hint = computed(() => {
         <li v-for="(label, index) in pickLabels" :key="index" :class="$style.pick" data-testid="measure-pick">
           <span :class="[$style.swatch, index === 0 ? $style.first : $style.second]" />
           <span :class="$style.pickLabel">{{ label }}</span>
-          <CsButton
+          <KrButton
             variant="ghost"
             size="sm"
             :aria-label="`Убрать из измерения: ${label}`"
             data-testid="measure-pick-remove"
             @click="props.measure.removePick(index)"
           >
-            <CsIcon name="close" :size="12" />
-          </CsButton>
+            <KrIcon name="close" :size="12" />
+          </KrButton>
         </li>
       </ul>
 
@@ -75,7 +75,7 @@ const hint = computed(() => {
         <div v-for="row in group.rows" :key="row.id" :class="$style.row" :data-testid="`measure-row-${row.id}`">
           <span :class="$style.label">{{ row.label }}</span>
           <span :class="$style.value">{{ row.value }}</span>
-          <CsButton
+          <KrButton
             variant="ghost"
             size="sm"
             :aria-label="`Копировать: ${row.label}`"
@@ -83,20 +83,20 @@ const hint = computed(() => {
             data-testid="measure-copy"
             @click="props.measure.copy(row)"
           >
-            <CsIcon name="copy" :size="12" />
-          </CsButton>
+            <KrIcon name="copy" :size="12" />
+          </KrButton>
         </div>
       </section>
 
       <div v-if="measuresBody" :class="$style.material">
-        <CsSelect
+        <KrSelect
           label="Материал"
           :model-value="materialId"
           :options="materialOptions"
           data-testid="measure-material"
           @update:model-value="props.measure.setMaterial"
         />
-        <CsNumberInput
+        <KrNumberInput
           label="Плотность"
           :model-value="density"
           :min="0.01"
@@ -110,9 +110,9 @@ const hint = computed(() => {
     </div>
 
     <template #foot>
-      <CsButton variant="secondary" size="sm" data-testid="measure-close" @click="props.measure.exit()">
+      <KrButton variant="secondary" size="sm" data-testid="measure-close" @click="props.measure.exit()">
         Закрыть (Esc)
-      </CsButton>
+      </KrButton>
     </template>
   </PropsPanelShell>
 </template>
@@ -133,13 +133,13 @@ const hint = computed(() => {
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .error {
   margin: 0;
   font-size: 12px;
-  color: var(--cs-error);
+  color: var(--kr-error);
 }
 
 .picks {
@@ -166,11 +166,11 @@ const hint = computed(() => {
 }
 
 .first {
-  background: var(--cs-amber-strong);
+  background: var(--kr-amber-strong);
 }
 
 .second {
-  background: var(--cs-green-strong);
+  background: var(--kr-green-strong);
 }
 
 .pickLabel {
@@ -186,14 +186,14 @@ const hint = computed(() => {
   flex-direction: column;
   gap: 2px;
   padding-top: 8px;
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 
 .groupTitle {
   margin: 0 0 4px;
   font-size: 11px;
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text-muted);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text-muted);
 }
 
 .row {
@@ -205,12 +205,12 @@ const hint = computed(() => {
 }
 
 .label {
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .value {
-  font-family: var(--cs-font-mono);
-  color: var(--cs-text);
+  font-family: var(--kr-font-mono);
+  color: var(--kr-text);
   text-align: right;
 }
 
@@ -219,6 +219,6 @@ const hint = computed(() => {
   flex-direction: column;
   gap: 8px;
   padding-top: 8px;
-  border-top: 1px solid var(--cs-border-subtle);
+  border-top: 1px solid var(--kr-border-subtle);
 }
 </style>

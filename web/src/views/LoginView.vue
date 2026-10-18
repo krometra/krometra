@@ -7,8 +7,8 @@ import { useFormErrors } from "@/composables/forms/useFormErrors";
 import { validateEmail, validatePasswordEntered } from "@/lib/formValidation";
 import { msg } from "@/lib/i18n/catalog";
 import AuthLayout from "@/components/auth/AuthLayout.vue";
-import CsInput from "@/components/ui/CsInput.vue";
-import CsButton from "@/components/ui/CsButton.vue";
+import KrInput from "@/components/ui/KrInput.vue";
+import KrButton from "@/components/ui/KrButton.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -55,7 +55,7 @@ async function handleLogin() {
     </div>
 
     <form :class="$style.form" novalidate @submit.prevent="handleLogin">
-      <CsInput
+      <KrInput
         v-model="email"
         :label="t('auth.field.email.label')"
         type="email"
@@ -64,7 +64,7 @@ async function handleLogin() {
         :error="fieldErrors['email']"
         @update:model-value="clearField('email')"
       />
-      <CsInput
+      <KrInput
         v-model="password"
         :label="t('auth.field.password.label')"
         type="password"
@@ -74,9 +74,9 @@ async function handleLogin() {
         @update:model-value="clearField('password')"
       />
       <div v-if="errorMsg" :class="$style.error" role="alert">{{ errorMsg }}</div>
-      <CsButton :class="$style.submit" type="submit" size="lg" :loading="loading">
+      <KrButton :class="$style.submit" type="submit" size="lg" :loading="loading">
         {{ loading ? t("auth.login.submitting") : t("auth.login.submit") }}
-      </CsButton>
+      </KrButton>
     </form>
 
     <p :class="$style.terms">{{ t("auth.login.terms") }}</p>
@@ -97,12 +97,12 @@ async function handleLogin() {
   gap: 11px;
   background: oklch(0.97 0.005 250);
   color: oklch(0.20 0.01 250);
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 15px;
   padding: 13px;
   border: none;
   border-radius: 9px;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
 }
 
 .yandex:hover {
@@ -113,7 +113,7 @@ async function handleLogin() {
   width: 20px;
   height: 20px;
   border-radius: 4px;
-  background: var(--cs-red);
+  background: var(--kr-red);
   color: #fff;
   display: flex;
   align-items: center;
@@ -127,14 +127,14 @@ async function handleLogin() {
   align-items: center;
   gap: 12px;
   margin: 18px 0;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   font-size: 12px;
 }
 
 .line {
   flex: 1;
   height: 1px;
-  background: var(--cs-border);
+  background: var(--kr-border);
 }
 
 .form {
@@ -146,17 +146,17 @@ async function handleLogin() {
 .submit {
   width: 100%;
   margin-top: 4px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
 }
 
 .error {
   font-size: 13px;
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .terms {
   font-size: 12px;
-  color: var(--cs-text-muted);
+  color: var(--kr-text-muted);
   text-align: center;
   margin: 20px 0 0;
   line-height: 1.5;
@@ -166,7 +166,7 @@ async function handleLogin() {
 .footer {
   text-align: center;
   margin: 14px 0 0;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   font-size: 13px;
 }
 </style>

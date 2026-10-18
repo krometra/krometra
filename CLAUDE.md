@@ -29,7 +29,7 @@ backend/         FastAPI, SQLAlchemy (async), Alembic
 web/
   src/
     views/       страницы-роуты (Dashboard, Editor, Login, Register)
-    components/   ui/ (дизайн-система Cs*), viewport/ (Three.js), editor/, sketcher/
+    components/   ui/ (дизайн-система Kr*), viewport/ (Three.js), editor/, sketcher/
     composables/  useApi.ts; shared/ — глобальное состояние (createSharedComposable);
                   editor/ — домены редактора (useBrowserGeometry — клиент worker'а ядра);
                   viewport/ — домены 3D-вьюпорта
@@ -94,8 +94,8 @@ Health-check: `GET /api/health`. Vite проксирует `/api` → `http://lo
 - **Изоляция данных:** любой запрос к ресурсам проекта фильтруется по `owner_id == current_user.id`. Никогда не отдавай чужие данные.
 - **Безопасность токенов:** access token (JWT, 15 мин) — только в памяти JS, в `Authorization: Bearer`. Refresh token (opaque, 30 дней) — только в httpOnly Secure SameSite cookie, **никогда** в localStorage. Ротация + family tracking в Redis (см. `core/security.py`).
 - **Frontend state:** глобальное состояние — это обычный composable, обёрнутый в `createSharedComposable` (`composables/shared/`). Не вводи Pinia.
-- **UI:** новые интерактивные компоненты строятся на zag.js + CSS Modules с токенами `--cs-*`. Префикс компонентов дизайн-системы — `Cs` (`CsButton`, `CsDialog`, …).
-- **`foxy-ui-kit` — собственный кит владельца проекта** (`github.com/nia-sempai/foxy-ui-kit`). Если компоненту `Fx*` не хватает пропа, слота, варианта или в нём баг — дорабатывай сам кит на своё усмотрение, выпускай версию и обновляй зависимость в `web/`, а не обходи это перекрытием классов `.fx-*`, своей копией компонента или правкой `node_modules`. Порядок выпуска — скилл `foxy-ui-kit`.
+- **UI:** новые интерактивные компоненты строятся на zag.js + CSS Modules с токенами `--kr-*`. Префикс компонентов дизайн-системы — `Kr` (`KrButton`, `KrDialog`, …).
+- **`@krometra/ui-kit` — собственный кит владельца проекта** (`github.com/krometra/ui-kit`). Если компоненту `K*` не хватает пропа, слота, варианта или в нём баг — дорабатывай сам кит на своё усмотрение, выпускай версию и обновляй зависимость в `web/`, а не обходи это перекрытием классов `.k-*`, своей копией компонента или правкой `node_modules`. Порядок выпуска — скилл `krometra-ui-kit`.
 - **Three.js** используется напрямую через template ref, без оберток вроде TresJS, чтобы держать тонкий контроль над render loop.
 - **Геометрия — только в браузерном ядре.** Новая операция — сообщение worker'а + `Browser*Command` + эндпоинт `browser-*`, сохраняющий STEP и меш без разбора. Worker держит тела между командами; `useBrowserGeometry` следит за памятью (лимит модели, перезапуск worker'а с повторной гидрацией тел после OOM/abort). Неподдержанная операция недоступна, молчаливого серверного fallback нет.
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import CsLogo from "@/components/ui/CsLogo.vue";
+import KrLogo from "@/components/ui/KrLogo.vue";
 import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 
 defineProps<{
@@ -15,7 +15,7 @@ const router = useRouter();
   <div :class="$style.page">
     <div :class="$style.shell">
       <div :class="$style.header">
-        <CsLogo :class="$style.logo" @click="router.push('/landing')" />
+        <KrLogo :class="$style.logo" @click="router.push('/landing')" />
         <LocaleSwitcher />
       </div>
 
@@ -34,7 +34,7 @@ const router = useRouter();
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--cs-surface);
+  background-color: var(--kr-surface);
   background-image:
     radial-gradient(60% 50% at 50% 40%, oklch(0.92 0.04 244 / 0.75), transparent),
     linear-gradient(oklch(0.78 0.012 250 / 0.45) 1px, transparent 1px),
@@ -59,23 +59,23 @@ const router = useRouter();
 }
 
 .card {
-  border: 1px solid var(--cs-border);
+  border: 1px solid var(--kr-border);
   border-radius: 14px;
-  background: var(--cs-surface-raised);
+  background: var(--kr-surface-raised);
   padding: 34px;
-  box-shadow: var(--cs-shadow-md);
+  box-shadow: var(--kr-shadow-md);
 }
 
 .title {
   font-size: 23px;
-  font-weight: var(--cs-font-weight-bold);
+  font-weight: var(--kr-font-weight-bold);
   margin: 0 0 7px;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
   font-size: 14px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   margin: 0 0 28px;
 }
 </style>

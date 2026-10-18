@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import CsButton from "@/components/ui/CsButton.vue";
-import CsIcon from "@/components/ui/CsIcon.vue";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
-import CsSlider from "@/components/ui/CsSlider.vue";
+import KrButton from "@/components/ui/KrButton.vue";
+import KrIcon from "@/components/ui/KrIcon.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
+import KrSlider from "@/components/ui/KrSlider.vue";
 import type { SectionModeApi } from "@/composables/editor/useSectionMode";
 import type { SectionBase } from "@/lib/sectionPlane";
 
@@ -17,7 +17,7 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
   <div :class="$style.panel" data-testid="section-panel" role="group" aria-label="Сечение модели">
     <div :class="$style.head">
       <span :class="$style.title">Сечение</span>
-      <CsButton
+      <KrButton
         variant="ghost"
         size="sm"
         :class="$style.iconBtn"
@@ -26,12 +26,12 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
         data-testid="section-close"
         @click="props.section.close()"
       >
-        <CsIcon name="close" :size="15" />
-      </CsButton>
+        <KrIcon name="close" :size="15" />
+      </KrButton>
     </div>
 
     <div :class="$style.planes">
-      <CsButton
+      <KrButton
         v-for="plane in basePlanes"
         :key="plane"
         variant="ghost"
@@ -42,8 +42,8 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
         @click="props.section.setBase(plane)"
       >
         {{ plane }}
-      </CsButton>
-      <CsButton
+      </KrButton>
+      <KrButton
         variant="ghost"
         size="sm"
         :class="[$style.planeBtn, props.section.source.value === 'face' && $style.planeBtnActive]"
@@ -54,10 +54,10 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
         @click="props.section.setSelectedFace()"
       >
         Грань
-      </CsButton>
+      </KrButton>
     </div>
 
-    <CsSlider
+    <KrSlider
       :model-value="props.section.offset.value"
       :min="props.section.range.value.min"
       :max="props.section.range.value.max"
@@ -67,7 +67,7 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
       @update:model-value="props.section.setOffset($event)"
     />
 
-    <CsNumberInput
+    <KrNumberInput
       :model-value="props.section.offset.value"
       :step="props.section.step.value"
       label="Смещение"
@@ -77,12 +77,12 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
     />
 
     <div :class="$style.actions">
-      <CsButton variant="secondary" size="sm" data-testid="section-flip" @click="props.section.flip()">
+      <KrButton variant="secondary" size="sm" data-testid="section-flip" @click="props.section.flip()">
         Перевернуть
-      </CsButton>
-      <CsButton variant="secondary" size="sm" data-testid="section-look-at" @click="emit('look-at')">
+      </KrButton>
+      <KrButton variant="secondary" size="sm" data-testid="section-look-at" @click="emit('look-at')">
         Вид по нормали
-      </CsButton>
+      </KrButton>
     </div>
   </div>
 </template>
@@ -96,12 +96,12 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
   width: 236px;
   display: flex;
   flex-direction: column;
-  gap: var(--cs-spacing-sm);
+  gap: var(--kr-spacing-sm);
   padding: 10px 12px 12px;
   background: oklch(1 0 0 / 0.92);
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 9px;
-  box-shadow: var(--cs-shadow-sm);
+  box-shadow: var(--kr-shadow-sm);
   backdrop-filter: blur(6px);
 }
 
@@ -112,16 +112,16 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
 }
 
 .title {
-  font-size: var(--cs-font-size-sm);
-  font-weight: var(--cs-font-weight-bold);
-  color: var(--cs-text);
+  font-size: var(--kr-font-size-sm);
+  font-weight: var(--kr-font-weight-bold);
+  color: var(--kr-text);
 }
 
 .iconBtn.iconBtn {
   width: 26px;
   height: 26px;
   padding: 0;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .planes {
@@ -133,17 +133,17 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
 .planeBtn.planeBtn {
   padding: 0;
   height: 28px;
-  font-family: var(--cs-font-mono);
-  font-size: var(--cs-font-size-xs);
-  color: var(--cs-text-secondary);
-  border: 1px solid var(--cs-border);
+  font-family: var(--kr-font-mono);
+  font-size: var(--kr-font-size-xs);
+  color: var(--kr-text-secondary);
+  border: 1px solid var(--kr-border);
 }
 
 .planeBtnActive.planeBtnActive,
 .planeBtnActive.planeBtnActive:hover {
-  background: var(--cs-primary);
-  border-color: var(--cs-primary);
-  color: var(--cs-primary-fg);
+  background: var(--kr-primary);
+  border-color: var(--kr-primary);
+  color: var(--kr-primary-fg);
 }
 
 .actions {

@@ -6,7 +6,7 @@ import { isWorkPlane } from "@/lib/workPlaneDocument";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { SketchConstraint } from "@/types/api";
-import CsNumberInput from "@/components/ui/CsNumberInput.vue";
+import KrNumberInput from "@/components/ui/KrNumberInput.vue";
 import { isDimensionType } from "@/sketcher/dimensionKinds";
 import { SKETCH_ORIGIN_ID } from "@/sketcher/sketchOrigin";
 import { CONSTRAINT_ICONS, CONSTRAINT_TITLES } from "@/sketcher/constraintNames";
@@ -136,7 +136,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
         <div :class="$style.constraintBody">
           <div :class="$style.constraintTitle">{{ constraintTitle(c) }}</div>
           <div :class="$style.constraintTargets">{{ constraintTargets(c) }}</div>
-          <CsNumberInput
+          <KrNumberInput
             v-if="isDimensional(c)"
             :model-value="c.value ?? 0"
             :step="c.type === 'angle' ? 1 : 0.5"
@@ -165,9 +165,9 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 
 <style module>
 .panelHead {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   letter-spacing: 0.04em;
   margin-bottom: 13px;
 }
@@ -179,36 +179,36 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 .fieldInput {
   display: flex;
   align-items: center;
-  background: var(--cs-surface-sunken);
-  border: 1px solid var(--cs-border-strong);
+  background: var(--kr-surface-sunken);
+  border: 1px solid var(--kr-border-strong);
   border-radius: 7px;
   padding: 9px 12px;
-  transition: border-color var(--cs-transition-fast);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .fieldInput:hover {
-  border-color: var(--cs-primary-border);
+  border-color: var(--kr-primary-border);
 }
 
 .fieldValue {
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 14px;
-  font-weight: var(--cs-font-weight-medium);
-  color: var(--cs-text);
+  font-weight: var(--kr-font-weight-medium);
+  color: var(--kr-text);
 }
 
 .fieldHint {
   margin-top: 5px;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 11px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
 }
 
 .fieldUnit {
   margin-left: auto;
-  font-family: var(--cs-font-mono);
+  font-family: var(--kr-font-mono);
   font-size: 12px;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
 }
 
 .conflictWarning {
@@ -217,7 +217,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
   border-radius: 7px;
   background: oklch(0.96 0.025 25);
   border: 1px solid oklch(0.65 0.16 25 / 0.5);
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -227,32 +227,32 @@ function setConstraintValue(c: SketchConstraint, value: number) {
   align-items: flex-start;
   gap: 8px;
   padding: 8px 0;
-  border-bottom: 1px solid var(--cs-border-subtle);
+  border-bottom: 1px solid var(--kr-border-subtle);
   font-size: 12px;
-  color: var(--cs-text-secondary);
+  color: var(--kr-text-secondary);
   transition: background 0.1s;
 }
 
 .constraintRow:hover {
   background: oklch(0.78 0.13 75 / 0.05);
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .constraintRowSelected,
 .constraintRowSelected:hover {
-  background: var(--cs-primary-soft);
-  color: var(--cs-text);
+  background: var(--kr-primary-soft);
+  color: var(--kr-text);
 }
 
 .constraintRowHovered {
   background: oklch(0.78 0.13 75 / 0.05);
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .constraintIcon {
-  font-family: var(--cs-font-mono, monospace);
+  font-family: var(--kr-font-mono, monospace);
   font-size: 13px;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
   width: 24px;
   text-align: center;
   flex-shrink: 0;
@@ -273,13 +273,13 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 
 .constraintTitle {
   font-size: 12px;
-  color: var(--cs-text);
+  color: var(--kr-text);
 }
 
 .constraintTargets {
-  font-family: var(--cs-font-mono, monospace);
+  font-family: var(--kr-font-mono, monospace);
   font-size: 10px;
-  color: var(--cs-text-muted, #888);
+  color: var(--kr-text-muted, #888);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -289,7 +289,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
   cursor: pointer;
   background: transparent;
   border: none;
-  color: var(--cs-text-disabled);
+  color: var(--kr-text-disabled);
   font-size: 13px;
   padding: 2px 4px;
   border-radius: 3px;
@@ -298,47 +298,47 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 
 .constraintDel:hover {
   background: oklch(0.65 0.16 25 / 0.15);
-  color: var(--cs-red-strong);
+  color: var(--kr-red-strong);
 }
 
 .solvingHint {
   margin-top: 10px;
-  font-family: var(--cs-font-mono, monospace);
+  font-family: var(--kr-font-mono, monospace);
   font-size: 10px;
-  color: var(--cs-amber-strong);
+  color: var(--kr-amber-strong);
   text-align: center;
 }
 
 .okBtn {
   flex: 1;
   cursor: pointer;
-  background: var(--cs-primary);
-  color: var(--cs-primary-fg);
-  font-weight: var(--cs-font-weight-bold);
+  background: var(--kr-primary);
+  color: var(--kr-primary-fg);
+  font-weight: var(--kr-font-weight-bold);
   font-size: 13px;
   padding: 9px;
   border: none;
   border-radius: 7px;
-  transition: background var(--cs-transition-fast);
+  transition: background var(--kr-transition-fast);
 }
 
 .okBtn:hover {
-  background: var(--cs-primary-hover);
+  background: var(--kr-primary-hover);
 }
 
 .cancelBtn {
   flex: 1;
   cursor: pointer;
   background: transparent;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid var(--kr-border-strong);
   font-size: 13px;
   padding: 9px;
   border-radius: 7px;
-  color: var(--cs-text-secondary);
-  transition: border-color var(--cs-transition-fast);
+  color: var(--kr-text-secondary);
+  transition: border-color var(--kr-transition-fast);
 }
 
 .cancelBtn:hover {
-  border-color: var(--cs-text-muted);
+  border-color: var(--kr-text-muted);
 }
 </style>
