@@ -1,6 +1,6 @@
 # Крометра
 
-[![CI](https://github.com/nia-sempai/krometra/actions/workflows/ci.yml/badge.svg)](https://github.com/nia-sempai/krometra/actions/workflows/ci.yml)
+[![CI](https://github.com/krometra/krometra/actions/workflows/ci.yml/badge.svg)](https://github.com/krometra/krometra/actions/workflows/ci.yml)
 [![License: FSL-1.1-ALv2](https://img.shields.io/badge/License-FSL--1.1--ALv2-blue.svg)](./LICENSE.md)
 
 Браузерная инженерная CAD-система для параметрического 3D-моделирования, вдохновлённая Fusion 360 и Onshape.
@@ -127,7 +127,7 @@ npm run e2e      # Playwright (нужен поднятый стек и dev-се�
 
 ## Участие
 
-Баги и предложения — в [Issues](https://github.com/nia-sempai/krometra/issues). Порядок работы с кодом — в [`CONTRIBUTING.md`](./CONTRIBUTING.md). Об уязвимостях — приватно, как описано в [`SECURITY.md`](./SECURITY.md), не через Issues.
+Баги и предложения — в [Issues](https://github.com/krometra/krometra/issues). Порядок работы с кодом — в [`CONTRIBUTING.md`](./CONTRIBUTING.md). Об уязвимостях — приватно, как описано в [`SECURITY.md`](./SECURITY.md), не через Issues.
 
 ## Лицензия
 
@@ -143,4 +143,4 @@ npm run e2e      # Playwright (нужен поднятый стек и dev-се�
 
 Сторонние компоненты распространяются под своими лицензиями — список в [`web/public/THIRD_PARTY_NOTICES.txt`](./web/public/THIRD_PARTY_NOTICES.txt). Геометрическое ядро OpenCASCADE (пакет `replicad-opencascadejs`) — под LGPL-2.1: оно поставляется отдельным WASM-файлом, который можно заменить своей сборкой.
 
-Для коммерческого лицензирования вне этих условий — свяжитесь с автором через [Issues](https://github.com/nia-sempai/krometra/issues) или профиль GitHub.
+Для коммерческого лицензирования вне этих условий — свяжитесь с автором через [Issues](https://github.com/krometra/krometra/issues) или профиль GitHub.

@@ -11,8 +11,8 @@ ssh "$SSH_HOST" "SERVER_IP=$SERVER_IP DOMAIN=$DOMAIN bash -s" <<'REMOTE'
 set -euo pipefail
 
 APP_DIR=/opt/cad-studio
-# SSH с deploy-ключом сервера: по https git просит логин, пока репозиторий приватный.
-REPO_URL=git@github.com:nia-sempai/krometra.git
+# SSH с deploy-ключом сервера (только чтение).
+REPO_URL=git@github.com:krometra/krometra.git
 BRANCH=master
 COMPOSE="docker compose -f docker-compose.prod.yml"
 WEB_PORT=5000

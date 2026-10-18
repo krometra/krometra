@@ -2,7 +2,7 @@
 
 ## Как сообщить об уязвимости
 
-Не открывайте публичный issue. Сообщите приватно: вкладка **Security** репозитория → **Report a vulnerability** ([прямая ссылка](https://github.com/nia-sempai/krometra/security/advisories/new)). Отчёт увидит только автор проекта.
+Не открывайте публичный issue. Сообщите приватно: вкладка **Security** репозитория → **Report a vulnerability** ([прямая ссылка](https://github.com/krometra/krometra/security/advisories/new)). Отчёт увидит только автор проекта.
 
 В отчёте пригодятся:
 

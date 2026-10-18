@@ -1,5 +1,5 @@
 export const MCP_SERVER_NAME = "krometra";
-export const MCP_REPO_URL = "https://github.com/nia-sempai/krometra";
+export const MCP_REPO_URL = "https://github.com/krometra/krometra";
 export const MCP_README_URL = `${MCP_REPO_URL}/blob/master/web/mcp/README.md`;
 export const API_KEY_PLACEHOLDER = "krm_...";
 

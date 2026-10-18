@@ -46,7 +46,7 @@
 ### Локальный сервер
 
 ```bash
-git clone https://github.com/nia-sempai/krometra.git ~/krometra
+git clone https://github.com/krometra/krometra.git ~/krometra
 cd ~/krometra/web && npm install
 npx playwright install chromium
 claude mcp add krometra -s user \
