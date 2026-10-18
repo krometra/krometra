@@ -26,14 +26,7 @@ export function useBodySelection(options: {
   function paint(bodyId: string, color: THREE.Color | null) {
     const entry = findByBody(context.entries, bodyId);
     if (!entry) return;
-    const mat = entry.mesh.material as THREE.MeshStandardMaterial;
-    // Подсветка грани включает vertexColors: пока он включён, material.color
-    // умножается на цвет вершин и роль тела не видна.
-    if (mat.vertexColors) {
-      mat.vertexColors = false;
-      mat.needsUpdate = true;
-    }
-    mat.color.copy(color ?? entry.color);
+    (entry.mesh.material as THREE.MeshStandardMaterial).color.copy(color ?? entry.color);
   }
 
   function painted(next: BodyRoles): Map<string, BodyRole> {

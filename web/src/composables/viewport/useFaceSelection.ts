@@ -3,15 +3,16 @@ import type { BrepTopo } from "@/types/api";
 import type { MeshEntry, SceneContext } from "./types";
 import { findByBody, findByMesh } from "./types";
 import { raycastFace } from "./faceRaycast";
+import { createFaceOverlay, disposeFaceOverlay, paintFaceOverlay } from "./faceOverlay";
 
 const HIGHLIGHT_COLOR = new THREE.Color(0x4da6ff);
 const HOVER_COLOR = new THREE.Color(0x7fc4ff);
 const MARK_COLOR = new THREE.Color(0xff9f43);
 
 /**
- * Выбор и подсветка граней. Подсветка идёт по вершинным цветам меша, поэтому
- * выбранная грань запоминается отдельно: ховер её перекрашивает, и её нужно
- * вернуть, как только курсор ушёл в пустоту.
+ * Выбор и подсветка граней. Подсветка рисуется накладкой поверх грани, буферы
+ * самого тела не меняются. Выбранная грань запоминается отдельно: ховер её
+ * перекрашивает, и её нужно вернуть, как только курсор ушёл в пустоту.
  */
 export function useFaceSelection(options: {
   context: SceneContext;
@@ -24,50 +25,43 @@ export function useFaceSelection(options: {
   let selected: { mesh: THREE.Mesh; faceId: string | number } | null = null;
   let marked: { mesh: THREE.Mesh; faceIds: Set<string | number> } | null = null;
 
-  function restingColor(mesh: THREE.Mesh, faceId: string | number, base: THREE.Color): THREE.Color {
-    return marked?.mesh === mesh && marked.faceIds.has(faceId) ? MARK_COLOR : base;
+  const overlays = new Map<THREE.Mesh, Map<string | number, THREE.Mesh>>();
+
+  function restingColor(mesh: THREE.Mesh, faceId: string | number): THREE.Color | null {
+    return marked?.mesh === mesh && marked.faceIds.has(faceId) ? MARK_COLOR : null;
   }
 
-  /** Перекрасить треугольники грани в буфере вершинных цветов. */
+  function removeOverlay(mesh: THREE.Mesh, faceId: string | number) {
+    const faces = overlays.get(mesh);
+    const overlay = faces?.get(faceId);
+    if (!faces || !overlay) return;
+    disposeFaceOverlay(overlay);
+    faces.delete(faceId);
+    if (faces.size === 0) overlays.delete(mesh);
+  }
+
+  function overlayFor(entry: MeshEntry, faceId: string | number): THREE.Mesh | null {
+    const faces = overlays.get(entry.mesh) ?? new Map<string | number, THREE.Mesh>();
+    const existing = faces.get(faceId);
+    if (existing) return existing;
+    const overlay = createFaceOverlay(entry, faceId);
+    if (!overlay) return null;
+    entry.mesh.add(overlay);
+    faces.set(faceId, overlay);
+    overlays.set(entry.mesh, faces);
+    return overlay;
+  }
+
   function paintMeshFace(mesh: THREE.Mesh, faceId: string | number, color: THREE.Color | null) {
     const entry = findByMesh(context.entries, mesh);
     if (!entry) return;
-
-    const geo = mesh.geometry;
-    if (!geo.getAttribute("color")) {
-      const count = geo.getAttribute("position").count;
-      const colors = new Float32Array(count * 3);
-      for (let i = 0; i < count; i++) {
-        colors[i * 3] = entry.color.r;
-        colors[i * 3 + 1] = entry.color.g;
-        colors[i * 3 + 2] = entry.color.b;
-      }
-      geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    const paint = color ?? restingColor(mesh, faceId);
+    if (!paint) {
+      removeOverlay(mesh, faceId);
+      return;
     }
-
-    // Итоговый цвет = material.color × vertex color, поэтому при включении
-    // vertex colors материал должен стать белым; переключение vertexColors
-    // требует пересборки шейдера (needsUpdate)
-    const mat = mesh.material as THREE.MeshStandardMaterial;
-    if (!mat.vertexColors) {
-      mat.vertexColors = true;
-      mat.color.set(0xffffff);
-      mat.needsUpdate = true;
-    }
-
-    const paint = color ?? restingColor(mesh, faceId, entry.color);
-    const index = geo.index!;
-    const colors = geo.getAttribute("color").array as Float32Array;
-    for (let t = 0; t < entry.faceTriangleMap.length; t++) {
-      if (entry.faceTriangleMap[t] !== faceId) continue;
-      for (const corner of [0, 1, 2]) {
-        const vi = index.getX(t * 3 + corner);
-        colors[vi * 3] = paint.r;
-        colors[vi * 3 + 1] = paint.g;
-        colors[vi * 3 + 2] = paint.b;
-      }
-    }
-    geo.getAttribute("color").needsUpdate = true;
+    const overlay = overlayFor(entry, faceId);
+    if (overlay) paintFaceOverlay(overlay, mesh, paint);
   }
 
   function paintFace(faceId: string | number, color: THREE.Color | null) {
@@ -158,6 +152,8 @@ export function useFaceSelection(options: {
 
   /** Меш удаляется из сцены — снимаем с него ссылки, чтобы не красить мёртвую геометрию. */
   function forget(entry: MeshEntry) {
+    overlays.get(entry.mesh)?.forEach((overlay) => disposeFaceOverlay(overlay));
+    overlays.delete(entry.mesh);
     if (activeMesh === entry.mesh) {
       activeMesh = null;
       highlightedFaceId = null;

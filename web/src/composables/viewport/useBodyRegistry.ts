@@ -133,11 +133,7 @@ export function useBodyRegistry(options: {
     const entry = findByBody(entries, bodyId);
     if (!entry) return;
     entry.color = color ? new THREE.Color(color) : DEFAULT_BODY_COLOR.clone();
-    const material = entry.mesh.material as THREE.MeshStandardMaterial;
-    entry.mesh.geometry.deleteAttribute("color");
-    material.vertexColors = false;
-    material.color.copy(entry.color);
-    material.needsUpdate = true;
+    (entry.mesh.material as THREE.MeshStandardMaterial).color.copy(entry.color);
   }
 
   function clearAll() {

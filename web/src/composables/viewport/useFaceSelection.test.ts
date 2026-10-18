@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
 import { DEFAULT_BODY_COLOR } from "./useBodyRegistry";
+import { faceOverlayColor } from "./faceOverlay";
 import { useFaceSelection } from "./useFaceSelection";
 import type { MeshEntry, SceneContext } from "./types";
 
@@ -26,13 +27,8 @@ function setup() {
   const context = { entries: [entry] } as unknown as SceneContext;
   const faces = useFaceSelection({ context, onSelected: () => {}, onCleared: () => {} });
   faces.adopt(entry);
-  const colorOf = (face: string) => {
-    const triangle = entry.faceTriangleMap.indexOf(face);
-    const vertex = entry.mesh.geometry.index!.getX(triangle * 3);
-    const colors = entry.mesh.geometry.getAttribute("color");
-    return new THREE.Color(colors.getX(vertex), colors.getY(vertex), colors.getZ(vertex)).getHex();
-  };
-  return { faces, colorOf };
+  const colorOf = (face: string) => faceOverlayColor(entry.mesh, face)?.getHex() ?? BASE;
+  return { faces, colorOf, entry };
 }
 
 describe("useFaceSelection: отмеченные грани", () => {
@@ -72,5 +68,36 @@ describe("useFaceSelection: отмеченные грани", () => {
     faces.highlightFace("nx");
     faces.clearHighlight();
     expect(colorOf("px")).toBe(BASE);
+  });
+
+  it("подсветка не трогает буферы и материал тела, снятие убирает накладку", () => {
+    const { faces, entry } = setup();
+    const material = entry.mesh.material as THREE.MeshStandardMaterial;
+    faces.markFaces("body-1", ["px"]);
+    faces.highlightFace("nx");
+    expect(entry.mesh.geometry.getAttribute("color")).toBeUndefined();
+    expect(material.vertexColors).toBe(false);
+    expect(material.color.getHex()).toBe(BASE);
+    expect(entry.mesh.children).toHaveLength(2);
+
+    faces.clearHighlight();
+    faces.clearMarkedFaces();
+    expect(entry.mesh.children).toHaveLength(0);
+  });
+
+  it("накладка повторяет треугольники грани и не ловит луч", () => {
+    const { faces, entry } = setup();
+    faces.highlightFace("pz");
+    const [overlay] = entry.mesh.children as THREE.Mesh[];
+    expect(overlay.geometry.getAttribute("position").count).toBe(6);
+    const raycaster = new THREE.Raycaster(new THREE.Vector3(0, 0, 5), new THREE.Vector3(0, 0, -1));
+    expect(raycaster.intersectObject(overlay, false)).toEqual([]);
+  });
+
+  it("удалённое тело забирает свои накладки", () => {
+    const { faces, entry } = setup();
+    faces.markFaces("body-1", ["px", "py"]);
+    faces.forget(entry);
+    expect(entry.mesh.children).toHaveLength(0);
   });
 });
