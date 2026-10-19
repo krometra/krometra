@@ -204,14 +204,30 @@ export function constraintSegments(points: PointMap, constraint: SketchConstrain
   return segments.every((s): s is Segment => s !== null) ? segments : null;
 }
 
+function angleTowards(center: SketchPoint, point: SketchPoint, fallback: number): number {
+  const dx = point.x - center.x;
+  const dy = point.y - center.y;
+  return Math.hypot(dx, dy) < 1e-9 ? fallback : Math.atan2(dy, dx);
+}
+
+const heldArcEnds = new WeakMap<PointMap, Set<string>>();
+
+export function holdArcEnds(points: PointMap, refs: ConstraintRef[]) {
+  heldArcEnds.set(points, new Set(refs.map((ref) => key(ref.entity_id, ref.sub_index))));
+}
+
+function placeArcEnd(points: PointMap, entity: SketchEntity, subIndex: number, center: SketchPoint, fallback: number) {
+  const end = getPoint(points, { entity_id: entity.id, sub_index: subIndex });
+  if (!end || heldArcEnds.get(points)?.has(key(entity.id, subIndex))) return;
+  Object.assign(end, onCircle(center, entity.radius ?? 0, angleTowards(center, end, fallback)));
+}
+
 export function updateArcPoints(entity: SketchEntity, points: PointMap) {
   const center = getPoint(points, { entity_id: entity.id, sub_index: 0 }) ?? entity.center ?? { x: 0, y: 0 };
   const radius = entity.radius ?? 0;
   if (entity.type === "arc") {
-    const start = getPoint(points, { entity_id: entity.id, sub_index: 1 });
-    if (start) Object.assign(start, onCircle(center, radius, entity.startAngle ?? 0));
-    const end = getPoint(points, { entity_id: entity.id, sub_index: 2 });
-    if (end) Object.assign(end, onCircle(center, radius, entity.endAngle ?? Math.PI));
+    placeArcEnd(points, entity, 1, center, entity.startAngle ?? 0);
+    placeArcEnd(points, entity, 2, center, entity.endAngle ?? Math.PI);
   }
   if (entity.type === "circle") {
     const rim = getPoint(points, { entity_id: entity.id, sub_index: 1 });

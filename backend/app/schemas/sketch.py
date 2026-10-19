@@ -79,6 +79,7 @@ class ConstraintType(str, Enum):
     COLLINEAR = "collinear"
     MIDPOINT = "midpoint"
     POINT_ON_CURVE = "point_on_curve"
+    TANGENT = "tangent"
     FIX = "fix"
     # Dimensional
     DISTANCE = "distance"

@@ -20,6 +20,7 @@ def sketch_with(*constraints):
         {"id": "k3", "type": "point_on_curve", "anchors": [{"entity_id": "b", "sub_index": 1}, {"entity_id": "c"}]},
         {"id": "k4", "type": "fix", "anchors": [{"entity_id": "a", "sub_index": -1}]},
         {"id": "k5", "type": "fix", "anchors": [{"entity_id": "b", "sub_index": 1}]},
+        {"id": "k6", "type": "tangent", "anchors": [{"entity_id": "c", "sub_index": 1}, {"entity_id": "a"}]},
     ],
 )
 def test_new_constraint_types_round_trip(constraint):

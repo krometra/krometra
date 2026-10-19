@@ -18,6 +18,7 @@ const SIGNATURES: Record<ConstraintType, Kind[]> = {
   collinear: ["line", "line"],
   midpoint: ["point", "line"],
   point_on_curve: ["point", "curve"],
+  tangent: ["point", "line"],
   fix: ["fixable"],
   distance: ["point", "point"],
   horizontal_distance: ["point", "point"],
@@ -47,6 +48,7 @@ export const SKETCH_CONSTRAINT_HELP =
   "Ограничение эскиза. Геометрические (без value): horizontal, vertical [отрезок] или [точка, точка]; parallel, perpendicular [отрезок, отрезок]; " +
   "coincident [точка, точка]; equal [два отрезка или две окружности/дуги]; collinear [отрезок, отрезок] — на одной прямой; " +
   "midpoint [точка, отрезок] — точка в середине отрезка; point_on_curve [точка, кривая] — точка на отрезке или его продолжении, на прямой или оси, на окружности или дуге; " +
+  "tangent [конец дуги, отрезок] — дуга касается отрезка в этом конце (так связано скругление эскиза); " +
   "fix [объект или точка] — без point закрепляет объект целиком, с point — только эту точку. Размерные (value обязателен, мм или градусы): " +
   "length [отрезок] — длина; line_distance [отрезок, отрезок] — расстояние между параллельными; " +
   "point_line_distance [точка, отрезок] — перпендикулярное расстояние; distance [точка, точка] — наклонное; " +

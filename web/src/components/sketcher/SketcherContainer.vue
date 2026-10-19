@@ -25,6 +25,9 @@ import { useSketchPicking } from "@/composables/sketcher/useSketchPicking";
 import { useConstraintGlyphs } from "@/composables/sketcher/useConstraintGlyphs";
 import { useAutoConstraints } from "@/composables/sketcher/useAutoConstraints";
 import { useConstructionMode } from "@/composables/sketcher/useConstructionMode";
+import { useFilletTool } from "@/composables/sketcher/useFilletTool";
+import { useTrimTool } from "@/composables/sketcher/useTrimTool";
+import { useSketchHotkeys } from "@/composables/sketcher/useSketchHotkeys";
 import { LineTool } from "./tools/LineTool";
 import { RectangleTool } from "./tools/RectangleTool";
 import { CircleTool } from "./tools/CircleTool";
@@ -142,10 +145,18 @@ const constraints = useSketchConstraints({
 });
 
 const glyphs = useConstraintGlyphs({ sketch, zoom, screenToWorld });
+const fillet = useFilletTool({ tool: toolRef, sketch, zoom, canvasRect });
+const trim = useTrimTool({ tool: toolRef, sketch, zoom });
 
-const highlightedIds = computed(() => [...sketch.selection.entityIds.value, ...dimension.highlightedIds.value, ...glyphs.highlightedIds.value]);
+const highlightedIds = computed(() => [
+  ...sketch.selection.entityIds.value,
+  ...dimension.highlightedIds.value,
+  ...glyphs.highlightedIds.value,
+  ...fillet.highlightedIds.value,
+]);
 const canvasSnap = computed(() => {
   if (isDimensionTool.value) return dimension.marker.value;
+  if (fillet.active.value) return fillet.marker.value;
   if (isSelectTool.value) return picking.hoveredPoint.value;
   return snapping.snapPoint.value && { at: snapping.snapPoint.value, label: snapping.snapHint.value?.label ?? null };
 });
@@ -158,6 +169,8 @@ const selectionMarks = computed(() =>
 
 const auxHint = computed(() => {
   if (isDimensionTool.value) return dimension.hint.value;
+  if (fillet.active.value) return fillet.hint.value;
+  if (trim.active.value) return trim.hint;
   if (!aux.isAuxTool.value) return null;
   if (aux.auxPhase.value === "pick-base") return "Укажите базовую линию";
   if (aux.auxPhase.value !== "place") return null;
@@ -212,6 +225,9 @@ function onCanvasClick(screenX: number, screenY: number) {
     return;
   }
 
+  if (fillet.active.value) return fillet.click(world, { x: screenX, y: screenY });
+  if (trim.active.value) return trim.click(world);
+
   if (aux.isAuxTool.value) {
     aux.handleClick(aux.auxPhase.value === "place" ? snapping.snapWorld(world) : world);
     updatePreview();
@@ -259,6 +275,9 @@ function onCanvasMove(screenX: number, screenY: number) {
     detectHover(screenX, screenY);
     return;
   }
+
+  if (fillet.active.value) return fillet.move(screenToWorld(screenX, screenY));
+  if (trim.active.value) return trim.move(screenToWorld(screenX, screenY));
 
   if (aux.isAuxTool.value) {
     if (aux.auxPhase.value === "place") {
@@ -326,6 +345,7 @@ function onGlobalMouseUp(e: MouseEvent) {
   }
 
   if (aux.isAuxTool.value || isSelectTool.value || isDimensionTool.value) return;
+  if (fillet.active.value || trim.active.value) return;
 
   const target = e.target as HTMLElement | null;
   if (target?.closest?.("[data-sketch-ui]")) return;
@@ -373,6 +393,8 @@ function resetInteraction() {
   aux.reset();
   dimensions.reset();
   autoConstraints.reset();
+  fillet.reset();
+  trim.reset();
 }
 
 watch(() => props.tool, resetInteraction, { immediate: true });
@@ -387,78 +409,37 @@ watch(
   }
 );
 
-const HOTKEY_TOOLS: Record<string, SketchToolName> = {
-  v: "select", м: "select",
-  l: "line", д: "line",
-  r: "rectangle", к: "rectangle",
-  c: "circle", с: "circle",
-  a: "arc", ф: "arc",
-  d: "dimension", в: "dimension",
-};
-
-const CONSTRUCTION_KEYS = new Set(["x", "ч"]);
-
-function onSketchKeyDown(e: KeyboardEvent) {
-  if (!props.active) return;
-  const t = e.target as HTMLElement | null;
-  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
-
-  if (e.key === "Escape") {
-    e.preventDefault();
-    if (cancelToolStep(currentTool.value)) {
-      autoConstraints.reset();
-      liveDimensions.close();
-      snapping.clearSnap();
-      updatePreview();
-      return;
-    }
-    if (edgeDrag.isDragging()) {
-      edgeDrag.cancel();
-      return;
-    }
-    if (aux.isAuxTool.value) {
-      aux.reset();
-      snapping.clearSnap();
-      updatePreview();
-      return;
-    }
-    if (dimension.isPicking()) {
-      dimension.reset();
-      return;
-    }
-    glyphs.clear();
-    sketch.clearSelection();
+function onSketchEscape() {
+  if (cancelToolStep(currentTool.value)) {
+    autoConstraints.reset();
+    liveDimensions.close();
+    snapping.clearSnap();
+    updatePreview();
     return;
   }
-  if (e.key === "Delete" || e.key === "Backspace") {
-    e.preventDefault();
-    if (glyphs.deleteSelected()) return;
-    sketch.removeSelected();
+  if (edgeDrag.isDragging()) return edgeDrag.cancel();
+  if (aux.isAuxTool.value) {
+    aux.reset();
+    snapping.clearSnap();
+    updatePreview();
     return;
   }
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-  if (e.code === "KeyX" || CONSTRUCTION_KEYS.has(e.key.toLowerCase())) {
-    e.preventDefault();
-    construction.toggleSelectionOrMode();
-    return;
-  }
-  const toolName = HOTKEY_TOOLS[e.key.toLowerCase()];
-  if (toolName) {
-    e.preventDefault();
-    selectTool(toolName);
-  }
+  if (dimension.isPicking()) return dimension.reset();
+  if (fillet.cancelStep()) return;
+  glyphs.clear();
+  sketch.clearSelection();
 }
 
-onMounted(() => {
-  window.addEventListener("mouseup", onGlobalMouseUp);
-  window.addEventListener("keydown", onSketchKeyDown);
+useSketchHotkeys({
+  active: () => props.active,
+  onEscape: onSketchEscape,
+  onDelete: () => glyphs.deleteSelected() || sketch.removeSelected(),
+  onToggleConstruction: construction.toggleSelectionOrMode,
+  onSelectTool: selectTool,
 });
 
-onUnmounted(() => {
-  window.removeEventListener("mouseup", onGlobalMouseUp);
-  window.removeEventListener("keydown", onSketchKeyDown);
-});
+onMounted(() => window.addEventListener("mouseup", onGlobalMouseUp));
+onUnmounted(() => window.removeEventListener("mouseup", onGlobalMouseUp));
 
 function loadSketch(data: SketchData) {
   sketch.load(data);
@@ -520,6 +501,18 @@ defineExpose({
       @cancel="dimensionInput.cancel"
     />
 
+    <DimensionInputOverlay
+      v-if="fillet.prompt.value"
+      :x="fillet.prompt.value.x"
+      :y="fillet.prompt.value.y"
+      title="Радиус скругления"
+      :text="fillet.prompt.value.field.text.value"
+      :error="fillet.prompt.value.field.error.value"
+      @update:text="fillet.type"
+      @confirm="fillet.confirm"
+      @cancel="fillet.cancelStep"
+    />
+
     <ValueInputOverlay
       v-if="aux.auxDistanceInput.value?.visible"
       v-model="aux.auxDistanceInput.value.value"
@@ -545,7 +538,8 @@ defineExpose({
     <SketchCanvas
       ref="sketchCanvasRef"
       :entities="sketch.entities.value"
-      :preview="preview"
+      :preview="fillet.preview.value ?? preview"
+      :removal="trim.removal.value"
       :hovered-entity-id="picking.hoveredEntityId.value"
       :constraints="sketch.constraints.value"
       :hovered-constraint-id="glyphs.hoveredId.value"

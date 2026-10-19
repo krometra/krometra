@@ -10,6 +10,7 @@ import {
   drawGrid,
   drawSelectionHalo,
   drawSnapMarker,
+  REMOVAL_HALO,
 } from "@/sketcher/renderEntities";
 import { drawConstraints } from "@/sketcher/renderConstraints";
 import { drawSelectionMarks } from "@/sketcher/renderSelection";
@@ -19,6 +20,7 @@ import { drawAutoConstraintHint } from "@/sketcher/renderAutoConstraints";
 const props = defineProps<{
   entities: SketchEntity[];
   preview: SketchEntity | null;
+  removal?: SketchEntity | null;
   hoveredEntityId: string | null;
   constraints?: SketchConstraint[];
   hoveredConstraintId?: string | null;
@@ -64,6 +66,7 @@ function render() {
 
   if (props.marks) drawSelectionMarks(ctx, view, props.marks);
   if (props.preview) drawEntity(ctx, view, props.preview, false, true);
+  if (props.removal) drawSelectionHalo(ctx, view, props.removal, REMOVAL_HALO);
   if (props.constraints?.length) {
     drawConstraints(ctx, view, props.constraints, props.entities, {
       hovered: props.hoveredConstraintId ?? null,
@@ -114,6 +117,7 @@ watch(
   () => [
     props.entities,
     props.preview,
+    props.removal,
     props.hoveredEntityId,
     props.constraints,
     props.hoveredConstraintId,

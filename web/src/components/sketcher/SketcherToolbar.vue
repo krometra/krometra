@@ -27,6 +27,8 @@ const DRAW_TOOLS = [
   { id: "arc", label: "Дуга", title: "Дуга (A)" },
   { id: "arc3", label: "Дуга 3т", title: "Дуга по трём точкам: начало, конец, точка на дуге" },
   { id: "dimension", label: "Размер", title: "Размер (D): длина, расстояние, угол, диаметр — по выбранным объектам" },
+  { id: "fillet", label: "Скругл.", title: "Скругление (F): кликните угол или два отрезка и введите радиус" },
+  { id: "trim", label: "Усечь", title: "Усечь (T): удалить участок кривой до ближайших пересечений" },
 ] as const;
 
 const AUX_BUTTONS = [
@@ -78,6 +80,7 @@ function select(tool: SketchToolName) {
       :key="t.id"
       :class="[$style.toolBtn, tool === t.id && $style.toolBtnActive]"
       :title="t.title"
+      :data-testid="`sketch-tool-${t.id}`"
       @click="select(t.id)"
     >
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -92,6 +95,9 @@ function select(tool: SketchToolName) {
         <circle v-if="t.id === 'arc3'" cx="12" cy="9" r="1.5" />
         <circle v-if="t.id === 'arc3'" cx="20" cy="17" r="1.5" />
         <path v-if="t.id === 'dimension'" d="M4 8v8 M20 8v8 M4 12h16 M7 9l-3 3 3 3 M17 9l3 3-3 3" />
+        <path v-if="t.id === 'fillet'" d="M4 20V12a8 8 0 0 1 8-8h8" />
+        <path v-if="t.id === 'trim'" d="M3 12h7 M12 4v16" />
+        <path v-if="t.id === 'trim'" d="M14 12h7" stroke-dasharray="2 2.5" />
       </svg>
       <span :class="$style.toolLabel">{{ t.label }}</span>
     </button>

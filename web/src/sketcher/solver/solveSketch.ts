@@ -21,7 +21,8 @@ import {
 import { collectPins, restorePins } from "./fixConstraint";
 import { applyCollinear, applyMidpoint, applyPointOnCurve, incidenceResidual } from "./incidenceConstraints";
 import { createMidpointCarry } from "./midpointCarry";
-import { CONVERGENCE_THRESHOLD, buildPointMap, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
+import { applyTangent, tangentResidual } from "./tangentConstraint";
+import { CONVERGENCE_THRESHOLD, buildPointMap, holdArcEnds, pinOrigin, shareCoincidentPoints, writePointsBack, type PointMap } from "./pointMap";
 import type { SketchConstraint, SketchEntity, SolverOutput } from "./types";
 
 export type { ConstraintRef, ConstraintType, SketchConstraint, SketchEntity, SketchPoint, SolverOutput } from "./types";
@@ -36,6 +37,7 @@ export function solveSketch(entities: SketchEntity[], constraints: SketchConstra
   const workEntities: SketchEntity[] = JSON.parse(JSON.stringify(entities));
   const points = buildPointMap(workEntities);
   shareCoincidentPoints(points, constraints, workEntities);
+  holdArcEnds(points, constraints.flatMap((c) => (c.type === "tangent" && c.anchors[0] ? [c.anchors[0]] : [])));
   const pins = collectPins(constraints, workEntities, points);
   const run = createMidpointCarry(workEntities, points);
 
@@ -78,6 +80,7 @@ function applyConstraint(constraint: SketchConstraint, entities: SketchEntity[],
     case "collinear": return applyCollinear(constraint, points);
     case "midpoint": return applyMidpoint(constraint, entities, points);
     case "point_on_curve": return applyPointOnCurve(constraint, entities, points);
+    case "tangent": return applyTangent(constraint, entities, points);
     default: return 0;
   }
 }
@@ -96,7 +99,11 @@ function computeResidual(constraints: SketchConstraint[], entities: SketchEntity
   for (const constraint of constraints) {
     const error = constraint.type === "horizontal" || constraint.type === "vertical"
       ? alignmentResidual(constraint, points)
-      : Math.max(dimensionResidual(constraint, entities, points), incidenceResidual(constraint, entities, points));
+      : Math.max(
+        dimensionResidual(constraint, entities, points),
+        incidenceResidual(constraint, entities, points),
+        tangentResidual(constraint, entities, points),
+      );
     maxErr = Math.max(maxErr, error);
   }
   return maxErr;

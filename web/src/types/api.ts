@@ -184,7 +184,7 @@ export type ConstraintType =
   | "distance" | "radius" | "angle"
   | "length" | "diameter" | "line_distance" | "point_line_distance"
   | "horizontal_distance" | "vertical_distance"
-  | "collinear" | "midpoint" | "point_on_curve" | "fix";
+  | "collinear" | "midpoint" | "point_on_curve" | "tangent" | "fix";
 
 export interface ConstraintRef {
   entity_id: string;

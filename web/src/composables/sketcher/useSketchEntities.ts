@@ -84,6 +84,13 @@ export function useSketchEntities(onChange: (payload: {
     if (!opts.silent) emitChanged();
   }
 
+  function applyEdit(edit: { entities: SketchEntity[]; constraints: SketchConstraint[] }) {
+    entities.value = edit.entities;
+    constraints.value = edit.constraints;
+    selection.clear();
+    solveAndApply();
+  }
+
   function setConstraintValue(constraintId: string, value: number) {
     constraints.value = constraints.value.map((c) => (c.id === constraintId ? { ...c, value } : c));
     solveAndApply();
@@ -132,6 +139,7 @@ export function useSketchEntities(onChange: (payload: {
     solveAndApply,
     addEntities,
     addConstraint,
+    applyEdit,
     setConstraintValue,
     removeConstraint,
     removeSelected,

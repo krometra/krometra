@@ -93,13 +93,17 @@ function drawInfiniteLine(
   ctx.setLineDash([]);
 }
 
+export const SELECTION_HALO = "rgba(255, 200, 60, 0.85)";
+export const REMOVAL_HALO = "rgba(230, 60, 60, 0.75)";
+
 export function drawSelectionHalo(
   ctx: CanvasRenderingContext2D,
   view: ViewParams,
-  entity: SketchEntity
+  entity: SketchEntity,
+  color = SELECTION_HALO,
 ) {
   ctx.save();
-  ctx.strokeStyle = "rgba(255, 200, 60, 0.85)";
+  ctx.strokeStyle = color;
   ctx.lineWidth = 6 / view.zoom;
   ctx.lineCap = "round";
   ctx.beginPath();

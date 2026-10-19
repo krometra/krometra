@@ -23,12 +23,13 @@ const GLYPH_TEXT: Partial<Record<ConstraintType, string>> = {
   collinear: "⋯",
   midpoint: "△",
   point_on_curve: "∈",
+  tangent: "⌒",
   fix: "⊗",
   coincident: "",
 };
 
 const PER_ENTITY = new Set<ConstraintType>(["horizontal", "vertical", "parallel", "perpendicular", "equal", "collinear"]);
-const AT_POINT = new Set<ConstraintType>(["coincident", "point_on_curve"]);
+const AT_POINT = new Set<ConstraintType>(["coincident", "point_on_curve", "tangent"]);
 
 const LINE_OFFSET_PX = 14;
 const POINT_OFFSET_PX = 11;
