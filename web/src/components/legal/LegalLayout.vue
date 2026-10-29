@@ -31,7 +31,8 @@ const router = useRouter();
 
 <style module>
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   background: var(--kr-surface);
   color: var(--kr-text);
   padding: 28px 16px 40px;

@@ -30,10 +30,11 @@ const router = useRouter();
 
 <style module>
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   display: flex;
-  align-items: center;
   justify-content: center;
+  padding: 24px 16px;
   background-color: var(--kr-surface);
   background-image:
     radial-gradient(60% 50% at 50% 40%, oklch(0.92 0.04 244 / 0.75), transparent),
@@ -44,6 +45,8 @@ const router = useRouter();
 
 .shell {
   width: 400px;
+  max-width: 100%;
+  margin: auto 0;
 }
 
 .header {
