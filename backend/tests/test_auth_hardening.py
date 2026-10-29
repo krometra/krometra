@@ -12,19 +12,19 @@ from app.services.auth_service import AuthError
 
 class TestRegisterRequest:
     def test_email_is_normalized(self):
-        data = RegisterRequest(email="  Foo.Bar@Example.COM ", password="long-enough")
+        data = RegisterRequest(personal_data_consent=True, email="  Foo.Bar@Example.COM ", password="long-enough")
         assert data.email == "foo.bar@example.com"
 
     def test_display_name_is_bounded(self):
         with pytest.raises(ValidationError):
-            RegisterRequest(email="a@example.com", password="long-enough", display_name="x" * 101)
+            RegisterRequest(personal_data_consent=True, email="a@example.com", password="long-enough", display_name="x" * 101)
 
     def test_password_over_72_bytes_is_rejected_not_truncated(self):
         with pytest.raises(ValidationError, match="72 байт"):
-            RegisterRequest(email="a@example.com", password="пароль" * 7)
+            RegisterRequest(personal_data_consent=True, email="a@example.com", password="пароль" * 7)
 
     def test_password_of_exactly_72_bytes_is_accepted(self):
-        assert RegisterRequest(email="a@example.com", password="a" * 72)
+        assert RegisterRequest(personal_data_consent=True, email="a@example.com", password="a" * 72)
 
 
 def test_token_response_has_no_refresh_token():

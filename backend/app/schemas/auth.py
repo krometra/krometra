@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import AfterValidator, BaseModel, EmailStr, Field, field_validator
 
@@ -31,6 +31,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: NewPassword
     display_name: Optional[str] = Field(None, max_length=100)
+    personal_data_consent: Literal[True]
 
     _normalize_email = field_validator("email", mode="before")(_normalize_email_input)
 

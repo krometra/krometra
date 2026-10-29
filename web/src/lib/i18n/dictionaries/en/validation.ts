@@ -11,4 +11,5 @@ export const validation: Translation<typeof source> = {
   },
   "validation.password.confirmRequired": "Repeat the password.",
   "validation.password.mismatch": "The passwords do not match.",
+  "validation.consent.required": "We can't create an account without your consent to personal data processing.",
 };

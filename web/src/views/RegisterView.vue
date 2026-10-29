@@ -4,12 +4,13 @@ import { useRouter } from "vue-router";
 import { useAuth } from "@/composables/shared/useAuth";
 import { useI18n } from "@/composables/shared/useI18n";
 import { useFormErrors } from "@/composables/forms/useFormErrors";
-import { MIN_PASSWORD_LENGTH, validateEmail, validatePassword } from "@/lib/formValidation";
+import { MIN_PASSWORD_LENGTH, validateConsent, validateEmail, validatePassword } from "@/lib/formValidation";
 import { msg } from "@/lib/i18n/catalog";
 import { toast } from "@/composables/useToast";
 import AuthLayout from "@/components/auth/AuthLayout.vue";
 import KrInput from "@/components/ui/KrInput.vue";
 import KrButton from "@/components/ui/KrButton.vue";
+import KrCheckbox from "@/components/ui/KrCheckbox.vue";
 
 const router = useRouter();
 const auth = useAuth();
@@ -21,6 +22,7 @@ const { fields: fieldErrors, summary: errorMsg, validate, clearField, capture } 
 const email = ref("");
 const password = ref("");
 const displayName = ref("");
+const consent = ref(false);
 const loading = ref(false);
 
 const passwordHint = computed(() =>
@@ -31,6 +33,7 @@ async function handleRegister() {
   const valid = validate({
     email: validateEmail(email.value),
     password: validatePassword(password.value),
+    consent: validateConsent(consent.value),
   });
   if (!valid) return;
 
@@ -75,6 +78,13 @@ async function handleRegister() {
         :hint="passwordHint"
         @update:model-value="clearField('password')"
       />
+      <div :class="$style.consent">
+        <KrCheckbox v-model="consent" data-testid="personal-data-consent" @update:model-value="clearField('consent')">
+          {{ t("auth.register.consent.before")
+          }}<a href="/consent" target="_blank" rel="noopener">{{ t("auth.register.consent.link") }}</a>
+        </KrCheckbox>
+        <div v-if="fieldErrors['consent']" :class="$style.error" role="alert">{{ fieldErrors["consent"] }}</div>
+      </div>
       <div v-if="errorMsg" :class="$style.error" role="alert">{{ errorMsg }}</div>
       <KrButton :class="$style.submit" type="submit" size="lg" :loading="loading">
         {{ loading ? t("auth.register.submitting") : t("auth.register.submit") }}
@@ -99,6 +109,13 @@ async function handleRegister() {
   width: 100%;
   margin-top: 4px;
   font-weight: var(--kr-font-weight-bold);
+}
+
+.consent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
 }
 
 .error {

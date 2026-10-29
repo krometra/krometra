@@ -156,6 +156,7 @@ const features = [
 
     <footer :class="$style.footer">
       Крометра · параметрическое моделирование в браузере ·
+      <a :class="$style.footerLink" href="/privacy">политика обработки персональных данных</a> ·
       <a :class="$style.footerLink" href="/THIRD_PARTY_NOTICES.txt">лицензии сторонних компонентов</a>
     </footer>
   </div>

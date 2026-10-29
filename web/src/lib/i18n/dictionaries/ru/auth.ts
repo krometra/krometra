@@ -18,7 +18,7 @@ export const auth = {
   "auth.login.emailDivider": "или по почте",
   "auth.login.submit": "Продолжить",
   "auth.login.submitting": "Входим…",
-  "auth.login.terms": "Продолжая, вы соглашаетесь с условиями использования\nи политикой обработки данных.",
+  "auth.login.privacyLink": "Политика обработки персональных данных",
   "auth.login.noAccount": "Нет аккаунта?",
   "auth.login.registerLink": "Создать",
   "auth.login.failed": "Не удалось войти.",
@@ -30,6 +30,8 @@ export const auth = {
   "auth.register.hasAccount": "Уже есть аккаунт?",
   "auth.register.loginLink": "Войти",
   "auth.register.failed": "Не удалось зарегистрироваться.",
+  "auth.register.consent.before": "Даю ",
+  "auth.register.consent.link": "согласие на обработку персональных данных",
 
   "auth.field.newPassword.label": "Новый пароль",
   "auth.field.confirmPassword.label": "Повторите пароль",

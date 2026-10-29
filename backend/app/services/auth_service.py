@@ -63,6 +63,7 @@ async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
         email=data.email,
         password_hash=await hash_password(data.password),
         display_name=data.display_name or data.email,
+        personal_data_consent_at=utcnow(),
     )
     db.add(user)
     await db.commit()

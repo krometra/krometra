@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_DEFAULT_LOCALE: ${VITE_DEFAULT_LOCALE:-ru}
+        VITE_OPERATOR_NAME: ${VITE_OPERATOR_NAME:?VITE_OPERATOR_NAME не задан в .env (ФИО оператора персональных данных)}
+        VITE_OPERATOR_EMAIL: ${VITE_OPERATOR_EMAIL:?VITE_OPERATOR_EMAIL не задан в .env (почта для обращений по персональным данным)}
     container_name: cad-studio-web
     ports:
       # Порт задаётся в .env: на проде это 80 под доменное имя.

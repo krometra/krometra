@@ -16,5 +16,7 @@ defineEmits<{ "update:modelValue": [value: boolean] }>();
     :label="label"
     :disabled="disabled"
     @update:model-value="$emit('update:modelValue', $event)"
-  />
+  >
+    <template v-if="$slots.default" #default><slot /></template>
+  </KCheckbox>
 </template>

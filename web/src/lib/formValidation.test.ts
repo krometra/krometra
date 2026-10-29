@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  validateConsent,
   validateEmail,
   validatePassword,
   validatePasswordConfirmation,
@@ -58,5 +59,15 @@ describe("validatePasswordConfirmation", () => {
 
   it("принимает совпадающий повтор", () => {
     expect(validatePasswordConfirmation("secret-123", "secret-123")).toBeNull();
+  });
+});
+
+describe("validateConsent", () => {
+  it("без согласия не пускает дальше", () => {
+    expect(inRussian(validateConsent(false))).toBe("Без согласия на обработку персональных данных создать аккаунт нельзя.");
+  });
+
+  it("с согласием ошибки нет", () => {
+    expect(validateConsent(true)).toBeNull();
   });
 });

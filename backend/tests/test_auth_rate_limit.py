@@ -167,7 +167,7 @@ class TestLoginRoute:
             raise AuthError("email_taken", "A user with this email already exists.")
 
         monkeypatch.setattr(auth_routes, "register_user", taken)
-        body = {"email": "a@example.com", "password": "long-enough-pass"}
+        body = {"email": "a@example.com", "password": "long-enough-pass", "personal_data_consent": True}
         for _ in range(rate_limit.REGISTER_BY_IP.limit):
             assert (await client.post("/api/auth/register", json=body)).status_code == 409
         assert (await client.post("/api/auth/register", json=body)).status_code == 429

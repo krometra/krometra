@@ -16,7 +16,7 @@ export const auth: Translation<typeof source> = {
   "auth.login.emailDivider": "或使用邮箱",
   "auth.login.submit": "继续",
   "auth.login.submitting": "正在登录…",
-  "auth.login.terms": "继续即表示您同意使用条款\n和数据处理政策。",
+  "auth.login.privacyLink": "个人数据处理政策",
   "auth.login.noAccount": "还没有账号？",
   "auth.login.registerLink": "注册",
   "auth.login.failed": "登录失败。",
@@ -28,6 +28,8 @@ export const auth: Translation<typeof source> = {
   "auth.register.hasAccount": "已有账号？",
   "auth.register.loginLink": "登录",
   "auth.register.failed": "注册失败。",
+  "auth.register.consent.before": "我同意",
+  "auth.register.consent.link": "处理个人数据",
 
   "auth.field.newPassword.label": "新密码",
   "auth.field.confirmPassword.label": "再次输入密码",

@@ -87,7 +87,9 @@ async function handleLogin() {
       </KrButton>
     </form>
 
-    <p :class="$style.terms">{{ t("auth.login.terms") }}</p>
+    <p :class="$style.privacy">
+      <a href="/privacy" target="_blank" rel="noopener">{{ t("auth.login.privacyLink") }}</a>
+    </p>
     <p :class="$style.footer">
       {{ t("auth.login.noAccount") }}
       <router-link to="/register">{{ t("auth.login.registerLink") }}</router-link>
@@ -177,13 +179,14 @@ async function handleLogin() {
   color: var(--kr-red-strong);
 }
 
-.terms {
+.privacy {
   font-size: 12px;
-  color: var(--kr-text-muted);
   text-align: center;
   margin: 20px 0 0;
-  line-height: 1.5;
-  white-space: pre-line;
+}
+
+.privacy a {
+  color: var(--kr-text-muted);
 }
 
 .footer {

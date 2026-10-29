@@ -15,7 +15,7 @@ async function accessToken(api: APIRequestContext): Promise<string> {
 }
 
 async function loginRegular(api: APIRequestContext): Promise<string> {
-  const register = await api.post("/api/auth/register", { data: { ...regular, display_name: "Обычный E2E" } });
+  const register = await api.post("/api/auth/register", { data: { ...regular, display_name: "Обычный E2E", personal_data_consent: true } });
   expect([201, 409]).toContain(register.status());
   return login(api, regular.email, regular.password);
 }

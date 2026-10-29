@@ -9,7 +9,7 @@ Requires:
 To register a test user:
   curl -X POST http://localhost:8000/api/auth/register \\
     -H "Content-Type: application/json" \\
-    -d '{"email":"test@example.com","password":"testpass123","display_name":"Test"}'
+    -d '{"email":"test@example.com","password":"testpass123","display_name":"Test","personal_data_consent":true}'
 """
 
 import os
@@ -71,7 +71,7 @@ async def fresh_auth_headers(async_client):
     password = "fresh-test-pass-123"
     resp = await async_client.post(
         "/api/auth/register",
-        json={"email": email, "password": password, "display_name": "Fresh Test"},
+        json={"email": email, "password": password, "display_name": "Fresh Test", "personal_data_consent": True},
     )
     if resp.status_code != 201:
         pytest.skip(f"Cannot register test user (status {resp.status_code}) — is the backend running?")
@@ -92,7 +92,7 @@ async def second_auth_headers(async_client):
     password = "other-test-pass-123"
     resp = await async_client.post(
         "/api/auth/register",
-        json={"email": email, "password": password, "display_name": "Other Test"},
+        json={"email": email, "password": password, "display_name": "Other Test", "personal_data_consent": True},
     )
     if resp.status_code != 201:
         pytest.skip(f"Cannot register test user (status {resp.status_code}) — is the backend running?")

@@ -17,7 +17,7 @@ export const auth: Translation<typeof source> = {
   "auth.login.emailDivider": "or with email",
   "auth.login.submit": "Continue",
   "auth.login.submitting": "Signing in…",
-  "auth.login.terms": "By continuing, you agree to the terms of use\nand the data processing policy.",
+  "auth.login.privacyLink": "Personal data processing policy",
   "auth.login.noAccount": "No account yet?",
   "auth.login.registerLink": "Create one",
   "auth.login.failed": "Could not sign in.",
@@ -29,6 +29,8 @@ export const auth: Translation<typeof source> = {
   "auth.register.hasAccount": "Already have an account?",
   "auth.register.loginLink": "Sign in",
   "auth.register.failed": "Could not create the account.",
+  "auth.register.consent.before": "I give my ",
+  "auth.register.consent.link": "consent to the processing of personal data",
 
   "auth.field.newPassword.label": "New password",
   "auth.field.confirmPassword.label": "Repeat the password",

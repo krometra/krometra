@@ -12,4 +12,5 @@ export const validation = {
   },
   "validation.password.confirmRequired": "Повторите пароль.",
   "validation.password.mismatch": "Пароли не совпадают.",
+  "validation.consent.required": "Без согласия на обработку персональных данных создать аккаунт нельзя.",
 } as const satisfies DomainMessages<"validation">;

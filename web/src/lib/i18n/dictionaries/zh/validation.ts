@@ -10,4 +10,5 @@ export const validation: Translation<typeof source> = {
   },
   "validation.password.confirmRequired": "请再次输入密码。",
   "validation.password.mismatch": "两次输入的密码不一致。",
+  "validation.consent.required": "未同意处理个人数据，无法创建账户。",
 };

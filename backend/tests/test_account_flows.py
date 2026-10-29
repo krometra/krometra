@@ -76,7 +76,7 @@ def _cookie(response) -> str:
 
 
 async def _register(client, email="alice@example.com") -> dict:
-    response = await client.post("/api/auth/register", json={"email": email, "password": PASSWORD})
+    response = await client.post("/api/auth/register", json={"email": email, "password": PASSWORD, "personal_data_consent": True})
     assert response.status_code == 201, response.text
     return response.json()["user"]
 
@@ -102,6 +102,20 @@ class TestVerification:
         [email] = outbox
         assert email.to == "alice@example.com"
         assert "/verify-email?token=" in email.text
+
+    async def test_register_records_personal_data_consent(self, client, db, outbox):
+        await _register(client)
+        assert db.rows(User)[0].personal_data_consent_at is not None
+
+    @pytest.mark.parametrize("consent", [None, False])
+    async def test_register_without_personal_data_consent_is_rejected(self, client, db, outbox, consent):
+        body = {"email": "alice@example.com", "password": PASSWORD}
+        if consent is not None:
+            body["personal_data_consent"] = consent
+        response = await client.post("/api/auth/register", json=body)
+        assert response.status_code == 422
+        assert db.rows(User) == []
+        assert outbox == []
 
     async def test_verify_without_auth_then_token_is_spent(self, client, db, outbox):
         await _register(client)

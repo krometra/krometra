@@ -51,7 +51,7 @@ async function freshContext(browser: Browser, baseURL: string | undefined): Prom
 }
 
 async function registerByApi(api: APIRequestContext, email: string): Promise<void> {
-  const response = await api.post("/api/auth/register", { data: { email, password: PASSWORD } });
+  const response = await api.post("/api/auth/register", { data: { email, password: PASSWORD, personal_data_consent: true } });
   expect(response.status()).toBe(201);
 }
 
@@ -80,6 +80,7 @@ test("регистрация отправляет письмо, ссылка и�
     await page.goto("/register");
     await page.getByLabel("Почта").fill(email);
     await page.getByLabel("Пароль").fill(PASSWORD);
+    await page.getByTestId("personal-data-consent").click({ position: { x: 8, y: 10 } });
     await page.getByRole("button", { name: "Создать аккаунт" }).click();
 
     await expect(page).toHaveURL(/\/projects$/);

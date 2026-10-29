@@ -29,7 +29,7 @@ setup("authenticate", async () => {
   });
   if (loginResponse.status() === 400 || loginResponse.status() === 401) {
     const registerResponse = await api.post("/api/auth/register", {
-      data: { email, password, display_name: "E2E" },
+      data: { email, password, display_name: "E2E", personal_data_consent: true },
     });
     if (registerResponse.status() !== 201 && registerResponse.status() !== 409) {
       throw new Error(

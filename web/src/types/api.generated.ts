@@ -1893,6 +1893,11 @@ export interface components {
             password: string;
             /** Display Name */
             display_name?: string | null;
+            /**
+             * Personal Data Consent
+             * @constant
+             */
+            personal_data_consent: true;
         };
         /** RegisterResponse */
         RegisterResponse: {

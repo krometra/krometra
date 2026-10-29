@@ -33,6 +33,7 @@ export const useAuth = createSharedComposable(() => {
         email,
         password,
         display_name: displayName,
+        personal_data_consent: true,
       });
       return response.user;
     } catch (e: unknown) {

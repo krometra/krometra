@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_DEFAULT_LOCALE: ${VITE_DEFAULT_LOCALE:-ru}
+        VITE_OPERATOR_NAME: ${VITE_OPERATOR_NAME:-}
+        VITE_OPERATOR_EMAIL: ${VITE_OPERATOR_EMAIL:-}
     container_name: cad-studio-web
     ports:
       - "127.0.0.1:${WEB_PORT:-80}:80"

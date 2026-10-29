@@ -12,6 +12,16 @@ const router = createRouter({
     },
     { path: "/landing", redirect: "/" },
     {
+      path: "/privacy",
+      name: "privacy",
+      component: () => import("@/views/PrivacyView.vue"),
+    },
+    {
+      path: "/consent",
+      name: "consent",
+      component: () => import("@/views/ConsentView.vue"),
+    },
+    {
       path: "/login",
       name: "login",
       component: () => import("@/views/LoginView.vue"),

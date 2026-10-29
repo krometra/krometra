@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   readonly VITE_DEFAULT_LOCALE?: string;
   readonly VITE_MCP_RELAY?: string;
+  readonly VITE_OPERATOR_NAME?: string;
+  readonly VITE_OPERATOR_EMAIL?: string;
 }
 
 interface ImportMeta {
