@@ -1,6 +1,6 @@
 """user personal_data_consent_at
 
-Revision ID: 0008_user_personal_data_consent_at
+Revision ID: 0008_user_pd_consent_at
 Revises: 0007_user_email_verified_at
 Create Date: 2026-10-29
 """
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = "0008_user_personal_data_consent_at"
+revision: str = "0008_user_pd_consent_at"
 down_revision: Union[str, None] = "0007_user_email_verified_at"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
