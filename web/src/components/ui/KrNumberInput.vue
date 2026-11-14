@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed, watch } from "vue";
 import * as numberInput from "@zag-js/number-input";
 import { useMachine, normalizeProps } from "@zag-js/vue";
@@ -86,7 +88,7 @@ watch(
       {{ label }}
     </label>
     <div :class="$style.control">
-      <button :class="$style.btn" v-bind="api.getDecrementTriggerProps()">
+      <button :class="$style.btn" v-bind="api.getDecrementTriggerProps()" :aria-label="t('ui.decrement')">
         −
       </button>
       <input
@@ -95,7 +97,7 @@ watch(
         v-bind="api.getInputProps()"
         @beforeinput="normalizeSeparator"
       />
-      <button :class="$style.btn" v-bind="api.getIncrementTriggerProps()">
+      <button :class="$style.btn" v-bind="api.getIncrementTriggerProps()" :aria-label="t('ui.increment')">
         +
       </button>
       <span v-if="suffix" :class="$style.suffix">{{ suffix }}</span>

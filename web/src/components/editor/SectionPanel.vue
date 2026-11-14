@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import KrNumberInput from "@/components/ui/KrNumberInput.vue";
@@ -14,15 +16,15 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
 </script>
 
 <template>
-  <div :class="$style.panel" data-testid="section-panel" role="group" aria-label="Сечение модели">
+  <div :class="$style.panel" data-testid="section-panel" role="group" :aria-label="t('editorPanels.model_section')">
     <div :class="$style.head">
-      <span :class="$style.title">Сечение</span>
+      <span :class="$style.title">{{ t("editorPanels.section") }}</span>
       <KrButton
         variant="ghost"
         size="sm"
         :class="$style.iconBtn"
-        title="Выключить сечение (Esc)"
-        aria-label="Выключить сечение"
+        :title="t('editorPanels.disable_section_esc')"
+        :aria-label="t('editorPanels.disable_section')"
         data-testid="section-close"
         @click="props.section.close()"
       >
@@ -49,11 +51,11 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
         :class="[$style.planeBtn, props.section.source.value === 'face' && $style.planeBtnActive]"
         :aria-pressed="props.section.source.value === 'face'"
         :disabled="!props.section.selectedFace.value"
-        title="Сечение по выбранной плоской грани"
+        :title="t('editorPanels.section_along_selected_planar_face')"
         data-testid="section-plane-face"
         @click="props.section.setSelectedFace()"
       >
-        Грань
+        {{ t("editorPanels.face") }}
       </KrButton>
     </div>
 
@@ -62,7 +64,7 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
       :min="props.section.range.value.min"
       :max="props.section.range.value.max"
       :step="props.section.step.value"
-      label="Смещение плоскости сечения"
+      :label="t('editorPanels.section_plane_offset')"
       data-testid="section-slider"
       @update:model-value="props.section.setOffset($event)"
     />
@@ -70,18 +72,18 @@ const basePlanes: SectionBase[] = ["XY", "XZ", "YZ"];
     <KrNumberInput
       :model-value="props.section.offset.value"
       :step="props.section.step.value"
-      label="Смещение"
-      suffix="мм"
+      :label="t('editorPanels.offset')"
+      :suffix="t('editorPanels.mm')"
       data-testid="section-offset"
       @update:model-value="props.section.setOffset($event)"
     />
 
     <div :class="$style.actions">
       <KrButton variant="secondary" size="sm" data-testid="section-flip" @click="props.section.flip()">
-        Перевернуть
+        {{ t("editorPanels.flip") }}
       </KrButton>
       <KrButton variant="secondary" size="sm" data-testid="section-look-at" @click="emit('look-at')">
-        Вид по нормали
+        {{ t("editorPanels.view_normal_to_plane") }}
       </KrButton>
     </div>
   </div>

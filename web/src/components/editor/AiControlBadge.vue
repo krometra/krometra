@@ -1,7 +1,12 @@
+<script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
+</script>
+
 <template>
-  <div :class="$style.badge" role="status" data-testid="ai-control" title="ИИ-агент управляет редактором через MCP: его правки видны вживую">
+  <div :class="$style.badge" role="status" data-testid="ai-control" :title="t('editorPanels.an_ai_agent_controls_the_editor_through_mcp_i')">
     <span :class="$style.dot" />
-    ИИ-агент управляет редактором
+    {{ t("editorPanels.ai_agent_is_controlling_the_editor") }}
   </div>
 </template>
 

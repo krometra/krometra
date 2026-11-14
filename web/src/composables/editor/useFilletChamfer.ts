@@ -1,4 +1,5 @@
-import { ref, type Ref } from "vue";
+import { computed, ref, shallowRef, type Ref } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useUndoRedo } from "@/composables/shared/useUndoRedo";
@@ -16,6 +17,7 @@ export function useFilletChamfer(deps: {
   meshes: BodyMeshesApi;
 }) {
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
+  const { t } = useI18n();
   const documentStore = useDocument();
   const selection = useSelection();
   const undoRedo = useUndoRedo();
@@ -24,7 +26,10 @@ export function useFilletChamfer(deps: {
   const mode = ref<"fillet" | "chamfer">("fillet");
   const bodyId = ref<string | null>(null);
   const edgeIds = ref<(string | number)[]>([]);
-  const edgeRows = ref<EdgeGroupRow[]>([]);
+  const edgeSnapshot = shallowRef<EdgeSelectionSnapshot | null>(null);
+  const edgeRows = computed(() => edgeSnapshot.value
+    ? edgeGroupRows(edgeSnapshot.value.brepTopo, edgeSnapshot.value.groups, t)
+    : []);
   const chain = ref(true);
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -82,7 +87,7 @@ export function useFilletChamfer(deps: {
     const hadEdges = edgeIds.value.length > 0;
     bodyId.value = snapshot.bodyId;
     edgeIds.value = snapshot.edgeIds;
-    edgeRows.value = edgeGroupRows(snapshot.brepTopo, snapshot.groups);
+    edgeSnapshot.value = snapshot;
     chain.value = snapshot.chain;
     if (!filletChamferMode.value) return;
 

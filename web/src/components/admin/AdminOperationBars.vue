@@ -3,24 +3,25 @@ import { computed } from "vue";
 import type { AdminOperationStat } from "@/types/api";
 import { formatCount } from "@/lib/admin/format";
 import { operationBars } from "@/lib/admin/overviewView";
-import { pluralize } from "@/lib/plural";
+import { useI18n } from "@/composables/shared/useI18n";
 
+const { t, locale } = useI18n();
 const props = defineProps<{ operations: AdminOperationStat[]; periodDays: number }>();
 
-const bars = computed(() => operationBars(props.operations));
+const bars = computed(() => operationBars(props.operations, t));
 </script>
 
 <template>
   <div :class="$style.root" data-testid="admin-operations">
-    <p v-if="!bars.length" :class="$style.empty">Операций пока нет.</p>
+    <p v-if="!bars.length" :class="$style.empty">{{ t("admin.noOperations") }}</p>
     <div v-for="bar in bars" :key="bar.kind" :class="$style.row" :data-testid="`admin-operation-${bar.kind}`">
       <div :class="$style.label">{{ bar.label }}</div>
       <div :class="$style.track">
         <div :class="$style.fill" :style="{ width: `${Math.max(bar.share * 100, 1)}%` }" />
       </div>
-      <div :class="$style.count">{{ formatCount(bar.count) }}</div>
+      <div :class="$style.count">{{ formatCount(bar.count, locale) }}</div>
       <div :class="$style.meta">
-        в {{ pluralize(bar.projects, "проекте", "проектах", "проектах") }} · {{ formatCount(bar.periodCount) }} за {{ periodDays }} дн.
+        {{ t("admin.operationMeta", { projects: formatCount(bar.projects, locale), count: formatCount(bar.periodCount, locale), days: periodDays }) }}
       </div>
     </div>
   </div>

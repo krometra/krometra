@@ -1,29 +1,29 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import KrButton from "@/components/ui/KrButton.vue";
 import { MCP_README_URL, connectCommand } from "@/lib/mcpConnect";
 import { siteOrigin } from "@/lib/siteOrigin";
 
+const { t } = useI18n();
 const emit = defineEmits<{ start: [] }>();
 
 const command = computed(() => connectCommand(siteOrigin(), "krm_..."));
 
-const steps = [
-  { title: "Создайте ключ", body: "На странице аккаунта, один раз. Ключ даёт ассистенту доступ только к вашим проектам." },
-  { title: "Подключите сервер", body: "Одной командой в Claude Code или в настройках другого клиента MCP." },
-  { title: "Откройте проект", body: "Ассистент работает в вашей вкладке редактора: каждый шаг виден сразу, любой можно отменить." },
-];
+const steps = computed(() => [
+  { title: t("landing.mcp.step1Title"), body: t("landing.mcp.step1Body") },
+  { title: t("landing.mcp.step2Title"), body: t("landing.mcp.step2Body") },
+  { title: t("landing.mcp.step3Title"), body: t("landing.mcp.step3Body") },
+]);
 </script>
 
 <template>
   <section id="ai" :class="$style.section">
     <div :class="$style.intro">
-      <div :class="$style.tag">ИИ-АССИСТЕНТ · MCP</div>
-      <h2 :class="$style.h2">Опишите деталь словами</h2>
+      <div :class="$style.tag">{{ t("landing.mcp.tag") }}</div>
+      <h2 :class="$style.h2">{{ t("landing.mcp.title") }}</h2>
       <p :class="$style.lead">
-        Крометра подключается к Claude и другим ассистентам по протоколу MCP. Ассистент сам рисует
-        эскизы, выдавливает тела, скругляет рёбра и проверяет размеры, а вы смотрите на модель
-        и правите то, что не понравилось.
+        {{ t("landing.mcp.lead", { product: t("common.productName") }) }}
       </p>
       <ol :class="$style.steps">
         <li v-for="(step, i) in steps" :key="step.title" :class="$style.step">
@@ -35,22 +35,21 @@ const steps = [
         </li>
       </ol>
       <div :class="$style.actions">
-        <KrButton :class="$style.cta" @click="emit('start')">Подключить ассистента</KrButton>
-        <a :class="$style.docsLink" :href="MCP_README_URL" target="_blank" rel="noopener">Инструкция по подключению</a>
+        <KrButton :class="$style.cta" @click="emit('start')">{{ t("landing.mcp.connect") }}</KrButton>
+        <a :class="$style.docsLink" :href="MCP_README_URL" target="_blank" rel="noopener">{{ t("landing.mcp.guide") }}</a>
       </div>
     </div>
 
     <div :class="$style.demo">
       <div :class="$style.chat">
         <div :class="[$style.message, $style.messageUser]">
-          Сделай кронштейн 60×40 мм толщиной 4 мм, два отверстия под M4 и скругли углы на 3 мм
+          {{ t("landing.mcp.prompt") }}
         </div>
         <div :class="[$style.message, $style.messageAgent]">
           <div :class="$style.trace">
-            <span>sketch.create</span><span>extrude 4 мм</span><span>hole Ø4.5 ×2</span><span>fillet 3 мм</span>
+            <span>sketch.create</span><span>{{ t("landing.mcp.extrude") }}</span><span>hole Ø4.5 ×2</span><span>{{ t("landing.mcp.fillet") }}</span>
           </div>
-          Готово. Кронштейн открыт у вас в редакторе: четыре операции в истории, отверстия на
-          расстоянии 40 мм. Если нужно толще, поменяю выдавливание.
+          {{ t("landing.mcp.reply") }}
         </div>
       </div>
       <pre :class="$style.command" data-testid="landing-mcp-command">{{ command }}</pre>

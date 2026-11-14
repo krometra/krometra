@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const { t } = useI18n();
+const sketchText = useSketchText();
 import { computed, nextTick, ref, useCssModule, watch } from "vue";
 import { useSketch } from "@/composables/shared/useSketch";
 import { useDocument } from "@/composables/shared/useDocument";
@@ -26,37 +30,37 @@ const workPlaneLabel = computed(() => {
 });
 
 const sketchPlaneLabel = computed(() => {
-  if (workPlaneLabel.value) return `Рабочая плоскость «${workPlaneLabel.value}»`;
+  if (workPlaneLabel.value) return t("editorPanels.sketch_work_plane", { name: workPlaneLabel.value });
   if (sketch.refBodyId.value !== null) {
-    const face = sketch.refFaceId.value !== null ? `Грань #${sketch.refFaceId.value}` : "Грань";
-    return `${face} · ${names.bodyLabel(sketch.refBodyId.value)}`;
+    const face = sketch.refFaceId.value !== null ? t("editorPanels.face_number", { id: sketch.refFaceId.value }) : t("editorPanels.face");
+    return t("editorPanels.face_body", { face, body: names.bodyLabel(sketch.refBodyId.value) });
   }
-  return `Базовая плоскость ${sketch.sketchPlane.value}`;
+  return t("editorPanels.base_plane", { plane: sketch.sketchPlane.value });
 });
 
 const sketchPlaneHint = computed(() => {
   const offset = sketch.planeOffset.value;
   if (sketch.refBodyId.value !== null || workPlaneLabel.value) {
-    const orientation = `в плоскости ${sketch.sketchPlane.value}`;
-    return offset !== 0 ? `${orientation}, смещение ${offset.toFixed(1)} мм` : orientation;
+    const orientation = t("editorPanels.in_plane", { plane: sketch.sketchPlane.value });
+    return offset !== 0 ? t("editorPanels.plane_offset_hint", { orientation, offset: offset.toFixed(1) }) : orientation;
   }
-  return offset !== 0 ? `смещение ${offset.toFixed(1)} мм` : "";
+  return offset !== 0 ? t("editorPanels.plane_offset_value", { offset: offset.toFixed(1) }) : "";
 });
 
-const ENTITY_KIND_LABELS: Record<string, string> = {
-  line: "Отрезок",
-  rectangle: "Прямоуг.",
-  circle: "Окруж.",
-  arc: "Дуга",
-  infline: "Вспом.",
-};
+const ENTITY_KIND_LABELS = computed<Record<string, string>>(() => ({
+  line: t("editorPanels.line_entity"),
+  rectangle: t("editorPanels.rectangle_entity"),
+  circle: t("editorPanels.circle_entity"),
+  arc: t("editorPanels.arc_entity"),
+  infline: t("editorPanels.construction_entity"),
+}));
 
 const entityLabels = computed(() => {
   const counters: Record<string, number> = {};
-  const map = new Map<string, string>([[SKETCH_ORIGIN_ID, "Начало"]]);
+  const map = new Map<string, string>([[SKETCH_ORIGIN_ID, t("editorPanels.tree_origin")]]);
   for (const e of sketch.entities.value) {
     counters[e.type] = (counters[e.type] ?? 0) + 1;
-    map.set(e.id, `${ENTITY_KIND_LABELS[e.type] ?? e.type} ${counters[e.type]}`);
+    map.set(e.id, `${ENTITY_KIND_LABELS.value[e.type] ?? e.type} ${counters[e.type]}`);
   }
   return map;
 });
@@ -64,7 +68,7 @@ const entityLabels = computed(() => {
 const focus = useSketchConstraintFocus();
 
 function constraintTitle(c: SketchConstraint): string {
-  return CONSTRAINT_TITLES[c.type] ?? c.type;
+  return sketchText(CONSTRAINT_TITLES[c.type] ?? c.type);
 }
 
 function rowClass(c: SketchConstraint) {
@@ -90,7 +94,7 @@ function isDimensional(c: SketchConstraint): boolean {
 }
 
 function constraintUnit(c: SketchConstraint): string {
-  return c.type === "angle" ? "°" : "мм";
+  return c.type === "angle" ? "°" : t("editorPanels.mm");
 }
 
 function setConstraintValue(c: SketchConstraint, value: number) {
@@ -100,26 +104,26 @@ function setConstraintValue(c: SketchConstraint, value: number) {
 </script>
 
 <template>
-  <PropsPanelShell title="Эскиз" kind="SKETCH" dot-color="oklch(0.78 0.13 75)">
-    <div :class="$style.panelHead">ПЛОСКОСТЬ ЭСКИЗА</div>
+  <PropsPanelShell :title="t('editorPanels.sketch')" kind="SKETCH" dot-color="oklch(0.78 0.13 75)">
+    <div :class="$style.panelHead">{{ t("editorPanels.sketch_plane_header") }}</div>
     <div :class="$style.field">
       <div :class="$style.fieldInput">
         <span :class="$style.fieldValue" data-testid="sketch-plane-label">{{ sketchPlaneLabel }}</span>
       </div>
       <div v-if="sketchPlaneHint" :class="$style.fieldHint">{{ sketchPlaneHint }}</div>
     </div>
-    <div :class="$style.panelHead" style="margin-top:16px">ОБЪЕКТОВ</div>
+    <div :class="$style.panelHead" style="margin-top:16px">{{ t("editorPanels.entities_header") }}</div>
     <div :class="$style.field">
       <div :class="$style.fieldInput">
         <span :class="$style.fieldValue">{{ sketch.entities.value.length }}</span>
-        <span :class="$style.fieldUnit">шт</span>
+        <span :class="$style.fieldUnit">{{ t("editorPanels.count_unit") }}</span>
       </div>
     </div>
     <div v-if="sketch.conflict.value" :class="$style.conflictWarning">
-      ⚠ Версия документа изменилась. Сохраните эскиз повторно.
+      {{ t("editorPanels.sketch_conflict") }}
     </div>
     <div v-if="sketch.constraints.value.length > 0" ref="rows" :class="$style.constraintSection">
-      <div :class="$style.panelHead">ОГРАНИЧЕНИЯ ({{ sketch.constraints.value.length }})</div>
+      <div :class="$style.panelHead">{{ t("editorPanels.constraints_count", { count: sketch.constraints.value.length }) }}</div>
       <div
         v-for="c in sketch.constraints.value"
         :key="c.id"
@@ -146,7 +150,7 @@ function setConstraintValue(c: SketchConstraint, value: number) {
         </div>
         <button
           :class="$style.constraintDel"
-          title="Удалить ограничение"
+          :title="t('editorPanels.delete_constraint')"
           @click.stop="sketch.removeConstraint(c.id)"
         >
           ✕
@@ -154,11 +158,11 @@ function setConstraintValue(c: SketchConstraint, value: number) {
       </div>
     </div>
     <div v-if="sketch.isSolving.value" :class="$style.solvingHint">
-      Решатель активен… невязка: {{ sketch.solveResidual.value.toFixed(4) }}
+      {{ t("editorPanels.solver_residual", { value: sketch.solveResidual.value.toFixed(4) }) }}
     </div>
     <template #foot>
-      <button :class="$style.okBtn" @click="emit('ok')">ОК</button>
-      <button :class="$style.cancelBtn" @click="emit('cancel')">Отмена</button>
+      <button :class="$style.okBtn" @click="emit('ok')">{{ t("editorPanels.ok") }}</button>
+      <button :class="$style.cancelBtn" @click="emit('cancel')">{{ t("editorPanels.cancel") }}</button>
     </template>
   </PropsPanelShell>
 </template>

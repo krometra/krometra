@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useOperationSketches } from "@/composables/shared/useOperationSketches";
@@ -40,6 +41,7 @@ export function useHole(deps: {
   meshes: BodyMeshesApi;
   model: ReturnType<typeof useDocumentModel>;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes, model } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -57,7 +59,7 @@ export function useHole(deps: {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  const faceHint = computed(() => (bodyId.value && !facePlane.value ? "Отверстие ставится только на плоскую грань — выберите другую." : null));
+  const faceHint = computed(() => (bodyId.value && !facePlane.value ? tr("editorOps.holeFlat") : null));
 
   const sketchOptions = computed(() => model.sketches.value
     .filter((sketch) => holeSketchPlacement(sketch) !== null)
@@ -80,7 +82,7 @@ export function useHole(deps: {
       validateHoleSpec(spec.value);
       return null;
     } catch (err) {
-      return err instanceof Error ? err.message : "Недопустимые размеры отверстия.";
+      return err instanceof Error ? err.message : tr("editorOps.holeInvalid");
     }
   });
 
@@ -189,13 +191,13 @@ export function useHole(deps: {
       await documentStore.load(projectId);
       exit();
     } catch (err) {
-      error.value = apiErrorMessage(err, "Не удалось построить отверстие");
+      error.value = apiErrorMessage(err, tr("editorOps.holeFailed"));
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["hole"], active: holeMode, loading, busyLabel: "Сверление отверстий…", enter, exit, onFaceSelected };
+  const tool: EditorTool = { actions: ["hole"], active: holeMode, loading, get busyLabel() { return tr("editorOps.holeBusy") }, enter, exit, onFaceSelected };
 
   return {
     tool,

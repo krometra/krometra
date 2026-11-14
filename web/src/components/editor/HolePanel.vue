@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrNumberInput from "@/components/ui/KrNumberInput.vue";
@@ -7,7 +9,6 @@ import PropsPanelShell from "./PropsPanelShell.vue";
 import type { HoleApi } from "@/composables/editor/useHole";
 import { HOLE_BOTTOM_LABELS, HOLE_EXTENT_LABELS, HOLE_TYPE_LABELS } from "@/lib/holeFeature";
 import { HOLE_BOTTOMS, HOLE_EXTENTS, HOLE_TYPES, type HoleSpec } from "@/lib/holeGeometry";
-import { pluralize } from "@/lib/plural";
 
 const props = defineProps<{ hole: HoleApi }>();
 
@@ -19,19 +20,19 @@ const fromSketch = computed(() => props.hole.sketchId.value !== null);
 const ready = computed(() => count.value > 0 && !props.hole.specError.value && !props.hole.loading.value);
 
 const sourceOptions = computed(() => [
-  { label: "Клики по грани", value: CLICKS },
-  ...props.hole.sketchOptions.value.map((sketch) => ({ label: `Окружности: ${sketch.label}`, value: sketch.id })),
+  { label: t("editorPanels.click_face_centers"), value: CLICKS },
+  ...props.hole.sketchOptions.value.map((sketch) => ({ label: t("editorPanels.circles_of_sketch", { name: sketch.label }), value: sketch.id })),
 ]);
 
 const statusText = computed(() => {
   if (props.hole.faceHint.value) return props.hole.faceHint.value;
   if (props.hole.bodyId.value === null) {
     return fromSketch.value
-      ? "Кликните плоскую грань тела — отверстия встанут в центры окружностей эскиза"
-      : "Кликните плоскую грань тела — каждый клик ставит центр отверстия";
+      ? t("editorPanels.hole_sketch_face")
+      : t("editorPanels.hole_click_face");
   }
-  if (count.value === 0) return fromSketch.value ? "В эскизе нет окружностей для центров" : "Кликайте по грани, чтобы поставить центры";
-  return `${pluralize(count.value, "отверстие", "отверстия", "отверстий")} — призрак показывает вырез`;
+  if (count.value === 0) return fromSketch.value ? t("editorPanels.no_sketch_circles") : t("editorPanels.place_hole_centers");
+  return t("editorPanels.holes_preview", { count: count.value });
 });
 
 function update<K extends keyof HoleSpec>(key: K, value: HoleSpec[K]) {
@@ -48,7 +49,7 @@ function coordinates(point: number[]) {
 </script>
 
 <template>
-  <PropsPanelShell title="Отверстие" kind="FEATURE" dot-color="oklch(0.72 0.14 60)">
+  <PropsPanelShell :title="t('editorPanels.hole')" kind="FEATURE" dot-color="oklch(0.72 0.14 60)">
     <div :class="$style.body" data-testid="hole-panel">
       <p :class="[$style.status, count > 0 && $style.statusReady]" data-testid="hole-status">{{ statusText }}</p>
 
@@ -66,7 +67,7 @@ function coordinates(point: number[]) {
       </div>
 
       <KrSelect
-        label="Центры"
+        :label="t('editorPanels.centers')"
         :model-value="hole.sketchId.value ?? CLICKS"
         :options="sourceOptions"
         data-testid="hole-source"
@@ -76,17 +77,17 @@ function coordinates(point: number[]) {
       <div v-if="!fromSketch && hole.clickedCenters.value.length > 0" :class="$style.centers" data-testid="hole-centers">
         <div v-for="(point, index) in hole.clickedCenters.value" :key="index" :class="$style.center">
           <span>{{ index + 1 }}. ({{ coordinates(point) }})</span>
-          <KrButton size="sm" variant="ghost" :data-testid="`hole-center-remove-${index}`" @click="hole.removeCenter(index)">Убрать</KrButton>
+          <KrButton size="sm" variant="ghost" :data-testid="`hole-center-remove-${index}`" @click="hole.removeCenter(index)">{{ t("editorPanels.remove") }}</KrButton>
         </div>
-        <KrButton size="sm" variant="ghost" data-testid="hole-centers-clear" @click="hole.clearCenters">Очистить центры</KrButton>
+        <KrButton size="sm" variant="ghost" data-testid="hole-centers-clear" @click="hole.clearCenters">{{ t("editorPanels.clear_centers") }}</KrButton>
       </div>
 
       <KrNumberInput
-        label="Диаметр"
+        :label="t('editorPanels.diameter')"
         :model-value="spec.diameter"
         :min="0.1"
         :step="0.5"
-        suffix="мм"
+        :suffix="t('editorPanels.mm')"
         data-testid="hole-diameter"
         @update:model-value="update('diameter', $event)"
       />
@@ -106,11 +107,11 @@ function coordinates(point: number[]) {
 
       <template v-if="spec.extent === 'distance'">
         <KrNumberInput
-          label="Глубина"
+          :label="t('editorPanels.depth')"
           :model-value="spec.depth"
           :min="0.1"
           :step="1"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="hole-depth"
           @update:model-value="update('depth', $event)"
         />
@@ -130,20 +131,20 @@ function coordinates(point: number[]) {
 
       <template v-if="spec.type === 'counterbore'">
         <KrNumberInput
-          label="Диаметр цековки"
+          :label="t('editorPanels.counterbore_diameter')"
           :model-value="spec.cboreDiameter"
           :min="0.1"
           :step="0.5"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="hole-cbore-diameter"
           @update:model-value="update('cboreDiameter', $event)"
         />
         <KrNumberInput
-          label="Глубина цековки"
+          :label="t('editorPanels.counterbore_depth')"
           :model-value="spec.cboreDepth"
           :min="0.1"
           :step="0.5"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="hole-cbore-depth"
           @update:model-value="update('cboreDepth', $event)"
         />
@@ -151,16 +152,16 @@ function coordinates(point: number[]) {
 
       <template v-if="spec.type === 'countersink'">
         <KrNumberInput
-          label="Диаметр зенковки"
+          :label="t('editorPanels.countersink_diameter')"
           :model-value="spec.csinkDiameter"
           :min="0.1"
           :step="0.5"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="hole-csink-diameter"
           @update:model-value="update('csinkDiameter', $event)"
         />
         <KrNumberInput
-          label="Угол зенковки"
+          :label="t('editorPanels.countersink_angle')"
           :model-value="spec.csinkAngle"
           :min="1"
           :max="179"
@@ -177,9 +178,9 @@ function coordinates(point: number[]) {
 
     <template #foot>
       <KrButton variant="primary" :disabled="!ready" data-testid="hole-apply" @click="hole.apply">
-        {{ hole.loading.value ? "Сверлю…" : "Применить" }}
+        {{ hole.loading.value ? t("editorPanels.drilling") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" @click="hole.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" @click="hole.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

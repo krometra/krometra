@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { ref } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrInput from "@/components/ui/KrInput.vue";
@@ -59,11 +61,11 @@ function handleSaveEdit() {
     <div :class="$style.modal" @click.stop>
       <div :class="$style.modalHead">
         <span :class="[$style.mono, $style.modalIcon]">ƒx</span>
-        <span :class="$style.modalTitle">Параметры модели</span>
-        <KrButton variant="ghost" size="sm" :class="$style.modalClose" aria-label="Закрыть параметры" @click="emit('close')">✕</KrButton>
+        <span :class="$style.modalTitle">{{ t("editorPanels.params_title") }}</span>
+        <KrButton variant="ghost" size="sm" :class="$style.modalClose" :aria-label="t('editorPanels.close_params')" @click="emit('close')">✕</KrButton>
       </div>
       <div :class="$style.modalCols">
-        <span>ИМЯ</span><span>ЗНАЧЕНИЕ</span><span>ЕД.</span><span />
+        <span>{{ t("editorPanels.name_caps") }}</span><span>{{ t("editorPanels.value_caps") }}</span><span>{{ t("editorPanels.unit_caps") }}</span><span />
       </div>
       <div :class="$style.modalRows">
         <div
@@ -75,35 +77,35 @@ function handleSaveEdit() {
             <KrInput
               v-model="newParamName"
               :class="$style.paramInput"
-              placeholder="имя"
+              :placeholder="t('editorPanels.param_name')"
             />
             <KrNumberInput
               v-model="newParamValue"
               :class="$style.paramInput"
-              placeholder="значение"
+              :placeholder="t('editorPanels.param_value')"
             />
             <select v-model="newParamUnit" :class="$style.paramSelect">
-              <option>мм</option>
+              <option value="мм">{{ t("editorPanels.mm") }}</option>
               <option>°</option>
-              <option>безразм.</option>
+              <option value="безразм.">{{ t("editorPanels.dimensionless") }}</option>
             </select>
             <div :class="$style.paramActions">
-              <KrButton variant="ghost" size="sm" :class="$style.paramSaveBtn" aria-label="Сохранить параметр" @click="handleSaveEdit">✓</KrButton>
-              <KrButton variant="ghost" size="sm" :class="$style.paramCancelBtn" aria-label="Отменить редактирование" @click="resetForm">✕</KrButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramSaveBtn" :aria-label="t('editorPanels.save_param')" @click="handleSaveEdit">✓</KrButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramCancelBtn" :aria-label="t('editorPanels.cancel_edit')" @click="resetForm">✕</KrButton>
             </div>
           </template>
           <template v-else>
             <span :class="$style.paramName">{{ p.name }}</span>
             <span :class="$style.paramValue">{{ p.value }}</span>
-            <span :class="$style.paramUnit">{{ p.unit }}</span>
+            <span :class="$style.paramUnit">{{ p.unit === "мм" ? t("editorPanels.mm") : p.unit === "безразм." ? t("editorPanels.dimensionless") : p.unit }}</span>
             <div :class="$style.paramActions">
-              <KrButton variant="ghost" size="sm" :class="$style.paramEditBtn" :aria-label="`Изменить параметр ${p.name}`" @click="handleEdit(p.id)">✎</KrButton>
-              <KrButton variant="ghost" size="sm" :class="$style.paramDelBtn" :aria-label="`Удалить параметр ${p.name}`" @click="paramsStore.remove(p.id)">🗑</KrButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramEditBtn" :aria-label="t('editorPanels.edit_param', { name: p.name })" @click="handleEdit(p.id)">✎</KrButton>
+              <KrButton variant="ghost" size="sm" :class="$style.paramDelBtn" :aria-label="t('editorPanels.delete_param', { name: p.name })" @click="paramsStore.remove(p.id)">🗑</KrButton>
             </div>
           </template>
         </div>
         <div v-if="paramsStore.count.value === 0 && !editingParamId" :class="$style.modalRow">
-          <span :class="$style.emptyParamName">Нет параметров</span>
+          <span :class="$style.emptyParamName">{{ t("editorPanels.no_params") }}</span>
           <span :class="$style.paramExpr">—</span>
           <span :class="$style.paramValue">—</span>
           <span />
@@ -112,26 +114,26 @@ function handleSaveEdit() {
           <KrInput
             v-model="newParamName"
             :class="$style.paramInput"
-            placeholder="имя параметра"
+            :placeholder="t('editorPanels.param_name_placeholder')"
             @keyup.enter="handleAdd"
           />
           <KrNumberInput
             v-model="newParamValue"
             :class="$style.paramInput"
-            placeholder="значение"
+            :placeholder="t('editorPanels.param_value')"
             @keyup.enter="handleNumberEnter"
           />
           <select v-model="newParamUnit" :class="$style.paramSelect">
-            <option>мм</option>
+            <option value="мм">{{ t("editorPanels.mm") }}</option>
             <option>°</option>
-            <option>безразм.</option>
+            <option value="безразм.">{{ t("editorPanels.dimensionless") }}</option>
           </select>
-          <KrButton variant="ghost" size="sm" :class="$style.paramAddBtn" aria-label="Добавить параметр" @click="handleAdd">＋</KrButton>
+          <KrButton variant="ghost" size="sm" :class="$style.paramAddBtn" :aria-label="t('editorPanels.add_param')" @click="handleAdd">＋</KrButton>
         </div>
       </div>
       <div :class="$style.modalFoot">
-        <span :class="$style.paramCount">{{ paramsStore.count.value }} параметров</span>
-        <KrButton size="sm" :class="$style.doneBtn" @click="emit('close')">Готово</KrButton>
+        <span :class="$style.paramCount">{{ t("editorPanels.parameter_count", { count: paramsStore.count.value }) }}</span>
+        <KrButton size="sm" :class="$style.doneBtn" @click="emit('close')">{{ t("editorPanels.done") }}</KrButton>
       </div>
     </div>
   </div>

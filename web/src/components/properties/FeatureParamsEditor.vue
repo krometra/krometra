@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { toRef } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
+import { propertyText } from "@/lib/propertyText";
 import { useRoute } from "vue-router";
 import KrNumberInput from "@/components/ui/KrNumberInput.vue";
 import KrSelect from "@/components/ui/KrSelect.vue";
 import { useFeatureParams } from "@/composables/editor/useFeatureParams";
 import type { MeshData, TimelineEntry } from "@/types/api";
+
+const { tMessage } = useI18n();
+const text = (value: string) => propertyText(value, tMessage);
 
 const props = defineProps<{ entry: TimelineEntry | null }>();
 const emit = defineEmits<{ rebuilt: [payload: { bodyId: string; mesh: MeshData }] }>();
@@ -28,8 +33,8 @@ function numberValue(key: string): number {
       <KrSelect
         v-if="field.kind === 'select'"
         :model-value="String(params.values.value[field.key])"
-        :options="field.options"
-        :label="field.label"
+        :options="field.options?.map((option) => ({ ...option, label: text(option.label) }))"
+        :label="text(field.label)"
         @update:model-value="params.update(field.key, $event)"
       />
       <KrNumberInput
@@ -37,14 +42,14 @@ function numberValue(key: string): number {
         :model-value="numberValue(field.key)"
         :min="field.min"
         :max="field.max"
-        :suffix="field.suffix"
-        :label="field.label"
+        :suffix="field.suffix === 'мм' ? text('мм') : field.suffix"
+        :label="text(field.label)"
         @update:model-value="params.update(field.key, $event)"
       />
     </template>
-    <div v-if="params.pending.value" :class="$style.pending">Перестроение модели…</div>
+    <div v-if="params.pending.value" :class="$style.pending">{{ text("Перестроение модели…") }}</div>
     <div v-else-if="params.error.value" :class="$style.error">{{ params.error.value }}</div>
-    <div v-else :class="$style.hint">Изменения пересобирают зависимые операции автоматически</div>
+    <div v-else :class="$style.hint">{{ text("Изменения пересобирают зависимые операции автоматически") }}</div>
   </div>
 </template>
 

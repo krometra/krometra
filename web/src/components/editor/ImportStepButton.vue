@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
 import KrButton from "@/components/ui/KrButton.vue";
 
 defineProps<{
@@ -8,6 +9,7 @@ defineProps<{
 const emit = defineEmits<{
   import: [];
 }>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -16,9 +18,9 @@ const emit = defineEmits<{
     size="sm"
     :loading="loading"
     data-testid="import-step"
-    title="Импортировать тела из файла .step или .stp"
+    :title="t('editor.importHint')"
     @click="emit('import')"
   >
-    Импорт STEP ↑
+    {{ t("editor.import") }}
   </KrButton>
 </template>

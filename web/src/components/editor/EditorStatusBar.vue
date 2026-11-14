@@ -1,17 +1,29 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useBrowserKernelStatus } from "@/composables/editor/browserKernelStatus";
 import { kernelPhaseLabel } from "@/lib/browserKernel";
-import { pluralize } from "@/lib/plural";
+import { useBrowserKernelStatus } from "@/composables/editor/browserKernelStatus";
+import { useI18n } from "@/composables/shared/useI18n";
 
 defineProps<{
   lastOpMs: number | null;
   operationCount: number;
 }>();
 
+const { t, locale } = useI18n();
 const kernel = useBrowserKernelStatus();
-const kernelLabel = computed(() => kernelPhaseLabel(kernel.phase.value, kernel.heapBytes.value));
-const kernelTitle = computed(() => kernel.failure.value ?? `Тел в ядре: ${kernel.bodyCount.value}`);
+const kernelLabel = computed(() => {
+  if (locale.value === "ru") return kernelPhaseLabel(kernel.phase.value, kernel.heapBytes.value);
+  switch (kernel.phase.value) {
+    case "loading": return t("editor.status.kernelLoading");
+    case "restarting": return t("editor.status.kernelRestarting");
+    case "failed": return t("editor.status.kernelFailed");
+    case "ready": return kernel.heapBytes.value > 0
+      ? t("editor.status.kernelReadyMemory", { size: Math.round(kernel.heapBytes.value / (1024 * 1024)) })
+      : t("editor.status.kernelReady");
+    default: return t("editor.status.kernelIdle");
+  }
+});
+const kernelTitle = computed(() => kernel.failure.value ?? t("editor.status.bodies", { count: kernel.bodyCount.value }));
 </script>
 
 <template>
@@ -20,9 +32,9 @@ const kernelTitle = computed(() => kernel.failure.value ?? `Тел в ядре: 
       <span :class="[$style.statusDot, $style[kernel.phase.value]]" />{{ kernelLabel }}
     </span>
     <span>OCCT/WASM</span>
-    <span>мм · градусы</span>
-    <span :class="$style.statusSpacer">пересчёт: {{ lastOpMs === null ? "—" : lastOpMs }} мс</span>
-    <span>{{ pluralize(operationCount, "операция", "операции", "операций") }}</span>
+    <span>{{ t("editor.status.units") }}</span>
+    <span :class="$style.statusSpacer">{{ t("editor.status.recompute", { time: lastOpMs === null ? "—" : lastOpMs }) }}</span>
+    <span>{{ t("editor.status.operations", { count: operationCount }) }}</span>
   </div>
 </template>
 

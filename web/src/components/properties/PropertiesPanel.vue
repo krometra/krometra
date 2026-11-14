@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
+import { propertyText } from "@/lib/propertyText";
 import { usePropertiesPanel } from "@/composables/usePropertiesPanel";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import KrTabs from "@/components/ui/KrTabs.vue";
@@ -21,29 +23,36 @@ const emit = defineEmits<{
   rebuilt: [payload: { bodyId: string; mesh: MeshData }];
 }>();
 
-const TAB_OPTIONS = [
-  { id: "properties", label: "Свойства" },
-  { id: "data", label: "Данные" },
-];
+const { t, tMessage } = useI18n();
+const text = (value: string) => propertyText(value, tMessage);
+const TAB_OPTIONS = computed(() => [
+  { id: "properties", label: text("Свойства") },
+  { id: "data", label: text("Данные") },
+]);
+
+function displayValue(label: string, value: string): string {
+  if (["Файл", "Профили", "Путь", "Эскиз", "Тело", "Целевое тело", "Инструменты", "Тела для выреза"].includes(label)) return value;
+  return text(value).replace(/(?<=\d) мм/g, ` ${t("property.mm")}`);
+}
 
 const activeTab = ref("properties");
 
 const panel = usePropertiesPanel();
 const names = useDisplayNames();
 
-const DIRECTION_LABELS: Record<string, string> = {
-  one_side: "Одностороннее",
-  symmetric: "Симметричное",
-};
+const DIRECTION_LABELS = computed<Record<string, string>>(() => ({
+  one_side: text("Одностороннее"),
+  symmetric: text("Симметричное"),
+}));
 
-const OPERATION_LABELS: Record<string, string> = {
-  new_body: "Новое тело",
-  join: "Приклеить",
-  cut: "Вырезать",
-  union: "Объединение",
-  subtract: "Вычитание",
-  intersect: "Пересечение",
-};
+const OPERATION_LABELS = computed<Record<string, string>>(() => ({
+  new_body: text("Новое тело"),
+  join: text("Приклеить"),
+  cut: text("Вырезать"),
+  union: text("Объединение"),
+  subtract: text("Вычитание"),
+  intersect: text("Пересечение"),
+}));
 
 // ── Feature kind helpers ──
 
@@ -77,50 +86,50 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
   switch (entry.kind) {
     case "extrude":
       return [
-        { label: "Расстояние", value: `${typeof p.distance === "number" ? Math.abs(p.distance) : "?"} мм` },
-        { label: "Направление", value: DIRECTION_LABELS[String(p.direction)] ?? "—" },
+        { label: "Расстояние", value: `${typeof p.distance === "number" ? Math.abs(p.distance) : "?"} ${t("property.mm")}` },
+        { label: "Направление", value: DIRECTION_LABELS.value[String(p.direction)] ?? "—" },
       ];
     case "revolve":
       return [
         { label: "Угол", value: `${p.angle ?? "?"}°` },
-        { label: "Направление", value: DIRECTION_LABELS[String(p.direction)] ?? "—" },
+        { label: "Направление", value: DIRECTION_LABELS.value[String(p.direction)] ?? "—" },
       ];
     case "sweep":
       return [
         { label: "Путь", value: typeof p.path_sketch_id === "string" ? names.sketchLabel(p.path_sketch_id) : "—" },
-        { label: "Ориентация", value: p.orientation === "frenet" ? "По Френе" : "Без закрутки" },
+        { label: "Ориентация", value: p.orientation === "frenet" ? text("По Френе") : text("Без закрутки") },
       ];
     case "loft":
       return loftParamRows(p, names.sketchLabel);
     case "fillet":
       return [
-        { label: "Радиус", value: `${p.radius ?? "?"} мм` },
+        { label: "Радиус", value: `${p.radius ?? "?"} ${t("property.mm")}` },
         { label: "Рёбер", value: String(Array.isArray(p.edge_ids) ? p.edge_ids.length : 0) },
       ];
     case "chamfer":
       return [
-        { label: "Расстояние 1", value: `${p.distance1 ?? "?"} мм` },
-        { label: "Расстояние 2", value: `${p.distance2 ?? "?"} мм` },
+        { label: "Расстояние 1", value: `${p.distance1 ?? "?"} ${t("property.mm")}` },
+        { label: "Расстояние 2", value: `${p.distance2 ?? "?"} ${t("property.mm")}` },
         { label: "Рёбер", value: String(Array.isArray(p.edge_ids) ? p.edge_ids.length : 0) },
       ];
     case "thread":
       return [
-        { label: "Тип", value: p.kind === "internal" ? "Внутренняя" : "Внешняя" },
-        { label: "Шаг", value: `${p.pitch ?? "?"} мм` },
-        { label: "Длина", value: `${typeof p.length === "number" ? p.length.toFixed(1) : "?"} мм` },
-        { label: "Отступ", value: `${p.offset ?? 0} мм` },
+        { label: "Тип", value: p.kind === "internal" ? text("Внутренняя") : text("Внешняя") },
+        { label: "Шаг", value: `${p.pitch ?? "?"} ${t("property.mm")}` },
+        { label: "Длина", value: `${typeof p.length === "number" ? p.length.toFixed(1) : "?"} ${t("property.mm")}` },
+        { label: "Отступ", value: `${p.offset ?? 0} ${t("property.mm")}` },
       ];
     case "import":
       return [
         { label: "Файл", value: typeof p.file_name === "string" ? p.file_name : "—" },
-        { label: "Тело в файле", value: `${Number(p.body_index ?? 0) + 1} из ${p.body_count ?? 1}` },
+        { label: "Тело в файле", value: t("property.bodyInFile", { index: Number(p.body_index ?? 0) + 1, count: Number(p.body_count ?? 1) }) },
       ];
     case "transform":
       return transformParams(p);
     case "shell":
       return [
-        { label: "Толщина стенки", value: `${p.thickness ?? "?"} мм` },
-        { label: "Направление", value: p.direction === "outward" ? "Наружу" : "Внутрь" },
+        { label: "Толщина стенки", value: `${p.thickness ?? "?"} ${t("property.mm")}` },
+        { label: "Направление", value: p.direction === "outward" ? text("Наружу") : text("Внутрь") },
         { label: "Открытых граней", value: String(Array.isArray(p.face_ids) ? p.face_ids.length : 0) },
       ];
     case "mirror":
@@ -135,10 +144,10 @@ const readonlyParams = computed<{ label: string; value: string }[]>(() => {
       return pressPullParamRows(p);
     case "boolean":
       return [
-        { label: "Операция", value: OPERATION_LABELS[entry.operation ?? ""] ?? entry.operation ?? "?" },
+        { label: "Операция", value: OPERATION_LABELS.value[entry.operation ?? ""] ?? entry.operation ?? "?" },
         { label: "Целевое тело", value: entry.target_body_id ? names.bodyLabel(entry.target_body_id) : "—" },
         { label: "Инструменты", value: booleanToolsOf(entry).map(names.bodyLabel).join(", ") || "—" },
-        ...(keepsTools(entry) ? [{ label: "Сохранить инструменты", value: "да" }] : []),
+        ...(keepsTools(entry) ? [{ label: "Сохранить инструменты", value: text("да") }] : []),
       ];
     default:
       return [];
@@ -151,7 +160,7 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
   const rows: { label: string; value: string }[] = [];
   if (entry.sketch_id) rows.push({ label: "Эскиз", value: names.sketchLabel(entry.sketch_id) });
   const op = entry.params?.operation as string | undefined;
-  if (op) rows.push({ label: "Операция", value: OPERATION_LABELS[op] ?? op });
+  if (op) rows.push({ label: "Операция", value: OPERATION_LABELS.value[op] ?? op });
   const targets = cutTargetsOf(entry);
   const target = entry.params?.target_body_id as string | undefined;
   if (targets.length > 0) rows.push({ label: "Тела для выреза", value: targets.map(names.bodyLabel).join(", ") });
@@ -167,9 +176,9 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
     <template v-if="panel.mode.value.type === 'none'">
       <div :class="$style.placeholder">
         <div :class="$style.placeholderIcon">◻</div>
-        <div :class="$style.placeholderTitle">Нет выделения</div>
+        <div :class="$style.placeholderTitle">{{ text("Нет выделения") }}</div>
         <div :class="$style.placeholderHint">
-          Выберите тело, грань, ребро или операцию в истории
+          {{ text("Выберите тело, грань, ребро или операцию в истории") }}
         </div>
       </div>
     </template>
@@ -191,14 +200,14 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
         <template v-if="panel.mode.value.type === 'feature'">
           <!-- Sketch feature -->
           <template v-if="isSketchFeature">
-            <KrCollapsible label="Эскиз" :open="true">
+            <KrCollapsible :label="text('Эскиз')" :open="true">
               <div :class="$style.fieldGroup">
                 <div :class="$style.readonly">
-                  <span :class="$style.readonlyLabel">Плоскость</span>
+                  <span :class="$style.readonlyLabel">{{ text("Плоскость") }}</span>
                   <span :class="$style.readonlyValue">{{ featureEntry?.plane ?? "—" }}</span>
                 </div>
                 <div :class="$style.readonly">
-                  <span :class="$style.readonlyLabel">Объектов</span>
+                  <span :class="$style.readonlyLabel">{{ text("Объектов") }}</span>
                   <span :class="$style.readonlyValue">{{ featureEntry?.entity_count ?? 0 }}</span>
                 </div>
                 <button
@@ -206,34 +215,34 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
                   :class="$style.actionBtn"
                   @click="emit('edit-sketch', featureEntry.sketch_id!)"
                 >
-                  Редактировать эскиз
+                  {{ text("Редактировать эскиз") }}
                 </button>
               </div>
             </KrCollapsible>
           </template>
 
           <!-- Feature parameters -->
-          <KrCollapsible v-if="isReadonlyFeature" label="Параметры операции" :open="true">
+          <KrCollapsible v-if="isReadonlyFeature" :label="text('Параметры операции')" :open="true">
             <div :class="$style.fieldGroup">
               <FeatureParamsEditor v-if="isEditableFeature" :entry="featureEntry" @rebuilt="emit('rebuilt', $event)" />
               <template v-for="row in readonlyParams" :key="row.label">
                 <div v-if="!editableLabels.has(row.label)" :class="$style.readonly">
-                  <span :class="$style.readonlyLabel">{{ row.label }}</span>
-                  <span :class="$style.readonlyValue">{{ row.value }}</span>
+                  <span :class="$style.readonlyLabel">{{ text(row.label) }}</span>
+                  <span :class="$style.readonlyValue">{{ displayValue(row.label, row.value) }}</span>
                 </div>
               </template>
               <div v-if="!isEditableFeature" :class="$style.autoHint">
-                Редактирование этой операции задним числом пока не поддерживается
+                {{ text("Редактирование этой операции задним числом пока не поддерживается") }}
               </div>
             </div>
           </KrCollapsible>
 
           <!-- Selection / context section -->
-          <KrCollapsible v-if="selectionInfo.length > 0" label="Связи" :open="true">
+          <KrCollapsible v-if="selectionInfo.length > 0" :label="text('Связи')" :open="true">
             <div :class="$style.fieldGroup">
               <div v-for="row in selectionInfo" :key="row.label" :class="$style.readonly">
-                <span :class="$style.readonlyLabel">{{ row.label }}</span>
-                <span :class="$style.readonlyValue">{{ row.value }}</span>
+                <span :class="$style.readonlyLabel">{{ text(row.label) }}</span>
+                <span :class="$style.readonlyValue">{{ displayValue(row.label, row.value) }}</span>
               </div>
             </div>
           </KrCollapsible>
@@ -241,14 +250,14 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
 
         <!-- ── Face properties ── -->
         <template v-if="isFace">
-          <KrCollapsible label="Геометрия" :open="true">
+          <KrCollapsible :label="text('Геометрия')" :open="true">
             <div :class="$style.fieldGroup">
               <div :class="$style.readonly">
-                <span :class="$style.readonlyLabel">Тело</span>
+                <span :class="$style.readonlyLabel">{{ text("Тело") }}</span>
                 <span :class="$style.readonlyValue">{{ panel.mode.value.type === 'face' ? names.bodyLabel(panel.mode.value.props.bodyId) : '' }}</span>
               </div>
               <div :class="$style.readonly">
-                <span :class="$style.readonlyLabel">Грань</span>
+                <span :class="$style.readonlyLabel">{{ text("Грань") }}</span>
                 <span :class="$style.readonlyValue">#{{ panel.mode.value.type === 'face' ? panel.mode.value.props.faceId : '' }}</span>
               </div>
             </div>
@@ -257,14 +266,14 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
 
         <!-- ── Edge properties ── -->
         <template v-if="isEdge">
-          <KrCollapsible label="Геометрия" :open="true">
+          <KrCollapsible :label="text('Геометрия')" :open="true">
             <div :class="$style.fieldGroup">
               <div :class="$style.readonly">
-                <span :class="$style.readonlyLabel">Тело</span>
+                <span :class="$style.readonlyLabel">{{ text("Тело") }}</span>
                 <span :class="$style.readonlyValue">{{ panel.mode.value.type === 'edge' ? names.bodyLabel(panel.mode.value.props.bodyId) : '' }}</span>
               </div>
               <div :class="$style.readonly">
-                <span :class="$style.readonlyLabel">Ребро</span>
+                <span :class="$style.readonlyLabel">{{ text("Ребро") }}</span>
                 <span :class="$style.readonlyValue">#{{ panel.mode.value.type === 'edge' ? panel.mode.value.props.edgeId : '' }}</span>
               </div>
             </div>
@@ -273,10 +282,10 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
 
         <!-- ── Vertex properties ── -->
         <template v-if="isVertex">
-          <KrCollapsible label="Геометрия" :open="true">
+          <KrCollapsible :label="text('Геометрия')" :open="true">
             <div :class="$style.fieldGroup">
               <div :class="$style.readonly">
-                <span :class="$style.readonlyLabel">Тело</span>
+                <span :class="$style.readonlyLabel">{{ text("Тело") }}</span>
                 <span :class="$style.readonlyValue">{{ panel.mode.value.type === 'vertex' ? names.bodyLabel(panel.mode.value.props.bodyId) : '' }}</span>
               </div>
             </div>
@@ -286,7 +295,7 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
 
       <!-- Data tab -->
       <div v-else-if="activeTab === 'data'" :class="$style.body">
-        <KrCollapsible label="Данные фичи" :open="true">
+        <KrCollapsible :label="text('Данные фичи')" :open="true">
           <div :class="$style.fieldGroup">
             <div
               v-if="panel.mode.value.type === 'feature'"
@@ -299,14 +308,14 @@ const selectionInfo = computed<{ label: string; value: string }[]>(() => {
               v-if="panel.mode.value.type === 'feature'"
               :class="$style.readonly"
             >
-              <span :class="$style.readonlyLabel">Тип</span>
+              <span :class="$style.readonlyLabel">{{ text("Тип") }}</span>
               <span :class="$style.readonlyValue">{{ panel.mode.value.props.entry.kind }}</span>
             </div>
             <div
               v-if="panel.mode.value.type === 'feature'"
               :class="$style.readonly"
             >
-              <span :class="$style.readonlyLabel">Статус</span>
+              <span :class="$style.readonlyLabel">{{ text("Статус") }}</span>
               <span :class="$style.readonlyValue">{{ panel.mode.value.props.entry.status }}</span>
             </div>
             <div

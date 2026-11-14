@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
 import { watch } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrMenu from "@/components/ui/KrMenu.vue";
@@ -33,12 +34,13 @@ watch(
     if (val) toast(val, "error");
   }
 );
+const { t } = useI18n();
 </script>
 
 <template>
   <KrMenu :items="menuItems">
     <KrButton variant="ghost" size="sm" :loading="loading">
-      Экспорт ↓
+      {{ t("editor.export") }}
     </KrButton>
   </KrMenu>
 </template>

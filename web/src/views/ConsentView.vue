@@ -1,50 +1,27 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
 import LegalLayout from "@/components/legal/LegalLayout.vue";
 import { operator } from "@/lib/legal";
+
+const { t } = useI18n();
 </script>
 
 <template>
-  <LegalLayout title="Согласие на обработку персональных данных">
+  <LegalLayout :title="t('legalText.consentTitle')">
     <p>
-      Регистрируясь в сервисе «Крометра» на сайте krometra.ru (далее — Сервис) и отмечая поле «Даю согласие на
-      обработку персональных данных», я свободно, своей волей и в своём интересе даю конкретное, предметное,
-      информированное, сознательное и однозначное согласие {{ operator.name }} (далее — Оператор, почта для
-      обращений <a :href="`mailto:${operator.email}`">{{ operator.email }}</a>) на обработку моих персональных
-      данных на следующих условиях.
+      {{ t("legalText.consent.intro", { product: t("common.productName"), name: operator.name }) }}
+      <a :href="`mailto:${operator.email}`">{{ operator.email }}</a>{{ t("legalText.consent.introEnd") }}
     </p>
-
-    <h2>1. Какие данные</h2>
-    <p>
-      Адрес электронной почты; имя, если я его указал; IP-адрес, сведения о браузере (User-Agent), время и адреса
-      запросов к Сервису, сведения о входах в Сервис; данные cookie, необходимые для работы Сервиса.
-    </p>
-
-    <h2>2. Цели</h2>
-    <p>
-      Регистрация и предоставление доступа к Сервису; письма по аккаунту (подтверждение почты, восстановление
-      и смена пароля, уведомления о работе Сервиса); защита Сервиса от злоупотреблений; ответы на мои обращения.
-    </p>
-
-    <h2>3. Действия с данными</h2>
-    <p>
-      Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение,
-      использование, передача (предоставление, доступ) лицам, которым Оператор поручил обработку для работы
-      Сервиса (хостинг-провайдер, сервис отправки электронной почты), блокирование, удаление, уничтожение.
-      Обработка автоматизированная, данные хранятся в Российской Федерации.
-    </p>
-
-    <h2>4. Срок</h2>
-    <p>Согласие действует до удаления аккаунта или до отзыва согласия.</p>
-
-    <h2>5. Отзыв согласия</h2>
-    <p>
-      Согласие можно отозвать, написав на <a :href="`mailto:${operator.email}`">{{ operator.email }}</a> с
-      адреса, указанного в аккаунте. Оператор прекратит обработку и уничтожит данные в течение 30 дней, если
-      закон не требует хранить их дольше. После отзыва согласия пользоваться аккаунтом нельзя.
-    </p>
-
-    <p>
-      Подробнее — в <router-link to="/privacy">Политике обработки персональных данных</router-link>.
-    </p>
+    <h2>{{ t("legalText.consent.h1") }}</h2>
+    <p>{{ t("legalText.consent.data") }}</p>
+    <h2>{{ t("legalText.consent.h2") }}</h2>
+    <p>{{ t("legalText.consent.purposes") }}</p>
+    <h2>{{ t("legalText.consent.h3") }}</h2>
+    <p>{{ t("legalText.consent.actions") }}</p>
+    <h2>{{ t("legalText.consent.h4") }}</h2>
+    <p>{{ t("legalText.consent.duration") }}</p>
+    <h2>{{ t("legalText.consent.h5") }}</h2>
+    <p>{{ t("legalText.consent.revoke1") }} <a :href="`mailto:${operator.email}`">{{ operator.email }}</a> {{ t("legalText.consent.revoke2") }}</p>
+    <p>{{ t("legalText.consent.more") }} <router-link to="/privacy">{{ t("legalText.privacyTitle") }}</router-link>.</p>
   </LegalLayout>
 </template>

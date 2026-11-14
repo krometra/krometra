@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { ref, shallowRef } from "vue";
 import { useApi } from "@/composables/useApi";
 import { toast } from "@/composables/useToast";
@@ -15,6 +16,7 @@ export interface RoleChange {
 }
 
 export function useAdminUsers(api: AdminClient = useApi()) {
+  const { t } = useI18n();
   const table = useAdminTable<AdminUserSort, AdminUserRow>(
     "/admin/users",
     { sort: "created_at", order: "desc", page: 1, pageSize: 25, q: "" },
@@ -39,10 +41,10 @@ export function useAdminUsers(api: AdminClient = useApi()) {
     try {
       const updated = await api.patch<AdminUserRole>(`/admin/users/${change.user.id}`, { is_admin: change.isAdmin });
       table.patchRow(updated.id, { is_admin: updated.is_admin });
-      toast(updated.is_admin ? `${updated.email} теперь администратор` : `${updated.email} больше не администратор`, "success");
+      toast(updated.is_admin ? t("admin.roleGranted", { email: updated.email }) : t("admin.roleRevoked", { email: updated.email }), "success");
       roleChange.value = null;
     } catch (error) {
-      toast(errorMessage(error, "Не удалось изменить роль."), "error");
+      toast(errorMessage(error, t("admin.roleFailed")), "error");
     } finally {
       savingRole.value = false;
     }

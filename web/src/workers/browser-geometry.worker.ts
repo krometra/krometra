@@ -1,3 +1,4 @@
+import { geometryErrorDetails } from "./geometry/errorDetails";
 import { booleanNamed } from "./geometry/boolean";
 import { draftNamed, type DraftRequest } from "./geometry/draft";
 import { edgeFeatureNamed } from "./geometry/edgeOps";
@@ -121,10 +122,12 @@ worker.onmessage = async ({ data }: MessageEvent<Request>) => {
     }
     reply({ id: data.id, ok: true, ...(await manageShape(data as ShapeRequest)) });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Не удалось построить геометрию в браузере.";
     worker.postMessage({
       id: data.id,
       ok: false,
-      error: error instanceof Error ? error.message : "Не удалось построить геометрию в браузере.",
+      error: message,
+      errorDetails: geometryErrorDetails(message),
     });
   }
 };

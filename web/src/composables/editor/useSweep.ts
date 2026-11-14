@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useOperationSketches } from "@/composables/shared/useOperationSketches";
@@ -32,6 +33,7 @@ export function placementOf(sketch: ComponentEntry): SweepSketchPlacement {
 }
 
 export function useSweep(deps: { projectId: string; meshes: BodyMeshesApi; model: ReturnType<typeof useDocumentModel> }) {
+  const { t: tr } = useI18n();
   const { projectId, meshes, model } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -76,7 +78,7 @@ export function useSweep(deps: { projectId: string; meshes: BodyMeshesApi; model
 
   function enter() {
     if (model.sketches.value.length < 2) {
-      toast("Для протяжки нужны два эскиза: замкнутый профиль и путь на другой плоскости", "info");
+      toast(tr("editorOps.sweepSketch"), "info");
       return;
     }
     const choice = defaultSweepSketches(candidates.value, selectedSketchId());
@@ -139,13 +141,13 @@ export function useSweep(deps: { projectId: string; meshes: BodyMeshesApi; model
       documentStore.markDirty();
       await documentStore.load(projectId);
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Не удалось построить протяжку.";
+      error.value = err instanceof Error ? err.message : tr("editorOps.sweepFailed");
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["sweep"], active: sweepMode, loading, busyLabel: "Протяжка…", enter, exit };
+  const tool: EditorTool = { actions: ["sweep"], active: sweepMode, loading, get busyLabel() { return tr("editorOps.sweepBusy") }, enter, exit };
 
   return {
     tool,

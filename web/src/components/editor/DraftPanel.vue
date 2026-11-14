@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrCheckbox from "@/components/ui/KrCheckbox.vue";
@@ -6,7 +8,6 @@ import KrIcon from "@/components/ui/KrIcon.vue";
 import KrInput from "@/components/ui/KrInput.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { MIRROR_BASE_PLANES } from "@/lib/mirrorPlane";
-import { pluralize } from "@/lib/plural";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { DraftApi } from "@/composables/editor/useDraft";
 
@@ -20,32 +21,32 @@ const hasFaces = computed(() => props.draft.faceIds.value.length > 0);
 const statusText = computed(() => {
   const draft = props.draft;
   if (draft.hint.value) return draft.hint.value;
-  if (!draft.bodyId.value) return "Кликните боковые грани, которые нужно наклонить. Повторный клик снимает грань.";
-  const faces = pluralize(draft.faceIds.value.length, "грань", "грани", "граней");
-  return `${names.bodyLabel(draft.bodyId.value)}: под уклон ${faces}`;
+  if (!draft.bodyId.value) return t("editorPanels.draft_select_faces");
+  const faces = t("editorPanels.faces", { count: draft.faceIds.value.length });
+  return t("editorPanels.draft_body_faces", { body: names.bodyLabel(draft.bodyId.value), faces });
 });
 
 const neutralText = computed(() => {
-  if (!usesFace.value) return `Плоскость ${props.draft.basePlane.value} через начало координат`;
-  if (props.draft.pickingNeutral.value) return "Ждёт клика по плоской грани";
-  return props.draft.neutralFace.value ? "Плоская грань тела" : "Грань не выбрана";
+  if (!usesFace.value) return t("editorPanels.plane_at_origin", { plane: props.draft.basePlane.value });
+  if (props.draft.pickingNeutral.value) return t("editorPanels.waiting_face");
+  return props.draft.neutralFace.value ? t("editorPanels.planar_face") : t("editorPanels.face_unselected");
 });
 
 const BASE_AXES = { XY: "+Z", XZ: "+Y", YZ: "+X" } as const;
 
 const pullText = computed(() => {
-  const direction = usesFace.value ? "от нейтральной грани вглубь тела" : `вдоль ${BASE_AXES[props.draft.basePlane.value]}`;
-  return `Тело ${props.draft.reverse.value ? "расширяется" : "сужается"} ${direction}`;
+  const direction = usesFace.value ? t("editorPanels.draft_into_body") : t("editorPanels.draft_along_axis", { axis: BASE_AXES[props.draft.basePlane.value] });
+  return props.draft.reverse.value ? t("editorPanels.draft_expands", { direction }) : t("editorPanels.draft_narrows", { direction });
 });
 </script>
 
 <template>
-  <PropsPanelShell title="Уклон" kind="FEATURE" dot-color="oklch(0.72 0.14 140)">
+  <PropsPanelShell :title="t('editorPanels.draft')" kind="FEATURE" dot-color="oklch(0.72 0.14 140)">
     <div :class="$style.body" data-testid="draft-panel">
       <p :class="[$style.status, hasFaces && $style.statusReady]" data-testid="draft-status">{{ statusText }}</p>
 
       <div :class="$style.field">
-        <span :class="$style.label">Нейтральная плоскость</span>
+        <span :class="$style.label">{{ t("editorPanels.neutral_plane") }}</span>
         <div :class="$style.row">
           <KrButton
             v-for="plane in MIRROR_BASE_PLANES"
@@ -63,14 +64,14 @@ const pullText = computed(() => {
             data-testid="draft-neutral-face"
             @click="draft.startNeutralFacePick"
           >
-            Грань
+            {{ t("editorPanels.face") }}
           </KrButton>
         </div>
         <span :class="$style.hint" data-testid="draft-neutral-status">{{ neutralText }}</span>
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Грани под уклон</span>
+        <span :class="$style.label">{{ t("editorPanels.draft_faces") }}</span>
         <ul v-if="hasFaces" :class="$style.list" data-testid="draft-face-list">
           <li v-for="(row, index) in draft.faceRows.value" :key="String(row.faceId)" :class="$style.item" data-testid="draft-face-row">
             <span :class="$style.index">{{ index + 1 }}</span>
@@ -78,7 +79,7 @@ const pullText = computed(() => {
             <KrButton
               variant="ghost"
               size="sm"
-              :aria-label="`Снять с выбора: ${row.label}`"
+              :aria-label="t('editorPanels.remove_selection', { name: row.label })"
               data-testid="draft-face-remove"
               @click="draft.removeFace(row.faceId)"
             >
@@ -88,7 +89,7 @@ const pullText = computed(() => {
         </ul>
         <KrCheckbox
           :model-value="draft.tangentChain.value"
-          label="Касательная цепочка"
+          :label="t('editorPanels.tangent_chain')"
           data-testid="draft-tangent-chain"
           @update:model-value="draft.setTangentChain"
         />
@@ -97,10 +98,10 @@ const pullText = computed(() => {
       <div :class="$style.field">
         <KrInput
           :model-value="draft.angle.text.value"
-          label="Угол уклона"
+          :label="t('editorPanels.draft_angle')"
           suffix="°"
           inputmode="decimal"
-          title="Больше 0 и меньше 90°. Можно выражение с единицами: 3deg, 0.05 rad"
+          :title="t('editorPanels.draft_angle_hint')"
           :error="draft.angle.error.value ?? undefined"
           data-testid="draft-angle"
           @update:model-value="draft.setAngleText"
@@ -109,7 +110,7 @@ const pullText = computed(() => {
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Направление вытягивания</span>
+        <span :class="$style.label">{{ t("editorPanels.pull_direction") }}</span>
         <div :class="$style.row">
           <KrButton
             size="sm"
@@ -117,7 +118,7 @@ const pullText = computed(() => {
             data-testid="draft-reverse"
             @click="draft.setReverse(!draft.reverse.value)"
           >
-            Реверс
+            {{ t("editorPanels.reverse") }}
           </KrButton>
         </div>
         <span :class="$style.hint" data-testid="draft-pull">{{ pullText }}</span>
@@ -128,10 +129,10 @@ const pullText = computed(() => {
 
     <template #foot>
       <KrButton variant="primary" :disabled="!draft.canApply.value" data-testid="draft-apply" @click="draft.apply">
-        {{ draft.loading.value ? "Строю…" : "Применить" }}
+        {{ draft.loading.value ? t("editorPanels.building") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="draft-clear" @click="draft.clear">Сброс</KrButton>
-      <KrButton variant="ghost" @click="draft.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="draft-clear" @click="draft.clear">{{ t("editorPanels.reset_2") }}</KrButton>
+      <KrButton variant="ghost" @click="draft.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const tr = useSketchText();
 // Панель ограничений: появляется при выделении объектов эскиза.
+import { useI18n } from "@/composables/shared/useI18n";
 import type { ConstraintType } from "@/types/api";
 
 defineProps<{
@@ -11,6 +14,7 @@ defineProps<{
   constructionAction: string | null;
 }>();
 
+const { t } = useI18n();
 const emit = defineEmits<{
   (e: "apply", type: ConstraintType): void;
   (e: "clear"): void;
@@ -20,25 +24,25 @@ const emit = defineEmits<{
 
 <template>
   <div :class="$style.constraintToolbar" data-sketch-ui>
-    <span :class="$style.constraintCtx">Выбрано: {{ selectedCount }}</span>
+    <span :class="$style.constraintCtx">{{ t("sketch.selected", { count: selectedCount }) }}</span>
     <button
       v-for="ct in constraintTypes"
       :key="ct"
       :class="[$style.constraintBtn, canApply(ct) && $style.constraintBtnActive]"
       :disabled="!canApply(ct)"
-      :title="title(ct)"
+      :title="tr(title(ct))"
       @click="emit('apply', ct)"
     >
-      {{ label(ct) }}
+      {{ tr(label(ct)) }}
     </button>
     <button
       v-if="constructionAction"
       :class="[$style.constraintBtn, $style.constraintBtnActive]"
-      title="Переключить вспомогательную геометрию у выбранного (X)"
+      :title="t('sketch.toggleSelected')"
       data-testid="sketch-toggle-construction-selected"
       @click="emit('toggle-construction')"
     >
-      {{ constructionAction }}
+      {{ tr(constructionAction) }}
     </button>
     <button :class="$style.constraintClearBtn" @click="emit('clear')">✕</button>
   </div>

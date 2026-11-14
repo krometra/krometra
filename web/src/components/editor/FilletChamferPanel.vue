@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import FilletChamferToolbar from "@/components/toolbar/FilletChamferToolbar.vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import EdgeSelectionList from "./EdgeSelectionList.vue";
@@ -9,7 +11,7 @@ defineProps<{ fillet: FilletChamferApi }>();
 </script>
 
 <template>
-  <PropsPanelShell :title="fillet.mode.value === 'chamfer' ? 'Фаска' : 'Скругление'" kind="FEATURE" dot-color="oklch(0.72 0.14 120)">
+  <PropsPanelShell :title="fillet.mode.value === 'chamfer' ? t('editorPanels.chamfer') : t('editorPanels.fillet')" kind="FEATURE" dot-color="oklch(0.72 0.14 120)">
     <FilletChamferToolbar
       :mode="fillet.mode.value"
       @update:mode="fillet.setMode"
@@ -35,7 +37,7 @@ defineProps<{ fillet: FilletChamferApi }>();
       </template>
     </FilletChamferToolbar>
     <template #foot>
-      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="fillet.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="fillet.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

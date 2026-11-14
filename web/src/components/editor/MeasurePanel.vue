@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t, tMessage } = useI18n();
+import { propertyText } from "@/lib/propertyText";
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
@@ -12,23 +15,23 @@ const props = defineProps<{ measure: MeasureApi }>();
 
 const { filter, picks, pickLabels, groups, loading, error, materialId, density, measuresBody, customMaterialId } = props.measure;
 
-const materialOptions = [
-  ...MATERIALS.map((material) => ({ value: material.id, label: `${material.label} — ${material.density} г/см³` })),
-  { value: customMaterialId, label: "Своя плотность" },
-];
+const materialOptions = computed(() => [
+  ...MATERIALS.map((material) => ({ value: material.id, label: t("editorPanels.material_density", { name: propertyText(material.label, tMessage), density: material.density }) })),
+  { value: customMaterialId, label: t("editorPanels.custom_density") },
+]);
 
 const hint = computed(() => {
   if (picks.value.length === 0) {
     return filter.value === "body"
-      ? "Кликните тело — объём, площадь, центр масс, габарит и масса. Второе тело — расстояние между ними."
-      : "Кликните вершину, ребро или грань. Второй объект — расстояние и угол между ними.";
+      ? t("editorPanels.measure_body_hint")
+      : t("editorPanels.measure_entity_hint");
   }
-  return picks.value.length === 1 ? "Кликните второй объект, чтобы измерить расстояние между ними." : null;
+  return picks.value.length === 1 ? t("editorPanels.measure_second_hint") : null;
 });
 </script>
 
 <template>
-  <PropsPanelShell title="Измерить" kind="INSPECT" dot-color="var(--kr-teal-strong)">
+  <PropsPanelShell :title="t('editorPanels.measure_title')" kind="INSPECT" dot-color="var(--kr-teal-strong)">
     <div :class="$style.body" data-testid="measure-panel">
       <div :class="$style.filter">
         <KrButton
@@ -37,7 +40,7 @@ const hint = computed(() => {
           data-testid="measure-filter-entity"
           @click="props.measure.setFilter('entity')"
         >
-          Элементы
+          {{ t("editorPanels.tree_features") }}
         </KrButton>
         <KrButton
           size="sm"
@@ -45,7 +48,7 @@ const hint = computed(() => {
           data-testid="measure-filter-body"
           @click="props.measure.setFilter('body')"
         >
-          Тела
+          {{ t("editorPanels.tree_bodies") }}
         </KrButton>
       </div>
 
@@ -58,7 +61,7 @@ const hint = computed(() => {
           <KrButton
             variant="ghost"
             size="sm"
-            :aria-label="`Убрать из измерения: ${label}`"
+            :aria-label="t('editorPanels.remove_measure', { name: label })"
             data-testid="measure-pick-remove"
             @click="props.measure.removePick(index)"
           >
@@ -67,7 +70,7 @@ const hint = computed(() => {
         </li>
       </ul>
 
-      <p v-if="loading" :class="$style.hint">Измеряю…</p>
+      <p v-if="loading" :class="$style.hint">{{ t("editorPanels.measuring") }}</p>
       <p v-if="error" :class="$style.error" data-testid="measure-error">{{ error }}</p>
 
       <section v-for="group in groups" :key="group.id" :class="$style.group" :data-testid="`measure-group-${group.id}`">
@@ -78,8 +81,8 @@ const hint = computed(() => {
           <KrButton
             variant="ghost"
             size="sm"
-            :aria-label="`Копировать: ${row.label}`"
-            :title="`Копировать ${row.copy}`"
+            :aria-label="t('editorPanels.copy_label', { name: row.label })"
+            :title="t('editorPanels.copy_value', { value: row.copy })"
             data-testid="measure-copy"
             @click="props.measure.copy(row)"
           >
@@ -90,19 +93,19 @@ const hint = computed(() => {
 
       <div v-if="measuresBody" :class="$style.material">
         <KrSelect
-          label="Материал"
+          :label="t('editorPanels.material')"
           :model-value="materialId"
           :options="materialOptions"
           data-testid="measure-material"
           @update:model-value="props.measure.setMaterial"
         />
         <KrNumberInput
-          label="Плотность"
+          :label="t('editorPanels.density')"
           :model-value="density"
           :min="0.01"
           :max="25"
           :step="0.01"
-          suffix="г/см³"
+          :suffix="t('editorPanels.density_unit')"
           data-testid="measure-density"
           @update:model-value="props.measure.setDensity"
         />
@@ -111,7 +114,7 @@ const hint = computed(() => {
 
     <template #foot>
       <KrButton variant="secondary" size="sm" data-testid="measure-close" @click="props.measure.exit()">
-        Закрыть (Esc)
+        {{ t("editorPanels.close_esc") }}
       </KrButton>
     </template>
   </PropsPanelShell>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -28,10 +30,10 @@ const GLOBAL_AXES: { axis: GlobalAxis; label: string }[] = [
   { axis: "z", label: "Z" },
 ];
 
-const PICKS: { kind: PatternPickKind; label: string }[] = [
-  { kind: "edge", label: "Ребро" },
-  { kind: "face", label: "Грань" },
-];
+const PICKS = computed<{ kind: PatternPickKind; label: string }[]>(() => [
+  { kind: "edge", label: t("editorPanels.edge") },
+  { kind: "face", label: t("editorPanels.face") },
+]);
 
 const status = computed(() => (props.picking ? props.pickHint : axisRefLabel(props.axis, names.bodyLabel)));
 
@@ -67,7 +69,7 @@ function isActive(kind: string): boolean {
     </div>
     <span :class="[$style.hint, picking && $style.hintActive]" :data-testid="`${testId}-status`">
       {{ status }}
-      <KrButton v-if="picking" size="sm" variant="ghost" @click="emit('cancel')">Отмена</KrButton>
+      <KrButton v-if="picking" size="sm" variant="ghost" @click="emit('cancel')">{{ t("editorPanels.cancel") }}</KrButton>
     </span>
   </div>
 </template>

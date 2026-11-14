@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrSelect from "@/components/ui/KrSelect.vue";
@@ -10,47 +12,47 @@ import type { SweepApi } from "@/composables/editor/useSweep";
 const props = defineProps<{ sweep: SweepApi }>();
 const { profileSketchId, pathSketchId, operation, targetBodyId, orientation, loading, error, setupError, sketchOptions, targetOptions } = props.sweep;
 
-const OPERATIONS = [
-  { value: "new_body", label: "Новое тело" },
-  { value: "join", label: "Приклеить" },
-  { value: "cut", label: "Вырезать" },
-];
+const OPERATIONS = computed(() => [
+  { value: "new_body", label: t("editorPanels.new_body") },
+  { value: "join", label: t("editorPanels.join") },
+  { value: "cut", label: t("editorPanels.cut") },
+]);
 
-const ORIENTATIONS = [
-  { value: "corrected", label: "Без закрутки" },
-  { value: "frenet", label: "По Френе" },
-];
+const ORIENTATIONS = computed(() => [
+  { value: "corrected", label: t("editorPanels.no_twist") },
+  { value: "frenet", label: t("editorPanels.frenet") },
+]);
 
 const message = computed(() => error.value ?? setupError.value);
 const applyLabel = computed(() => {
-  if (loading.value) return "Протяжка…";
-  return operation.value === "cut" ? "Вырезать по траектории" : "Протянуть по траектории";
+  if (loading.value) return t("editorPanels.sweeping");
+  return operation.value === "cut" ? t("editorPanels.cut_along_path") : t("editorPanels.sweep_along_path");
 });
 </script>
 
 <template>
-  <PropsPanelShell title="По траектории" kind="SWEEP" dot-color="oklch(0.70 0.13 180)">
+  <PropsPanelShell :title="t('editorPanels.sweep')" kind="SWEEP" dot-color="oklch(0.70 0.13 180)">
     <div :class="$style.body" data-testid="sweep-panel">
       <KrSelect
         :model-value="profileSketchId ?? ''"
         :options="sketchOptions"
-        label="Профиль"
-        placeholder="Эскиз с замкнутым контуром"
+        :label="t('editorPanels.profile')"
+        :placeholder="t('editorPanels.sketch_with_a_closed_contour')"
         data-testid="sweep-profile"
         @update:model-value="profileSketchId = $event || null"
       />
       <KrSelect
         :model-value="pathSketchId ?? ''"
         :options="sketchOptions"
-        label="Путь"
-        placeholder="Эскиз с отрезками и дугами"
+        :label="t('editorPanels.path')"
+        :placeholder="t('editorPanels.sketch_with_segments_and_arcs')"
         data-testid="sweep-path"
         @update:model-value="pathSketchId = $event || null"
       />
       <KrSelect
         :model-value="operation"
         :options="OPERATIONS"
-        label="Операция"
+        :label="t('editorPanels.operation')"
         data-testid="sweep-operation"
         @update:model-value="sweep.setOperation($event as BrowserExtrudeOperation)"
       />
@@ -58,19 +60,19 @@ const applyLabel = computed(() => {
         v-if="operation !== 'new_body'"
         :model-value="targetBodyId ?? ''"
         :options="targetOptions"
-        label="Целевое тело"
+        :label="t('editorPanels.target_body')"
         data-testid="sweep-target"
         @update:model-value="targetBodyId = $event || null"
       />
       <KrSelect
         :model-value="orientation"
         :options="ORIENTATIONS"
-        label="Ориентация профиля"
+        :label="t('editorPanels.profile_orientation')"
         data-testid="sweep-orientation"
         @update:model-value="orientation = $event as BrowserSweepOrientation"
       />
       <p :class="$style.hint">
-        Путь начинается на профиле и уходит из его плоскости. «Без закрутки» держит профиль ровно вдоль всего пути.
+        {{ t("editorPanels.the_path_starts_on_the_profile_and_leaves_its") }}
       </p>
       <p v-if="message" :class="$style.error" data-testid="sweep-error">{{ message }}</p>
       <KrButton
@@ -84,7 +86,7 @@ const applyLabel = computed(() => {
       </KrButton>
     </div>
     <template #foot>
-      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="sweep.exit">Отмена (Esc)</KrButton>
+      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="sweep.exit">{{ t("editorPanels.cancel_esc") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

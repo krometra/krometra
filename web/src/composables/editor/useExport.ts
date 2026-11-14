@@ -1,4 +1,5 @@
 import { ref } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import type { Ref } from "vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { QUALITY_PRESETS, meshTolerance, type CustomQuality } from "@/lib/meshQuality";
@@ -37,6 +38,7 @@ function saveFile(blob: Blob, filename: string) {
 }
 
 export function useExport(deps: { projectName: Ref<string>; bodies: Ref<ComponentEntry[]> }) {
+  const { t } = useI18n();
   const names = useDisplayNames();
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -72,7 +74,7 @@ export function useExport(deps: { projectName: Ref<string>; bodies: Ref<Componen
         : exportFilename(deps.projectName.value, target.format, null);
       saveFile(new Blob([buffer], { type: EXPORT_MIME[target.format] }), filename);
     } catch (err) {
-      error.value = err instanceof Error && err.message ? err.message : `Не удалось скачать ${target.format.toUpperCase()}`;
+      error.value = err instanceof Error && err.message ? err.message : t("editorOps.downloadFailed", { format: target.format.toUpperCase() });
     } finally {
       loading.value = false;
     }
@@ -85,7 +87,7 @@ export function useExport(deps: { projectName: Ref<string>; bodies: Ref<Componen
   }
 
   function targetLabel(bodyIds: string[] | null): string {
-    return bodyIds ? bodyIds.map(names.bodyLabel).join(", ") : "Все видимые тела";
+    return bodyIds ? bodyIds.map(names.bodyLabel).join(", ") : t("editorOps.visibleBodies");
   }
 
   return {

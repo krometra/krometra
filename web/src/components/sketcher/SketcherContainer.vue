@@ -4,6 +4,8 @@
 // компонентах; здесь только связывание и обработка кликов по канве.
 
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from "vue";
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const tr = useSketchText();
 import type { SketchPlane, SketchData, SketchEntity, SketchPoint } from "@/types/api";
 import type { SketchTool as SketchToolName } from "@/composables/shared/useSketch";
 import SketchCanvas from "./SketchCanvas.vue";
@@ -546,7 +548,7 @@ defineExpose({
       :selected-constraint-id="glyphs.selectedId.value"
       :selected-entity-ids="highlightedIds"
       :snap-point="canvasSnap?.at ?? null"
-      :snap-label="canvasSnap?.label ?? null"
+      :snap-label="canvasSnap?.label ? tr(canvasSnap.label) : null"
       :marks="selectionMarks"
       :auto-hint="autoConstraints.hint.value"
       @canvas-click="onCanvasClick"

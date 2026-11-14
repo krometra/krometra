@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { ref } from "vue";
 import { useSelection } from "@/composables/shared/useSelection";
 import { toast } from "@/composables/useToast";
@@ -13,12 +14,13 @@ interface ViewMenu {
 }
 
 export function useViewInspect(viewportRef: ViewportRef) {
+  const { t: tr } = useI18n();
   const selection = useSelection();
   const section = useSectionMode(viewportRef);
   const menu = ref<ViewMenu | null>(null);
 
   function lookAtFace(bodyId: string, faceId: string | number) {
-    if (!viewportRef.value?.lookAtFace(bodyId, faceId)) toast("Вид по нормали: грань не плоская", "info");
+    if (!viewportRef.value?.lookAtFace(bodyId, faceId)) toast(tr("editorOps.normalFlat"), "info");
   }
 
   function lookAtPlane(plane: SectionBase) {
@@ -34,7 +36,7 @@ export function useViewInspect(viewportRef: ViewportRef) {
     const current = selection.selection.value;
     if (current?.type === "face") lookAtFace(current.bodyId, current.faceId);
     else if (section.active.value) lookAtSection();
-    else toast("Выберите плоскую грань: вид по нормали к ней", "info");
+    else toast(tr("editorOps.chooseFlat"), "info");
   }
 
   function openFaceMenu(payload: { bodyId: string; faceId: string | number; x: number; y: number }) {
@@ -42,8 +44,8 @@ export function useViewInspect(viewportRef: ViewportRef) {
       x: payload.x,
       y: payload.y,
       items: [
-        { label: "Вид по нормали", action: () => lookAtFace(payload.bodyId, payload.faceId) },
-        { label: "Сечение по грани", action: () => section.setFace(payload.bodyId, payload.faceId) },
+        { label: tr("editorOps.normalView"), action: () => lookAtFace(payload.bodyId, payload.faceId) },
+        { label: tr("editorOps.sectionFace"), action: () => section.setFace(payload.bodyId, payload.faceId) },
       ],
     };
   }
@@ -53,8 +55,8 @@ export function useViewInspect(viewportRef: ViewportRef) {
       x: event.clientX,
       y: event.clientY,
       items: [
-        { label: "Вид по нормали", action: () => lookAtPlane(plane) },
-        { label: "Сечение по плоскости", action: () => section.setBase(plane) },
+        { label: tr("editorOps.normalView"), action: () => lookAtPlane(plane) },
+        { label: tr("editorOps.sectionPlane"), action: () => section.setBase(plane) },
       ],
     };
   }

@@ -25,6 +25,7 @@
     "prerender": "vite build --ssr src/landing/prerender.ts --outDir dist-ssr --emptyOutDir && node scripts/prerender-landing.mjs"
   },
   "dependencies": {
+    "@krometra/ui-kit": "^0.9.1",
     "@types/three": "^0.170.0",
     "@vueuse/core": "^11.0.0",
     "@zag-js/collapsible": "^0.77.1",
@@ -39,7 +40,6 @@
     "@zag-js/tooltip": "^0.77.1",
     "@zag-js/tree-view": "^0.77.1",
     "@zag-js/vue": "^0.77.0",
-    "@krometra/ui-kit": "^0.3.0",
     "replicad": "1.1.0",
     "replicad-opencascadejs": "1.1.0",
     "three": "^0.170.0",

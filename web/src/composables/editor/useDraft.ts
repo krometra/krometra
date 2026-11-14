@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
@@ -33,6 +34,7 @@ export function useDraft(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -121,13 +123,13 @@ export function useDraft(deps: {
     neutralSource.value = "face";
     neutralFace.value = null;
     pickingNeutral.value = true;
-    hint.value = "Кликните плоскую грань тела - она останется на месте, остальные грани наклонятся от неё.";
+    hint.value = tr("editorOps.draftPick");
   }
 
   function pickNeutralFace(body: string, face: string) {
     const mesh = meshOf(body);
     if (!mesh || !browserFacePlane(mesh, face)) {
-      hint.value = "Грань не плоская - нейтралью может быть только плоская грань тела.";
+      hint.value = tr("editorOps.draftFlat");
       return;
     }
     neutralSource.value = "face";
@@ -147,13 +149,13 @@ export function useDraft(deps: {
   function toggleFace(body: string, face: string) {
     const current = neutralFace.value;
     if (current?.bodyId === body && current.faceId === face) {
-      hint.value = "Нейтральная грань не наклоняется - выберите боковые грани.";
+      hint.value = tr("editorOps.draftNeutral");
       return;
     }
     hint.value = null;
     if (current && current.bodyId !== body) {
       neutralFace.value = null;
-      hint.value = "Нейтральная грань была на другом теле - выберите нейтраль заново.";
+      hint.value = tr("editorOps.draftOther");
     }
     setFaces(toggleDraftFaces({ bodyId: bodyId.value, faceIds: faceIds.value }, body, faceGroup(body, face)));
   }
@@ -220,20 +222,20 @@ export function useDraft(deps: {
       const command = new BrowserDraftCommand(projectId, feature, () => documentStore.document.value);
       await undoRedo.execute(command);
       const result = command.getResult();
-      if (!result) throw new Error("Уклон не сохранён.");
+      if (!result) throw new Error(tr("editorOps.draftUnsaved"));
       result.hiddenBodyIds.forEach((hidden) => meshes.untrackMesh(hidden));
       meshes.trackMesh(result.bodyId, result.mesh);
       documentStore.markDirty();
       await documentStore.load(projectId);
       exit();
     } catch (err) {
-      error.value = apiErrorMessage(err, "Не удалось построить уклон");
+      error.value = apiErrorMessage(err, tr("editorOps.draftFailed"));
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["draft"], active: draftMode, loading, busyLabel: "Построение уклона…", enter, exit, onFaceSelected };
+  const tool: EditorTool = { actions: ["draft"], active: draftMode, loading, get busyLabel() { return tr("editorOps.draftBusy") }, enter, exit, onFaceSelected };
 
   return {
     tool,

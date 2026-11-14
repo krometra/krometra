@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed, ref } from "vue";
 import { onClickOutside } from "@vueuse/core";
 import KrButton from "@/components/ui/KrButton.vue";
@@ -21,8 +23,8 @@ onClickOutside(root, () => (open.value = false));
       variant="ghost"
       size="sm"
       :class="[$style.trigger, open && $style.triggerActive]"
-      title="Навигация: мышь и трекпад"
-      aria-label="Навигация: мышь и трекпад"
+      :title="t('editorPanels.navigation_mouse')"
+      :aria-label="t('editorPanels.navigation_mouse')"
       :aria-expanded="open"
       data-testid="navigation-menu"
       @click="open = !open"
@@ -30,9 +32,9 @@ onClickOutside(root, () => (open.value = false));
       <KrIcon name="mouse" :size="17" />
     </KrButton>
 
-    <div v-if="open" :class="$style.panel" role="dialog" aria-label="Навигация" data-testid="navigation-panel">
-      <div :class="$style.title">Мышь как в</div>
-      <div :class="$style.presets" role="radiogroup" aria-label="Пресет мыши">
+    <div v-if="open" :class="$style.panel" role="dialog" :aria-label="t('editorPanels.navigation')" data-testid="navigation-panel">
+      <div :class="$style.title">{{ t("editorPanels.mouse_like") }}</div>
+      <div :class="$style.presets" role="radiogroup" :aria-label="t('editorPanels.mouse_preset')">
         <KrButton
           v-for="preset in NAVIGATION_PRESETS"
           :key="preset.id"
@@ -51,14 +53,14 @@ onClickOutside(root, () => (open.value = false));
         <li v-for="hint in hints" :key="hint">{{ hint }}</li>
       </ul>
 
-      <div :class="$style.title">Трекпад</div>
+      <div :class="$style.title">{{ t("editorPanels.trackpad") }}</div>
       <ul :class="$style.hints">
-        <li>Щипок - зум к курсору</li>
-        <li>{{ navigation.settings.value.trackpadPan ? "Два пальца - панорама" : "Колесо и два пальца - зум" }}</li>
-        <li v-if="navigation.settings.value.trackpadPan">Shift + два пальца - вращение</li>
+        <li>{{ t("editorPanels.pinch_zoom") }}</li>
+        <li>{{ navigation.settings.value.trackpadPan ? t("editorPanels.two_finger_pan") : t("editorPanels.two_finger_zoom") }}</li>
+        <li v-if="navigation.settings.value.trackpadPan">{{ t("editorPanels.two_finger_rotate") }}</li>
       </ul>
       <KrCheckbox
-        label="Трекпад: два пальца - панорама"
+        :label="t('editorPanels.trackpad_pan')"
         :model-value="navigation.settings.value.trackpadPan"
         data-testid="navigation-trackpad-pan"
         @update:model-value="navigation.setTrackpadPan"

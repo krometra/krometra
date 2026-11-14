@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
 import { errorMessage } from "@/lib/apiError";
 import { formatCount } from "@/lib/admin/format";
 import KrInput from "@/components/ui/KrInput.vue";
+
+const { t, locale } = useI18n();
 
 defineProps<{ search: string; placeholder: string; total: number; failure: unknown; failureText: string }>();
 defineEmits<{ search: [value: string] }>();
@@ -11,7 +14,7 @@ defineEmits<{ search: [value: string] }>();
   <div :class="$style.root">
     <div :class="$style.toolbar">
       <KrInput :model-value="search" :placeholder="placeholder" :class="$style.search" @update:model-value="$emit('search', $event)" />
-      <span :class="$style.total">Всего: {{ formatCount(total) }}</span>
+      <span :class="$style.total">{{ t("admin.total", { count: formatCount(total, locale) }) }}</span>
     </div>
     <p v-if="failure" :class="$style.failure" role="alert">{{ errorMessage(failure, failureText) }}</p>
   </div>

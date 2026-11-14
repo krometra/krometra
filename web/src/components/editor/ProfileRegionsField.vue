@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import type { ProfileRegionsApi } from "@/composables/editor/useProfileRegions";
@@ -12,14 +14,14 @@ const label = computed(() => profileRegionsLabel(selected.value.length, regions.
 
 <template>
   <div :class="$style.field">
-    <div :class="$style.label">Профиль</div>
+    <div :class="$style.label">{{ t("editorPanels.profile") }}</div>
     <div :class="$style.row">
       <span :class="$style.value" data-testid="profile-regions">{{ label }}</span>
       <KrButton v-if="selected.length > 0" variant="ghost" size="sm" data-testid="profile-regions-reset" @click="reset">
-        Весь эскиз
+        {{ t("editorPanels.entire_sketch") }}
       </KrButton>
     </div>
-    <div v-if="pickable" :class="$style.hint">Клик по области эскиза выбирает её, Shift добавляет или убирает</div>
+    <div v-if="pickable" :class="$style.hint">{{ t("editorPanels.click_a_sketch_region_to_select_it_shift_adds") }}</div>
   </div>
 </template>
 

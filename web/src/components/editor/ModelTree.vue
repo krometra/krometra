@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed, reactive, ref } from "vue";
 import { useBodyPick } from "@/composables/shared/useBodyPick";
 import { useSelection } from "@/composables/shared/useSelection";
@@ -113,26 +115,26 @@ defineExpose({ startRename, cancelRename, isRenaming });
 
 <template>
   <aside :class="$style.tree">
-    <div :class="$style.panelHead">БРАУЗЕР МОДЕЛИ</div>
+    <div :class="$style.panelHead">{{ t("editorPanels.tree_model_browser") }}</div>
     <div :class="$style.treeBody">
       <div :class="$style.treeGroup" @click="open.origin = !open.origin">
-        <span :class="[$style.caret, open.origin && $style.caretOpen]">▸</span>Начало координат
+        <span :class="[$style.caret, open.origin && $style.caretOpen]">▸</span>{{ t("editorPanels.tree_origin") }}
         <span :class="$style.treeCount">3</span>
       </div>
       <template v-if="open.origin">
         <div
-          v-for="pl in ['Плоскость XY', 'Плоскость XZ', 'Плоскость YZ']"
+          v-for="pl in ['XY', 'XZ', 'YZ']"
           :key="pl"
           :class="$style.treeRow"
-          @contextmenu.prevent="emit('plane-context-menu', $event, pl.slice(-2) as SectionBase)"
+          @contextmenu.prevent="emit('plane-context-menu', $event, pl as SectionBase)"
         >
-          <span :class="$style.treeDot" :style="{ background: 'oklch(0.40 0.06 233)' }" />{{ pl }}
+          <span :class="$style.treeDot" :style="{ background: 'oklch(0.40 0.06 233)' }" />{{ t("editorPanels.plane_name", { name: pl }) }}
         </div>
       </template>
 
       <template v-if="workPlanes.length > 0">
         <div :class="$style.treeGroup" @click="open.planes = !open.planes">
-          <span :class="[$style.caret, open.planes && $style.caretOpen]">▸</span>Плоскости
+          <span :class="[$style.caret, open.planes && $style.caretOpen]">▸</span>{{ t("editorPanels.tree_planes") }}
           <span :class="$style.treeCount">{{ workPlanes.length }}</span>
         </div>
         <template v-if="open.planes">
@@ -140,7 +142,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
             v-for="p in workPlanes"
             :key="p.id"
             :class="$style.treeRow"
-            :title="'Двойной клик — переименовать, правый — меню'"
+            :title="t('editorPanels.tree_rename_context_hint')"
             data-testid="work-plane-row"
             @dblclick="startRename(p.id, planeLabel(p.id, p.label))"
             @contextmenu.prevent="emit('context-menu', $event, 'plane', p.id)"
@@ -159,16 +161,16 @@ defineExpose({ startRename, cancelRename, isRenaming });
             <template v-else>{{ planeLabel(p.id, p.label) }}</template>
             <span
               :class="$style.treeMeta"
-              title="Кликните, чтобы скрыть/показать"
+              :title="t('editorPanels.tree_toggle_visibility')"
               data-testid="work-plane-visibility"
               @click.stop="emit('toggle-plane-visibility', p.id)"
-            >{{ p.visible !== false ? 'видимо' : 'скрыто' }}</span>
+            >{{ p.visible !== false ? t('editorPanels.tree_visible') : t('editorPanels.tree_hidden') }}</span>
           </div>
         </template>
       </template>
 
       <div :class="$style.treeGroup" @click="open.sketches = !open.sketches">
-        <span :class="[$style.caret, open.sketches && $style.caretOpen]">▸</span>Эскизы
+        <span :class="[$style.caret, open.sketches && $style.caretOpen]">▸</span>{{ t("editorPanels.tree_sketches") }}
         <span :class="$style.treeCount">{{ sketchCount }}</span>
       </div>
       <template v-if="open.sketches">
@@ -176,7 +178,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
           v-for="s in sketches"
           :key="s.id"
           :class="$style.treeRow"
-          :title="'Двойной клик — переименовать, правый — меню'"
+          :title="t('editorPanels.tree_rename_context_hint')"
           @click="selectSketchRow(s.id)"
           @dblclick="startRename(s.id, names.sketchLabel(s.id))"
           @contextmenu.prevent="emit('context-menu', $event, 'sketch', s.id)"
@@ -195,15 +197,15 @@ defineExpose({ startRename, cancelRename, isRenaming });
           <template v-else>{{ names.sketchLabel(s.id) }}</template>
           <span
             :class="$style.treeMeta"
-            title="Кликните, чтобы скрыть/показать"
+            :title="t('editorPanels.tree_toggle_visibility')"
             data-testid="sketch-visibility"
             @click.stop="emit('toggle-sketch-visibility', s.id)"
-          >{{ sketchVisibility.isVisible(s) ? 'видимо' : 'скрыто' }}</span>
+          >{{ sketchVisibility.isVisible(s) ? t('editorPanels.tree_visible') : t('editorPanels.tree_hidden') }}</span>
         </div>
       </template>
 
       <div :class="$style.treeGroup" @click="open.bodies = !open.bodies">
-        <span :class="[$style.caret, open.bodies && $style.caretOpen]">▸</span>Тела
+        <span :class="[$style.caret, open.bodies && $style.caretOpen]">▸</span>{{ t("editorPanels.tree_bodies") }}
         <span :class="$style.treeCount">{{ bodyCount }}</span>
       </div>
       <template v-if="open.bodies">
@@ -212,7 +214,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
           :key="b.id"
           :class="$style.treeRow"
           :data-tree-body="b.id"
-          :title="'Двойной клик — переименовать, правый — меню'"
+          :title="t('editorPanels.tree_rename_context_hint')"
           @click="selectBodyRow(b.id)"
           @dblclick="startRename(b.id, names.bodyLabel(b.id))"
           @contextmenu.prevent="emit('context-menu', $event, 'body', b.id)"
@@ -231,14 +233,14 @@ defineExpose({ startRename, cancelRename, isRenaming });
           <template v-else>{{ names.bodyLabel(b.id) }}</template>
           <span
             :class="$style.treeMeta"
-            title="Кликните, чтобы скрыть/показать"
+            :title="t('editorPanels.tree_toggle_visibility')"
             @click.stop="emit('toggle-visibility', b.id)"
-          >{{ b.visible !== false ? 'видимо' : 'скрыто' }}</span>
+          >{{ b.visible !== false ? t('editorPanels.tree_visible') : t('editorPanels.tree_hidden') }}</span>
         </div>
       </template>
 
       <div :class="$style.treeGroup" @click="open.features = !open.features">
-        <span :class="[$style.caret, open.features && $style.caretOpen]">▸</span>Элементы
+        <span :class="[$style.caret, open.features && $style.caretOpen]">▸</span>{{ t("editorPanels.tree_features") }}
         <span :class="$style.treeCount">{{ timelineCount }}</span>
       </div>
       <template v-if="open.features">
@@ -269,7 +271,7 @@ defineExpose({ startRename, cancelRename, isRenaming });
             @blur="commitRename"
           />
           <template v-else>{{ names.entryLabel(e) }}</template>
-          <span v-if="isEntryDirty(e)" :class="$style.dirtyIcon" title="Требуется перестроение — параметры изменились">⚠</span>
+          <span v-if="isEntryDirty(e)" :class="$style.dirtyIcon" :title="t('editorPanels.tree_needs_rebuild')">⚠</span>
           <span v-else-if="isFailed(e)" :class="$style.dirtyIcon">⚠</span>
         </div>
       </template>

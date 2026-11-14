@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import KrNumberInput from "@/components/ui/KrNumberInput.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
-import { pluralize } from "@/lib/plural";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { ShellApi } from "@/composables/editor/useShell";
 
@@ -16,13 +17,13 @@ const hasFaces = computed(() => props.shell.faceIds.value.length > 0);
 
 const statusText = computed(() => {
   const body = props.shell.bodyId.value;
-  if (!body) return "Кликните грани, которые оболочка откроет: например, верх корпуса. Повторный клик снимает грань.";
-  return `${names.bodyLabel(body)}: ${pluralize(props.shell.faceIds.value.length, "открытая грань", "открытые грани", "открытых граней")}`;
+  if (!body) return t("editorPanels.click_faces_to_open_for_example_the_top_of_a");
+  return `${names.bodyLabel(body)}: ${t("editorPanels.open_faces", { count: props.shell.faceIds.value.length })}`;
 });
 </script>
 
 <template>
-  <PropsPanelShell title="Оболочка" kind="FEATURE" dot-color="oklch(0.74 0.15 55)">
+  <PropsPanelShell :title="t('editorPanels.shell')" kind="FEATURE" dot-color="oklch(0.74 0.15 55)">
     <div :class="$style.body" data-testid="shell-panel">
       <p :class="[$style.status, hasFaces && $style.statusReady]" data-testid="shell-status">{{ statusText }}</p>
 
@@ -33,7 +34,7 @@ const statusText = computed(() => {
           <KrButton
             variant="ghost"
             size="sm"
-            :aria-label="`Снять с выбора: ${row.label}`"
+            :aria-label="t('editorPanels.remove_selection', { name: row.label })"
             data-testid="shell-face-remove"
             @click="shell.removeFace(row.faceId)"
           >
@@ -43,19 +44,19 @@ const statusText = computed(() => {
       </ul>
 
       <div :class="$style.field">
-        <span :class="$style.fieldLabel">Толщина стенки</span>
+        <span :class="$style.fieldLabel">{{ t("editorPanels.wall_thickness") }}</span>
         <KrNumberInput
           :model-value="shell.thickness.value"
           :min="0.01"
           :step="0.5"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="shell-thickness"
           @update:model-value="shell.setThickness"
         />
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.fieldLabel">Направление</span>
+        <span :class="$style.fieldLabel">{{ t("editorPanels.direction") }}</span>
         <div :class="$style.directions">
           <KrButton
             size="sm"
@@ -63,7 +64,7 @@ const statusText = computed(() => {
             data-testid="shell-inward"
             @click="shell.setDirection('inward')"
           >
-            Внутрь
+            {{ t("editorPanels.inward") }}
           </KrButton>
           <KrButton
             size="sm"
@@ -71,11 +72,11 @@ const statusText = computed(() => {
             data-testid="shell-outward"
             @click="shell.setDirection('outward')"
           >
-            Наружу
+            {{ t("editorPanels.outward") }}
           </KrButton>
         </div>
         <span :class="$style.hint">
-          {{ shell.direction.value === "inward" ? "Габарит тела сохраняется, стенка растёт внутрь" : "Тело становится полостью, стенка растёт наружу" }}
+          {{ shell.direction.value === "inward" ? t("editorPanels.the_outer_dimensions_stay_the_same_the_wall_g") : t("editorPanels.the_body_becomes_the_cavity_the_wall_grows_ou") }}
         </span>
       </div>
 
@@ -89,10 +90,10 @@ const statusText = computed(() => {
         data-testid="shell-apply"
         @click="shell.apply"
       >
-        {{ shell.loading.value ? "Строю…" : "Применить" }}
+        {{ shell.loading.value ? t("editorPanels.building") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="shell-clear" @click="shell.clear">Сброс</KrButton>
-      <KrButton variant="ghost" @click="shell.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="shell-clear" @click="shell.clear">{{ t("editorPanels.reset_2") }}</KrButton>
+      <KrButton variant="ghost" @click="shell.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

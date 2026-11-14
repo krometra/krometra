@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
 import type { PendingSketchDelete } from "@/composables/editor/useTimelineEdits";
@@ -10,19 +12,18 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>();
 
 <template>
   <KrDialog :open="pending !== null" @update:open="emit('cancel')">
-    <template #title>Удалить эскиз?</template>
+    <template #title>{{ t("editorPanels.delete_sketch_title") }}</template>
     <div data-testid="sketch-delete-dialog">
       <p :class="$style.text">
-        От эскиза «{{ pending?.label }}» зависят операции. После удаления они останутся в истории с ошибкой «эскиз не найден»,
-        остальная модель перестроится без них. Вернуть всё можно через Ctrl+Z.
+        {{ t("editorPanels.delete_sketch_text", { name: pending?.label ?? "" }) }}
       </p>
       <ul :class="$style.list">
         <li v-for="name in pending?.dependents ?? []" :key="name">{{ name }}</li>
       </ul>
     </div>
     <template #footer>
-      <KrButton variant="secondary" size="md" @click="emit('cancel')">Отмена</KrButton>
-      <KrButton variant="danger" size="md" @click="emit('confirm')">Удалить эскиз</KrButton>
+      <KrButton variant="secondary" size="md" @click="emit('cancel')">{{ t("editorPanels.cancel") }}</KrButton>
+      <KrButton variant="danger" size="md" @click="emit('confirm')">{{ t("editorPanels.delete_sketch") }}</KrButton>
     </template>
   </KrDialog>
 </template>

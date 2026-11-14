@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const tr = useSketchText();
 // Тулбар эскиза: отмена/повтор, инструменты рисования, вспомогательные прямые,
 // переключатель привязки.
+import { computed } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import type { SketchTool as SketchToolName } from "@/composables/shared/useSketch";
 
 defineProps<{
@@ -20,23 +24,25 @@ const emit = defineEmits<{
   (e: "toggle-construction"): void;
 }>();
 
-const DRAW_TOOLS = [
-  { id: "line", label: "Линия", title: "Линия (L)" },
-  { id: "rectangle", label: "Прямоуг.", title: "Прямоугольник (R)" },
-  { id: "circle", label: "Окруж.", title: "Окружность (C)" },
-  { id: "arc", label: "Дуга", title: "Дуга (A)" },
-  { id: "arc3", label: "Дуга 3т", title: "Дуга по трём точкам: начало, конец, точка на дуге" },
-  { id: "dimension", label: "Размер", title: "Размер (D): длина, расстояние, угол, диаметр — по выбранным объектам" },
-  { id: "fillet", label: "Скругл.", title: "Скругление (F): кликните угол или два отрезка и введите радиус" },
-  { id: "trim", label: "Усечь", title: "Усечь (T): удалить участок кривой до ближайших пересечений" },
-] as const;
+const { t } = useI18n();
 
-const AUX_BUTTONS = [
-  { id: "aux-parallel", label: "Паралл.", icon: "M7 4v16 M17 4v16" },
-  { id: "aux-perpendicular", label: "Перпенд.", icon: "M4 20h16 M12 20V4" },
-  { id: "aux-vertical", label: "Верт.", icon: "M12 3v18 M12 3l-2 3 M12 3l2 3" },
-  { id: "aux-horizontal", label: "Гориз.", icon: "M3 12h18 M21 12l-3-2 M21 12l-3 2" },
-] as const;
+const DRAW_TOOLS = computed(() => [
+  { id: "line", label: t("sketch.line"), title: t("sketch.lineHint") },
+  { id: "rectangle", label: t("sketch.rectangle"), title: t("sketch.rectangleHint") },
+  { id: "circle", label: t("sketch.circle"), title: t("sketch.circleHint") },
+  { id: "arc", label: t("sketch.arc"), title: t("sketch.arcHint") },
+  { id: "arc3", label: t("sketch.arc3"), title: t("sketch.arc3Hint") },
+  { id: "dimension", label: t("sketch.dimension"), title: t("sketch.dimensionHint") },
+  { id: "fillet", label: t("sketch.fillet"), title: t("sketch.filletHint") },
+  { id: "trim", label: t("sketch.trim"), title: t("sketch.trimHint") },
+] as const);
+
+const AUX_BUTTONS = computed(() => [
+  { id: "aux-parallel", label: t("sketch.parallel"), icon: "M7 4v16 M17 4v16" },
+  { id: "aux-perpendicular", label: t("sketch.perpendicular"), icon: "M4 20h16 M12 20V4" },
+  { id: "aux-vertical", label: t("sketch.vertical"), icon: "M12 3v18 M12 3l-2 3 M12 3l2 3" },
+  { id: "aux-horizontal", label: t("sketch.horizontal"), icon: "M3 12h18 M21 12l-3-2 M21 12l-3 2" },
+] as const);
 
 function select(tool: SketchToolName) {
   emit("select-tool", tool);
@@ -45,32 +51,32 @@ function select(tool: SketchToolName) {
 
 <template>
   <div :class="$style.toolbar" data-sketch-ui>
-    <button :class="$style.toolBtn" :disabled="!canUndo" title="Отменить (Ctrl+Z)" @click="emit('undo')">
+    <button :class="$style.toolBtn" :disabled="!canUndo" :title="t('editor.undoHint')" @click="emit('undo')">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 14L4 9l5-5" />
         <path d="M4 9h11a5 5 0 0 1 0 10h-3" />
       </svg>
-      <span :class="$style.toolLabel">Отменить</span>
+      <span :class="$style.toolLabel">{{ t("editor.undo") }}</span>
     </button>
-    <button :class="$style.toolBtn" :disabled="!canRedo" title="Повторить (Ctrl+Y)" @click="emit('redo')">
+    <button :class="$style.toolBtn" :disabled="!canRedo" :title="t('editor.redoHint')" @click="emit('redo')">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M15 14l5-5-5-5" />
         <path d="M20 9H9a5 5 0 0 0 0 10h3" />
       </svg>
-      <span :class="$style.toolLabel">Повторить</span>
+      <span :class="$style.toolLabel">{{ t("editor.redo") }}</span>
     </button>
 
     <div :class="$style.toolbarDivider" />
 
     <button
       :class="[$style.toolBtn, tool === 'select' && $style.toolBtnActive]"
-      title="Выбор (V)"
+      :title="t('sketch.selectHint')"
       @click="select('select')"
     >
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 3l14 8-6 1.5L10 19z" />
       </svg>
-      <span :class="$style.toolLabel">Выбор</span>
+      <span :class="$style.toolLabel">{{ t("sketch.select") }}</span>
     </button>
 
     <div :class="$style.toolbarDivider" />
@@ -105,7 +111,7 @@ function select(tool: SketchToolName) {
     <button
       :class="[$style.toolBtn, $style.auxBtn, constructionMode && $style.toolBtnActive]"
       :aria-pressed="constructionMode"
-      title="Вспомогательная геометрия (X): рисовать пунктиром, вне профиля; с выделением - переключить выбранное"
+      :title="t('sketch.constructionHint')"
       data-testid="sketch-construction-toggle"
       @click="emit('toggle-construction')"
     >
@@ -113,22 +119,22 @@ function select(tool: SketchToolName) {
         <path d="M4 20L20 4" />
         <circle cx="12" cy="12" r="7" />
       </svg>
-      <span :class="$style.toolLabel">Вспомогат.</span>
+      <span :class="$style.toolLabel">{{ t("sketch.construction") }}</span>
     </button>
 
     <div :class="$style.toolbarDivider" />
 
     <button
-      v-for="t in AUX_BUTTONS"
-      :key="t.id"
-      :class="[$style.toolBtn, $style.auxBtn, tool === t.id && $style.toolBtnActive]"
-      :title="`Вспомогательная прямая: ${t.label}`"
-      @click="select(t.id)"
+      v-for="aux in AUX_BUTTONS"
+      :key="aux.id"
+      :class="[$style.toolBtn, $style.auxBtn, tool === aux.id && $style.toolBtnActive]"
+      :title="t('sketch.auxHint', { name: aux.label })"
+      @click="select(aux.id)"
     >
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 2">
-        <path :d="t.icon" />
+        <path :d="aux.icon" />
       </svg>
-      <span :class="$style.toolLabel">{{ t.label }}</span>
+      <span :class="$style.toolLabel">{{ aux.label }}</span>
     </button>
 
     <div :class="$style.toolbarDivider" />
@@ -136,17 +142,17 @@ function select(tool: SketchToolName) {
     <button
       :class="[$style.toolBtn, snapEnabled && $style.toolBtnActive]"
       :aria-pressed="snapEnabled"
-      title="Привязка к вспомогательным прямым и пересечениям"
+      :title="t('sketch.snapHint')"
       @click="emit('toggle-snap')"
     >
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
         <path d="M6 4v7a6 6 0 0 0 12 0V4" />
         <path d="M6 4v4 M18 4v4" stroke-width="3" />
       </svg>
-      <span :class="$style.toolLabel">Привязка</span>
+      <span :class="$style.toolLabel">{{ t("sketch.snap") }}</span>
     </button>
 
-    <span v-if="auxHint" :class="$style.auxHint">{{ auxHint }}</span>
+    <span v-if="auxHint" :class="$style.auxHint">{{ tr(auxHint) }}</span>
   </div>
 </template>
 

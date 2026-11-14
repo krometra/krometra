@@ -15,21 +15,25 @@ const LAYOUT_TWINS: Record<string, string> = {
   f: "а",
 };
 
-export const EDITOR_SHORTCUTS: Shortcut[] = [
-  { keys: "S", description: "Создать эскиз", group: "Построение" },
-  { keys: "E", description: "Выдавить эскиз", group: "Построение" },
-  { keys: "R", description: "Вращать эскиз", group: "Построение" },
-  { keys: "F", description: "Скругление рёбер", group: "Построение" },
-  { keys: "Shift + F", description: "Фаска на рёбрах", group: "Построение" },
-  { keys: "Ctrl + Z", description: "Отменить", group: "История" },
-  { keys: "Ctrl + Y", description: "Повторить", group: "История" },
-  { keys: "Delete", description: "Удалить выбранную операцию", group: "История" },
-  { keys: "Esc", description: "Отменить режим, снять выделение", group: "Навигация" },
-  { keys: "?", description: "Список горячих клавиш", group: "Навигация" },
-  { keys: "ЛКМ", description: "Выбрать грань / ребро", group: "Вьюпорт" },
-  { keys: "Колесо", description: "Приблизить / отдалить", group: "Вьюпорт" },
-  { keys: "ПКМ + движение", description: "Панорамировать", group: "Вьюпорт" },
-];
+type ShortcutTranslator = (key: "editorOps.shortcutBuild" | "editorOps.shortcutHistory" | "editorOps.shortcutNavigation" | "editorOps.shortcutViewport" | "editorOps.shortcutSketch" | "editorOps.shortcutExtrude" | "editorOps.shortcutRevolve" | "editorOps.shortcutFillet" | "editorOps.shortcutChamfer" | "editorOps.shortcutUndo" | "editorOps.shortcutRedo" | "editorOps.shortcutDelete" | "editorOps.shortcutEscape" | "editorOps.shortcutList" | "editorOps.shortcutSelect" | "editorOps.shortcutZoom" | "editorOps.shortcutPan" | "editorOps.shortcutLmb" | "editorOps.shortcutWheel" | "editorOps.shortcutRmbMove") => string;
+
+export function editorShortcuts(tr: ShortcutTranslator): Shortcut[] {
+  return [
+  { keys: "S", description: tr("editorOps.shortcutSketch"), group: tr("editorOps.shortcutBuild") },
+  { keys: "E", description: tr("editorOps.shortcutExtrude"), group: tr("editorOps.shortcutBuild") },
+  { keys: "R", description: tr("editorOps.shortcutRevolve"), group: tr("editorOps.shortcutBuild") },
+  { keys: "F", description: tr("editorOps.shortcutFillet"), group: tr("editorOps.shortcutBuild") },
+  { keys: "Shift + F", description: tr("editorOps.shortcutChamfer"), group: tr("editorOps.shortcutBuild") },
+  { keys: "Ctrl + Z", description: tr("editorOps.shortcutUndo"), group: tr("editorOps.shortcutHistory") },
+  { keys: "Ctrl + Y", description: tr("editorOps.shortcutRedo"), group: tr("editorOps.shortcutHistory") },
+  { keys: "Delete", description: tr("editorOps.shortcutDelete"), group: tr("editorOps.shortcutHistory") },
+  { keys: "Esc", description: tr("editorOps.shortcutEscape"), group: tr("editorOps.shortcutNavigation") },
+  { keys: "?", description: tr("editorOps.shortcutList"), group: tr("editorOps.shortcutNavigation") },
+  { keys: tr("editorOps.shortcutLmb"), description: tr("editorOps.shortcutSelect"), group: tr("editorOps.shortcutViewport") },
+  { keys: tr("editorOps.shortcutWheel"), description: tr("editorOps.shortcutZoom"), group: tr("editorOps.shortcutViewport") },
+  { keys: tr("editorOps.shortcutRmbMove"), description: tr("editorOps.shortcutPan"), group: tr("editorOps.shortcutViewport") },
+  ];
+}
 
 export function useEditorHotkeys(handlers: {
   onEscape: () => void;

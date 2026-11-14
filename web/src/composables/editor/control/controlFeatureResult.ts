@@ -1,4 +1,4 @@
-import { SAVE_FAILED_MESSAGE } from "@/lib/apiError";
+import { isSaveFailureMessage } from "@/lib/apiError";
 import { fail } from "@/lib/control/protocol";
 import type { EditorControlContext } from "./controlContext";
 
@@ -15,7 +15,7 @@ export async function applyControlFeature(
   await run();
   const error = readError();
   leave();
-  if (error) throw fail(error === SAVE_FAILED_MESSAGE ? "save_failed" : "operation_failed", error);
+  if (error) throw fail(isSaveFailureMessage(error) ? "save_failed" : "operation_failed", error);
   const created = [...context.model.timelineEntries.value].reverse().find((entry) => !known.has(entry.id));
   if (!created) throw fail("operation_failed", "Операция не добавила запись в историю модели.");
   return { feature: context.timelineEntry(created), mode: context.mode() };

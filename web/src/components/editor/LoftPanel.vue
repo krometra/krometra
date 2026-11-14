@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
@@ -11,29 +13,29 @@ import type { LoftApi } from "@/composables/editor/useLoft";
 const props = defineProps<{ loft: LoftApi }>();
 const { profiles, operation, targetBodyId, transition, loading, error, setupError, addOptions, targetOptions } = props.loft;
 
-const OPERATIONS = [
-  { value: "new_body", label: "Новое тело" },
-  { value: "join", label: "Приклеить" },
-  { value: "cut", label: "Вырезать" },
-];
+const OPERATIONS = computed(() => [
+  { value: "new_body", label: t("editorPanels.new_body") },
+  { value: "join", label: t("editorPanels.join") },
+  { value: "cut", label: t("editorPanels.cut") },
+]);
 
-const TRANSITIONS = [
-  { value: "smooth", label: "Гладкий" },
-  { value: "ruled", label: "Линейный" },
-];
+const TRANSITIONS = computed(() => [
+  { value: "smooth", label: t("editorPanels.smooth") },
+  { value: "ruled", label: t("editorPanels.linear") },
+]);
 
 const message = computed(() => error.value ?? setupError.value);
 const applyLabel = computed(() => {
-  if (loading.value) return "Лофт…";
-  return operation.value === "cut" ? "Вырезать лофтом" : "Построить лофт";
+  if (loading.value) return t("editorPanels.lofting");
+  return operation.value === "cut" ? t("editorPanels.cut_with_loft") : t("editorPanels.create_loft");
 });
 </script>
 
 <template>
-  <PropsPanelShell title="Лофт" kind="LOFT" dot-color="oklch(0.72 0.12 200)">
+  <PropsPanelShell :title="t('editorPanels.loft')" kind="LOFT" dot-color="oklch(0.72 0.12 200)">
     <div :class="$style.body" data-testid="loft-panel">
       <div :class="$style.section">
-        <span :class="$style.caption">Профили по порядку</span>
+        <span :class="$style.caption">{{ t("editorPanels.profiles_in_order") }}</span>
         <ol v-if="profiles.length > 0" :class="$style.list" data-testid="loft-profiles">
           <li v-for="(profile, index) in profiles" :key="profile.id" :class="$style.row" data-testid="loft-profile-row">
             <span :class="$style.index">{{ index + 1 }}</span>
@@ -42,7 +44,7 @@ const applyLabel = computed(() => {
               variant="ghost"
               size="sm"
               :disabled="index === 0"
-              :aria-label="`Выше: ${profile.label}`"
+              :aria-label="t('editorPanels.move_up', { name: profile.label })"
               data-testid="loft-profile-up"
               @click="loft.moveProfile(index, -1)"
             >
@@ -52,7 +54,7 @@ const applyLabel = computed(() => {
               variant="ghost"
               size="sm"
               :disabled="index === profiles.length - 1"
-              :aria-label="`Ниже: ${profile.label}`"
+              :aria-label="t('editorPanels.move_down', { name: profile.label })"
               data-testid="loft-profile-down"
               @click="loft.moveProfile(index, 1)"
             >
@@ -61,7 +63,7 @@ const applyLabel = computed(() => {
             <KrButton
               variant="ghost"
               size="sm"
-              :aria-label="`Убрать из лофта: ${profile.label}`"
+              :aria-label="t('editorPanels.remove_loft', { name: profile.label })"
               data-testid="loft-profile-remove"
               @click="loft.removeProfile(index)"
             >
@@ -73,7 +75,7 @@ const applyLabel = computed(() => {
           v-if="addOptions.length > 0"
           model-value=""
           :options="addOptions"
-          placeholder="Добавить эскиз-профиль"
+          :placeholder="t('editorPanels.add_profile_sketch')"
           data-testid="loft-add-profile"
           @update:model-value="$event && loft.addProfile($event)"
         />
@@ -81,7 +83,7 @@ const applyLabel = computed(() => {
       <KrSelect
         :model-value="operation"
         :options="OPERATIONS"
-        label="Операция"
+        :label="t('editorPanels.operation')"
         data-testid="loft-operation"
         @update:model-value="loft.setOperation($event as BrowserExtrudeOperation)"
       />
@@ -89,19 +91,19 @@ const applyLabel = computed(() => {
         v-if="operation !== 'new_body'"
         :model-value="targetBodyId ?? ''"
         :options="targetOptions"
-        label="Целевое тело"
+        :label="t('editorPanels.target_body')"
         data-testid="loft-target"
         @update:model-value="targetBodyId = $event || null"
       />
       <KrSelect
         :model-value="transition"
         :options="TRANSITIONS"
-        label="Переход"
+        :label="t('editorPanels.transition')"
         data-testid="loft-transition"
         @update:model-value="transition = $event as LoftTransition"
       />
       <p :class="$style.hint">
-        Профиль - один замкнутый контур эскиза. Кликните эскиз в дереве или на ленте истории, чтобы добавить его. Гладкий переход плавно огибает промежуточные профили, линейный соединяет соседние прямыми.
+        {{ t("editorPanels.a_profile_is_one_closed_sketch_contour_click") }}
       </p>
       <p v-if="message" :class="$style.error" data-testid="loft-error">{{ message }}</p>
       <KrButton
@@ -115,7 +117,7 @@ const applyLabel = computed(() => {
       </KrButton>
     </div>
     <template #foot>
-      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="loft.exit">Отмена (Esc)</KrButton>
+      <KrButton variant="ghost" size="sm" :class="$style.cancelBtn" @click="loft.exit">{{ t("editorPanels.cancel_esc") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

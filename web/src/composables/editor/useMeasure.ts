@@ -1,3 +1,5 @@
+import { propertyText } from "@/lib/propertyText";
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch, type Ref } from "vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { toast } from "@/composables/useToast";
@@ -22,6 +24,8 @@ export function useMeasure(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr, tMessage, locale } = useI18n();
+  const text = (value: string) => propertyText(value, tMessage);
   const { viewportRef, viewportSelectionMode, meshes } = deps;
   const names = useDisplayNames();
 
@@ -37,7 +41,7 @@ export function useMeasure(deps: {
 
   const pickLabels = computed(() => picks.value.map((pick, index) => {
     const item = result.value?.items[index];
-    return `${item ? itemTitle(item) : pickTitle(pick)} · ${names.bodyLabel(pick.bodyId)}`;
+    return `${text(item ? itemTitle(item) : pickTitle(pick))} · ${names.bodyLabel(pick.bodyId)}`;
   }));
 
   const measuresBody = computed(() => picks.value.some((pick) => pick.kind === "body"));
@@ -45,7 +49,15 @@ export function useMeasure(deps: {
   const groups = computed(() => {
     const measured = result.value;
     if (!measured) return [];
-    return measureGroups(measured, pickLabels.value, density.value);
+    return measureGroups(measured, pickLabels.value, density.value).map((group) => ({
+      ...group,
+      title: group.id === "pair" ? text(group.title) : group.title,
+      rows: group.rows.map((row) => ({
+        ...row,
+        label: text(row.label),
+        value: locale.value === "ru" ? row.value : row.value.replace(/мм/g, "mm").replace(/кг/g, "kg").replace(/г$/, "g"),
+      })),
+    }));
   });
 
   function display() {
@@ -65,7 +77,7 @@ export function useMeasure(deps: {
       const measured = await measureBrowserShapes(targets);
       if (current === generation) result.value = measured;
     } catch (err: unknown) {
-      if (current === generation) error.value = err instanceof Error ? err.message : "Не удалось выполнить измерение.";
+      if (current === generation) error.value = err instanceof Error ? err.message : tr("editorOps.measureFailed");
     } finally {
       if (current === generation) {
         loading.value = false;
@@ -130,9 +142,9 @@ export function useMeasure(deps: {
   async function copy(row: MeasureRow) {
     try {
       await navigator.clipboard.writeText(row.copy);
-      toast(`Скопировано: ${row.label} ${row.copy}`, "success");
+      toast(tr("property.copied", { label: row.label, value: row.copy }), "success");
     } catch {
-      toast("Браузер не дал доступ к буферу обмена.", "warning");
+      toast(tr("editorOps.clipboardDenied"), "warning");
     }
   }
 
@@ -143,7 +155,7 @@ export function useMeasure(deps: {
     void measure();
   });
 
-  const tool: EditorTool = { actions: ["measure"], active, loading, busyLabel: "Измерение…", enter, exit };
+  const tool: EditorTool = { actions: ["measure"], active, loading, get busyLabel() { return tr("editorOps.measureBusy") }, enter, exit };
 
   return {
     tool,

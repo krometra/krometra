@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const tr = useSketchText();
 // Живой ввод размеров рисуемой фигуры (Ш/В прямоугольника, R окружности).
 import { computed, ref, watch } from "vue";
 import KrInput from "@/components/ui/KrInput.vue";
@@ -38,7 +40,7 @@ watch(
 <template>
   <div :class="styles.overlay" data-sketch-ui :style="{ left: x + 'px', top: y + 'px' }">
     <div v-for="(field, i) in fields" :key="field.key" ref="fieldRows" :class="styles.fieldLabel">
-      <span>{{ field.label }}</span>
+      <span>{{ tr(field.label) }}</span>
       <KrInput
         :model-value="field.value"
         :class="[styles.input, styles.fieldInput]"

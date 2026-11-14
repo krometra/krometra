@@ -3,14 +3,17 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrLogo from "@/components/ui/KrLogo.vue";
+import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 import LandingMcp from "@/components/landing/LandingMcp.vue";
 import editorPreview from "@/assets/landing/editor-preview.webp";
 import { useAuth } from "@/composables/shared/useAuth";
+import { useI18n } from "@/composables/shared/useI18n";
 
 const router = useRouter();
 const auth = useAuth();
+const { t } = useI18n();
 
-const userName = computed(() => auth.user.value?.display_name || auth.user.value?.email || "Пользователь");
+const userName = computed(() => auth.user.value?.display_name || auth.user.value?.email || t("projects.user"));
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
 
 function openWorkspace() {
@@ -21,50 +24,50 @@ function startWithAssistant() {
   router.push(auth.isAuthenticated.value ? "/account" : "/login");
 }
 
-const nav = [
-  { label: "Что умеет", target: "features" },
-  { label: "ИИ и MCP", target: "ai" },
-  { label: "Как устроено", target: "core" },
-];
+const nav = computed(() => [
+  { label: t("landing.nav.features"), target: "features" },
+  { label: t("landing.nav.ai"), target: "ai" },
+  { label: t("landing.nav.core"), target: "core" },
+]);
 
-const stats = [
-  { value: "Эскиз", label: "форма и размеры" },
-  { value: "Тело", label: "объём и детали" },
-  { value: "Печать", label: "STL или STEP", accent: true },
-];
+const stats = computed(() => [
+  { value: t("landing.sketch"), label: t("landing.sketchDesc") },
+  { value: t("landing.body"), label: t("landing.bodyDesc") },
+  { value: t("landing.print"), label: t("landing.printDesc"), accent: true },
+]);
 
-const core = [
+const core = computed(() => [
   {
-    title: "Точная геометрия",
-    body: "Модель остаётся деталью, а не картинкой из треугольников. Грани и рёбра можно выбирать, менять и использовать в следующих операциях.",
+    title: t("landing.core1Title"),
+    body: t("landing.core1Body"),
   },
   {
-    title: "Понятная история",
-    body: "Эскиз, выдавливание, фаска — каждый шаг остаётся в дереве модели. Можно вернуться назад и спокойно попробовать другой вариант.",
+    title: t("landing.core2Title"),
+    body: t("landing.core2Body"),
   },
   {
-    title: "Всё под рукой",
-    body: "Проекты открываются с любого компьютера. Ничего не нужно устанавливать и переносить на флешке перед встречей или мастерской.",
+    title: t("landing.core3Title"),
+    body: t("landing.core3Body"),
   },
-];
+]);
 
-const features = [
+const features = computed(() => [
   {
-    tag: "01 · ЭСКИЗ",
-    title: "Набросайте форму",
-    body: "Линии, дуги, окружности и прямоугольники. Размеры и связи держат эскиз в порядке, а изменения видны сразу, пока вы тянете точку мышью.",
+    tag: t("landing.feature1Tag"),
+    title: t("landing.feature1Title"),
+    body: t("landing.feature1Body"),
   },
   {
-    tag: "02 · ТЕЛО",
-    title: "Соберите деталь",
-    body: "Выдавите профиль, поверните его вокруг оси, добавьте скругления или фаски. Объединяйте и вырезайте тела привычными операциями.",
+    tag: t("landing.feature2Tag"),
+    title: t("landing.feature2Title"),
+    body: t("landing.feature2Body"),
   },
   {
-    tag: "03 · ПЕЧАТЬ",
-    title: "Подготовьте результат",
-    body: "Скачайте STL для 3D-печати или STEP для производства. Если модель уже есть, загрузите её и продолжайте работу с того места, где остановились.",
+    tag: t("landing.feature3Tag"),
+    title: t("landing.feature3Title"),
+    body: t("landing.feature3Body"),
   },
-];
+]);
 </script>
 
 <template>
@@ -72,6 +75,7 @@ const features = [
     <nav :class="$style.nav">
       <KrLogo @click="router.push('/')" :class="$style.clickable" />
       <div :class="$style.navLinks">
+        <LocaleSwitcher />
         <a
           v-for="link in nav"
           :key="link.target"
@@ -83,11 +87,11 @@ const features = [
             <span :class="$style.avatar">{{ userInitial }}</span>
             <span :class="$style.accountName">{{ userName }}</span>
           </div>
-          <KrButton :class="$style.cta" size="sm" @click="openWorkspace">Мои проекты</KrButton>
+          <KrButton :class="$style.cta" size="sm" @click="openWorkspace">{{ t("projects.title") }}</KrButton>
         </template>
         <template v-else>
-          <RouterLink :class="[$style.navLink, $style.navLinkStrong]" to="/login">Войти</RouterLink>
-          <KrButton :class="$style.cta" size="sm" @click="router.push('/login')">Начать бесплатно</KrButton>
+          <RouterLink :class="[$style.navLink, $style.navLinkStrong]" to="/login">{{ t("landing.login") }}</RouterLink>
+          <KrButton :class="$style.cta" size="sm" @click="router.push('/login')">{{ t("landing.start") }}</KrButton>
         </template>
       </div>
     </nav>
@@ -95,16 +99,15 @@ const features = [
     <section :class="$style.hero">
       <div>
         <div :class="$style.badge">
-          <span :class="$style.dot" />CAD В БРАУЗЕРЕ
+          <span :class="$style.dot" />{{ t("landing.badge") }}
         </div>
-        <h1 :class="$style.h1">От эскиза<br />до готовой<br />детали.</h1>
+        <h1 :class="$style.h1">{{ t("landing.headline1") }}<br />{{ t("landing.headline2") }}<br />{{ t("landing.headline3") }}</h1>
         <p :class="$style.lead">
-          Набросайте форму, задайте размеры и соберите модель. Когда всё готово, подготовьте её
-          для 3D-печати или производства.
+          {{ t("landing.lead") }}
         </p>
         <div :class="$style.heroActions">
-          <KrButton :class="$style.cta" @click="openWorkspace">Открыть редактор</KrButton>
-          <KrButton variant="ghost" :class="$style.ghostBtn" @click="openWorkspace">Открыть проекты</KrButton>
+          <KrButton :class="$style.cta" @click="openWorkspace">{{ t("landing.openEditor") }}</KrButton>
+          <KrButton variant="ghost" :class="$style.ghostBtn" @click="openWorkspace">{{ t("landing.openProjects") }}</KrButton>
         </div>
         <div :class="$style.stats">
           <template v-for="(s, i) in stats" :key="s.label">
@@ -122,14 +125,14 @@ const features = [
           <span :class="$style.win" />
           <span :class="$style.win" />
           <span :class="$style.win" />
-          <span :class="$style.previewTitle">Кронштейн датчика · Крометра</span>
+          <span :class="$style.previewTitle">{{ t("landing.preview", { product: t("common.productName") }) }}</span>
         </div>
         <img
           :src="editorPreview"
           :class="$style.previewImage"
           width="1600"
           height="1000"
-          alt="Редактор Крометры: кронштейн с отверстиями и скруглениями, дерево модели и история операций"
+          :alt="t('landing.previewAlt', { product: t('common.productName') })"
         />
       </div>
     </section>
@@ -145,7 +148,7 @@ const features = [
     <LandingMcp @start="startWithAssistant" />
 
     <section id="core" :class="$style.core">
-      <h2 :class="$style.h2">Как это устроено</h2>
+      <h2 :class="$style.h2">{{ t("landing.coreTitle") }}</h2>
       <div :class="$style.coreGrid">
         <div v-for="c in core" :key="c.title" :class="$style.coreItem">
           <div :class="$style.coreTitle">{{ c.title }}</div>
@@ -155,9 +158,9 @@ const features = [
     </section>
 
     <footer :class="$style.footer">
-      Крометра · параметрическое моделирование в браузере ·
-      <a :class="$style.footerLink" href="/privacy">политика обработки персональных данных</a> ·
-      <a :class="$style.footerLink" href="/THIRD_PARTY_NOTICES.txt">лицензии сторонних компонентов</a>
+      {{ t("landing.footer", { product: t("common.productName") }) }}
+      <a :class="$style.footerLink" href="/privacy">{{ t("landing.privacy") }}</a> ·
+      <a :class="$style.footerLink" href="/THIRD_PARTY_NOTICES.txt">{{ t("landing.licenses") }}</a>
     </footer>
   </div>
 </template>

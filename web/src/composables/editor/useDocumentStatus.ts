@@ -1,20 +1,22 @@
 import { computed, ref, watch } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import { useDocument } from "@/composables/shared/useDocument";
 
 export type DocStatus = "loading" | "saved" | "saving" | "unsaved" | "conflict";
 
 export function useDocumentStatus(projectId: string) {
   const documentStore = useDocument();
+  const { t } = useI18n();
 
   const docStatus = ref<DocStatus>("loading");
   const docVersion = computed(() => documentStore.version.value);
   const statusLabel = computed(() => {
     switch (docStatus.value) {
-      case "loading": return "загрузка…";
-      case "saving": return "сохранение…";
-      case "unsaved": return "есть изменения";
-      case "conflict": return "конфликт";
-      default: return "сохранено";
+      case "loading": return t("editor.status.loading");
+      case "saving": return t("editor.status.saving");
+      case "unsaved": return t("editor.status.unsaved");
+      case "conflict": return t("editor.status.conflict");
+      default: return t("editor.status.saved");
     }
   });
 

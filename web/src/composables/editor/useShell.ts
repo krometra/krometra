@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
@@ -16,6 +17,7 @@ export function useShell(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -104,7 +106,7 @@ export function useShell(deps: {
       const command = new BrowserShellCommand(projectId, feature, () => documentStore.document.value);
       await undoRedo.execute(command);
       const result = command.getResult();
-      if (!result) throw new Error("Оболочка не сохранена.");
+      if (!result) throw new Error(tr("editorOps.shellUnsaved"));
       result.hiddenBodyIds.forEach((hidden) => meshes.untrackMesh(hidden));
       meshes.trackMesh(result.bodyId, result.mesh);
       documentStore.markDirty();
@@ -112,14 +114,14 @@ export function useShell(deps: {
       exit();
     } catch (err: unknown) {
       const apiError = err as { error_description?: string };
-      error.value = apiError?.error_description ?? (err instanceof Error ? err.message : "Ошибка построения оболочки");
+      error.value = apiError?.error_description ?? (err instanceof Error ? err.message : tr("editorOps.shellFailed"));
       console.error("Ошибка оболочки:", err);
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["shell"], active: shellMode, loading, busyLabel: "Построение оболочки…", enter, exit, onFaceSelected };
+  const tool: EditorTool = { actions: ["shell"], active: shellMode, loading, get busyLabel() { return tr("editorOps.shellBusy") }, enter, exit, onFaceSelected };
 
   return {
     tool,

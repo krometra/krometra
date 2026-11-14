@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useParameters } from "@/composables/useParameters";
@@ -22,6 +23,7 @@ export function usePressPull(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
   const documentStore = useDocument();
   const parameters = useParameters();
@@ -38,7 +40,7 @@ export function usePressPull(deps: {
     dimension: "length",
     initial: 1,
     variables: () => parameterQuantities(parameters.parameters.value),
-    rangeError: (value) => (Math.abs(value) >= PRESS_PULL_MIN_DISTANCE ? null : "Смещение не может быть нулевым: плюс наружу, минус внутрь."),
+    rangeError: (value) => (Math.abs(value) >= PRESS_PULL_MIN_DISTANCE ? null : tr("editorOps.pressRange")),
   });
 
   const bodyMesh = computed(() => meshes.meshBodies.value.find((body) => body.body_id === bodyId.value)?.mesh ?? null);
@@ -126,20 +128,20 @@ export function usePressPull(deps: {
       const command = new BrowserPressPullCommand(projectId, feature, () => documentStore.document.value);
       await undoRedo.execute(command);
       const result = command.getResult();
-      if (!result) throw new Error("Сдвиг грани не сохранён.");
+      if (!result) throw new Error(tr("editorOps.pressUnsaved"));
       result.hiddenBodyIds.forEach((hidden) => meshes.untrackMesh(hidden));
       meshes.trackMesh(result.bodyId, result.mesh);
       documentStore.markDirty();
       await documentStore.load(projectId);
       exit();
     } catch (err) {
-      error.value = apiErrorMessage(err, "Не удалось сдвинуть грань");
+      error.value = apiErrorMessage(err, tr("editorOps.pressFailed"));
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["press_pull"], active: pressPullMode, loading, busyLabel: "Сдвиг грани…", enter, exit, onFaceSelected };
+  const tool: EditorTool = { actions: ["press_pull"], active: pressPullMode, loading, get busyLabel() { return tr("editorOps.pressBusy") }, enter, exit, onFaceSelected };
 
   return {
     tool,

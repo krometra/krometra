@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -42,6 +43,7 @@ export function useWorkPlanes(deps: {
   sketchFlow: SketchLifecycleApi;
   leaveActiveTools: () => void;
 }) {
+  const { t: tr } = useI18n();
   const { viewportRef, meshes, model, history } = deps;
   const documentStore = useDocument();
   const names = useDisplayNames();
@@ -105,7 +107,7 @@ export function useWorkPlanes(deps: {
       await history.edit(`Удалить ${name}`, (document) => removeWorkPlane(document, planeId));
       toast(`${name} удалена. Отменить — Ctrl+Z`, "success");
     } catch (error) {
-      toast(apiErrorMessage(error, "Не удалось удалить плоскость"), "warning");
+      toast(apiErrorMessage(error, tr("editorOps.planeDeleteFailed")), "warning");
     }
   }
 
@@ -128,7 +130,7 @@ export function useWorkPlanes(deps: {
 
   async function toggleVisibility(planeId: string) {
     const visible = planes.value.find((plane) => plane.id === planeId)?.visible === false;
-    await deps.bodyPresentation.setSketchVisible(planeId, visible).catch((error) => toast(apiErrorMessage(error, "Не удалось изменить видимость"), "warning"));
+    await deps.bodyPresentation.setSketchVisible(planeId, visible).catch((error) => toast(apiErrorMessage(error, tr("editorOps.visibilityFailed")), "warning"));
   }
 
   function startSketch(planeId: string) {
@@ -136,7 +138,7 @@ export function useWorkPlanes(deps: {
     try {
       deps.sketchFlow.startOnWorkPlane(planeId);
     } catch (error) {
-      toast(apiErrorMessage(error, "Не удалось начать эскиз на плоскости"), "warning");
+      toast(apiErrorMessage(error, tr("editorOps.planeSketchFailed")), "warning");
     }
   }
 
@@ -158,11 +160,11 @@ export function useWorkPlanes(deps: {
   function menuItems(planeId: string, rename: (planeId: string, name: string) => void): CtxItem[] {
     const plane = planes.value.find((candidate) => candidate.id === planeId);
     return [
-      { label: "Создать эскиз", editsModel: true, action: () => startSketch(planeId) },
-      { label: "Изменить параметры", editsModel: true, action: () => edit(planeId) },
-      { label: plane?.visible !== false ? "Скрыть" : "Показать", action: () => toggleVisibility(planeId) },
-      { label: "Переименовать", editsModel: true, action: () => rename(planeId, label(planeId)) },
-      { label: "Удалить", danger: true, editsModel: true, action: () => requestRemove(planeId) },
+      { label: tr("editorOps.createSketch"), editsModel: true, action: () => startSketch(planeId) },
+      { label: tr("editorOps.editParameters"), editsModel: true, action: () => edit(planeId) },
+      { label: plane?.visible !== false ? tr("editorOps.hide") : tr("editorOps.show"), action: () => toggleVisibility(planeId) },
+      { label: tr("editorOps.rename"), editsModel: true, action: () => rename(planeId, label(planeId)) },
+      { label: tr("editorOps.delete"), danger: true, editsModel: true, action: () => requestRemove(planeId) },
     ];
   }
 

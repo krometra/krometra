@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ApiError, errorMessage, toApiError } from "./apiError";
+import { errors as english } from "./i18n/dictionaries/en/errors";
+import { errors as chinese } from "./i18n/dictionaries/zh/errors";
+import { renderMessage } from "./i18n/message";
 
 describe("toApiError", () => {
   it("разворачивает валидацию FastAPI в поля формы", () => {
@@ -30,6 +33,26 @@ describe("toApiError", () => {
 
     expect(err.message).toBe("Неверная почта или пароль.");
     expect(err.code).toBe("invalid_grant");
+  });
+
+  it("применяет перевод к известному коду и сохраняет описание неизвестного", () => {
+    const translate = () => "Incorrect email or password.";
+    expect(toApiError(400, { error: "invalid_grant" }, "fallback", translate).message)
+      .toBe("Incorrect email or password.");
+    expect(toApiError(400, { error: "custom_error", error_description: "Details" }, "fallback", translate).message)
+      .toBe("Details");
+  });
+
+  it("локализует геометрические ошибки и ошибки проверки полей", () => {
+    const en = (key: keyof typeof english, values?: Record<string, string | number>) =>
+      renderMessage("en", english[key], values);
+    const zh = (key: keyof typeof chinese, values?: Record<string, string | number>) =>
+      renderMessage("zh", chinese[key], values);
+    expect(toApiError(400, { error: "fillet_failed" }, "fallback", en).message)
+      .toContain("fillet");
+    expect(toApiError(422, { detail: [{ loc: ["body", "password"], msg: "String should have at least 8 characters" }] }, "fallback", zh).fields.password)
+      .toBe("密码：至少需要 8 个字符。");
+    expect(toApiError(503, null, "fallback", en).message).toContain("unavailable");
   });
 
   it("оставляет текст сервера для незнакомого кода", () => {

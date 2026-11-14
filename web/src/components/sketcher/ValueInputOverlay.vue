@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const tr = useSketchText();
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 // Плавающее поле ввода отступа вспомогательной прямой с подтверждением и отменой.
 import styles from "./dimension-overlay.module.css";
 import KrButton from "@/components/ui/KrButton.vue";
@@ -23,14 +27,14 @@ const emit = defineEmits<{
     <KrInput
       :class="styles.input"
       :model-value="modelValue"
-      :placeholder="placeholder"
+      :placeholder="tr(placeholder)"
       @update:model-value="emit('update:modelValue', $event)"
       @keyup.enter="emit('confirm')"
       @keyup.escape="emit('cancel')"
     />
     <div :class="styles.actions">
-      <KrButton variant="ghost" size="sm" :class="styles.okBtn" aria-label="Подтвердить значение" @click="emit('confirm')">✓</KrButton>
-      <KrButton variant="ghost" size="sm" :class="styles.cancelBtn" aria-label="Отменить ввод" @click="emit('cancel')">✕</KrButton>
+      <KrButton variant="ghost" size="sm" :class="styles.okBtn" :aria-label="t('sketch.confirm')" @click="emit('confirm')">✓</KrButton>
+      <KrButton variant="ghost" size="sm" :class="styles.cancelBtn" :aria-label="t('sketch.cancelInput')" @click="emit('cancel')">✕</KrButton>
     </div>
   </div>
 </template>

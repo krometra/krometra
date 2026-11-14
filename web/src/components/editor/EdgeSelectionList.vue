@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 import KrCheckbox from "@/components/ui/KrCheckbox.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
@@ -21,7 +23,7 @@ const emit = defineEmits<{
   <div :class="$style.selection">
     <KrCheckbox
       :model-value="chain"
-      label="Касательная цепочка"
+      :label="t('editorPanels.tangent_chain')"
       data-testid="edge-chain-toggle"
       @update:model-value="emit('update:chain', $event)"
     />
@@ -43,7 +45,7 @@ const emit = defineEmits<{
         <KrButton
           variant="ghost"
           size="sm"
-          :aria-label="`Снять с выбора: ${row.label}`"
+          :aria-label="t('editorPanels.remove_selection', { name: row.label })"
           data-testid="edge-selection-remove"
           @click="emit('remove', row)"
         >

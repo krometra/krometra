@@ -1,3 +1,11 @@
+import { SAVE_FAILURE_MESSAGES } from "./i18n/saveFailureMessages";
+import { localizedStatus, localizedValidation } from "./apiErrorLocale";
+import type { MessageValues } from "./i18n/message";
+import type { errors } from "@/lib/i18n/dictionaries/ru/errors";
+
+type ErrorKey = keyof typeof errors;
+export type ErrorTranslator = (key: ErrorKey, values?: MessageValues) => string;
+
 export type FieldErrors = Record<string, string>;
 
 export class ApiError extends Error {
@@ -19,11 +27,14 @@ export class ApiError extends Error {
   }
 }
 
-export const SAVE_FAILED_MESSAGE =
-  "Геометрия построена, но сервер её не сохранил: нет связи или сервер недоступен. Модель не изменилась — повторите операцию через 10–20 секунд.";
+export const SAVE_FAILED_MESSAGE = SAVE_FAILURE_MESSAGES.ru;
 
-export function saveFailure(cause: ApiError): ApiError {
-  return new ApiError(cause.status, "save_failed", SAVE_FAILED_MESSAGE);
+export function isSaveFailureMessage(message: string): boolean {
+  return Object.values(SAVE_FAILURE_MESSAGES).some((candidate) => candidate === message);
+}
+
+export function saveFailure(cause: ApiError, message: string = SAVE_FAILED_MESSAGE): ApiError {
+  return new ApiError(cause.status, "save_failed", message);
 }
 
 const STATUS_MESSAGES: Record<number, string> = {
@@ -169,6 +180,116 @@ const CODE_MESSAGES: Record<string, string> = {
 // Коды, где сервер знает больше нас: точные числа (максимальный радиус,
 // имя ребра) полезнее общей фразы, поэтому показываем описание сервера,
 // а перевод выше остаётся запасным вариантом.
+const TRANSLATED_CODES = {
+  invalid_grant: "errors.invalid_grant",
+  invalid_token: "errors.invalid_token",
+  invalid_client: "errors.invalid_client",
+  unsupported_grant_type: "errors.unsupported_grant_type",
+  email_taken: "errors.email_taken",
+  user_exists: "errors.user_exists",
+  rate_limited: "errors.rate_limited",
+  version_conflict: "errors.version_conflict",
+  sketch_not_found: "errors.sketch_not_found",
+  body_not_found: "errors.body_not_found",
+  mesh_not_found: "errors.mesh_not_found",
+  face_not_found: "errors.face_not_found",
+  project_not_found: "errors.project_not_found",
+  network_error: "errors.network_error",
+  api_key_limit: "errors.api_key_limit",
+  api_key_not_found: "errors.api_key_not_found",
+  api_key_session_forbidden: "errors.api_key_session_forbidden",
+  email_not_verified: "errors.email_not_verified",
+  email_already_verified: "errors.email_already_verified",
+  invalid_current_password: "errors.invalid_current_password",
+  password_not_set: "errors.password_not_set",
+  forbidden: "errors.forbidden",
+  cannot_demote_self: "errors.cannot_demote_self",
+  not_found: "errors.not_found",
+  brep_not_found: "errors.brep_not_found",
+  empty_result: "errors.empty_result",
+  no_volume_change: "errors.no_volume_change",
+  boolean_failed: "errors.boolean_failed",
+  fillet_failed: "errors.fillet_failed",
+  chamfer_failed: "errors.chamfer_failed",
+  zero_distance: "errors.zero_distance",
+  through_all_new_body: "errors.through_all_new_body",
+  target_required: "errors.target_required",
+  unknown_target_body: "errors.unknown_target_body",
+  stale_target_body: "errors.stale_target_body",
+  occ_not_available: "errors.occ_not_available",
+  no_visible_bodies: "errors.no_visible_bodies",
+  empty_file: "errors.empty_file",
+  empty_step: "errors.empty_step",
+  invalid_step: "errors.invalid_step",
+  invalid_file: "errors.invalid_file",
+  invalid_extension: "errors.invalid_extension",
+  import_no_bodies: "errors.import_no_bodies",
+  too_many_import_bodies: "errors.too_many_import_bodies",
+  import_bodies_mismatch: "errors.import_bodies_mismatch",
+  cut_bodies_mismatch: "errors.cut_bodies_mismatch",
+  invalid_request: "errors.invalid_request",
+  up_to_face_required: "errors.up_to_face_required",
+  up_to_target_required: "errors.up_to_target_required",
+  up_to_face_invalid: "errors.up_to_face_invalid",
+  invalid_extrude_params: "errors.invalid_extrude_params",
+  entry_not_found: "errors.entry_not_found",
+  unsupported_kind: "errors.unsupported_kind",
+  invalid_entry: "errors.invalid_entry",
+  thread_failed: "errors.thread_failed",
+  snapshot_missing: "errors.snapshot_missing",
+  nothing_to_restore: "errors.nothing_to_restore",
+  invalid_revolve_params: "errors.invalid_revolve_params",
+  invalid_loft_params: "errors.invalid_loft_params",
+  invalid_profile_regions: "errors.invalid_profile_regions",
+  invalid_sweep_params: "errors.invalid_sweep_params",
+  invalid_boolean_params: "errors.invalid_boolean_params",
+  invalid_browser_mesh: "errors.invalid_browser_mesh",
+  empty_browser_step: "errors.empty_browser_step",
+  browser_step_too_large: "errors.browser_step_too_large",
+  browser_mesh_too_large: "errors.browser_mesh_too_large",
+  browser_step_not_found: "errors.browser_step_not_found",
+  target_changed: "errors.target_changed",
+  target_not_browser: "errors.target_not_browser",
+  invalid_thread_params: "errors.invalid_thread_params",
+  invalid_transform_params: "errors.invalid_transform_params",
+  invalid_shell_params: "errors.invalid_shell_params",
+  invalid_face_ids: "errors.invalid_face_ids",
+  invalid_mirror_params: "errors.invalid_mirror_params",
+  invalid_draft_params: "errors.invalid_draft_params",
+  invalid_hole_params: "errors.invalid_hole_params",
+  invalid_hole_centers: "errors.invalid_hole_centers",
+  invalid_press_pull_params: "errors.invalid_press_pull_params",
+  invalid_pattern_params: "errors.invalid_pattern_params",
+  pattern_bodies_mismatch: "errors.pattern_bodies_mismatch",
+  pattern_axis_missing: "errors.pattern_axis_missing",
+  pattern_count_locked: "errors.pattern_count_locked",
+  mixed_browser_export_unsupported: "errors.mixed_browser_export_unsupported",
+  multiple_browser_export_unsupported: "errors.multiple_browser_export_unsupported",
+  invalid_edge_ids: "errors.invalid_edge_ids",
+  invalid_entry_ids: "errors.invalid_entry_ids",
+  fillet_run_changed: "errors.fillet_run_changed",
+  invalid_edge_feature: "errors.invalid_edge_feature",
+  browser_naming_too_large: "errors.browser_naming_too_large",
+  invalid_browser_naming: "errors.invalid_browser_naming",
+  invalid_feature_key: "errors.invalid_feature_key",
+  browser_naming_not_found: "errors.browser_naming_not_found",
+  invalid_rebuild_params: "errors.invalid_rebuild_params",
+  rebuild_unsupported: "errors.rebuild_unsupported",
+  rebuild_bodies_mismatch: "errors.rebuild_bodies_mismatch",
+  rebuild_sketches_mismatch: "errors.rebuild_sketches_mismatch",
+  rebuild_failures_mismatch: "errors.rebuild_failures_mismatch",
+  invalid_regen_document: "errors.invalid_regen_document",
+  invalid_sketch_plane: "errors.invalid_sketch_plane",
+  browser_mesh_too_complex: "errors.browser_mesh_too_complex",
+  too_many_rebuild_bodies: "errors.too_many_rebuild_bodies",
+  rebuild_params_too_large: "errors.rebuild_params_too_large",
+  invalid_body_id: "errors.invalid_body_id",
+  invalid_sketch_id: "errors.invalid_sketch_id",
+  request_too_large: "errors.request_too_large",
+  document_too_large: "errors.document_too_large",
+  storage_quota_exceeded: "errors.storage_quota_exceeded",
+} as const satisfies Record<string, ErrorKey>;
+
 const DETAILED_CODES = new Set([
   "fillet_failed",
   "chamfer_failed",
@@ -241,8 +362,9 @@ function fieldOf(item: PydanticError): string {
   return typeof last === "string" ? last : "";
 }
 
-function humanizeValidation(item: PydanticError): string {
+function humanizeValidation(item: PydanticError, translate?: ErrorTranslator): string {
   const field = fieldOf(item);
+  if (translate) return localizedValidation(field, item.msg ?? "", translate);
   const label = FIELD_LABELS[field] ?? (field || "Значение");
   const raw = item.msg ?? "";
   for (const rule of VALIDATION_MESSAGES) {
@@ -256,7 +378,7 @@ function isPydanticList(value: unknown): value is PydanticError[] {
   return Array.isArray(value) && value.every((v) => typeof v === "object" && v !== null);
 }
 
-export function toApiError(status: number, body: unknown, fallback: string): ApiError {
+export function toApiError(status: number, body: unknown, fallback: string, translateError?: ErrorTranslator): ApiError {
   const payload = (body ?? {}) as Record<string, unknown>;
   const detail = payload["detail"];
 
@@ -265,9 +387,9 @@ export function toApiError(status: number, body: unknown, fallback: string): Api
     const fields: FieldErrors = {};
     for (const item of detail) {
       const field = fieldOf(item);
-      if (field && !fields[field]) fields[field] = humanizeValidation(item);
+      if (field && !fields[field]) fields[field] = humanizeValidation(item, translateError);
     }
-    const first = detail[0] ? humanizeValidation(detail[0]) : fallback;
+    const first = detail[0] ? humanizeValidation(detail[0], translateError) : fallback;
     return new ApiError(status, "validation_error", first, fields);
   }
 
@@ -280,10 +402,14 @@ export function toApiError(status: number, body: unknown, fallback: string): Api
   const code = String(source["error"] ?? payload["error"] ?? "error");
   const described = source["error_description"] ?? source["message"];
   const detailText = typeof described === "string" && described ? described : null;
+  const translated = translateError && Object.hasOwn(TRANSLATED_CODES, code)
+    ? translateError(TRANSLATED_CODES[code as keyof typeof TRANSLATED_CODES])
+    : null;
   const message =
-    (DETAILED_CODES.has(code) ? detailText : null) ??
+    translated ?? (DETAILED_CODES.has(code) ? detailText : null) ??
     CODE_MESSAGES[code] ??
     detailText ??
+    (translateError ? localizedStatus(status, translateError) : undefined) ??
     STATUS_MESSAGES[status] ??
     fallback;
 

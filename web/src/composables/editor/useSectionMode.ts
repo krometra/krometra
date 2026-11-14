@@ -1,4 +1,5 @@
 import { computed, ref, shallowRef } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import { useSelection } from "@/composables/shared/useSelection";
 import { toast } from "@/composables/useToast";
 import {
@@ -23,6 +24,7 @@ export type SectionSource = SectionBase | "face";
 const OFFSET_DIGITS = 1000;
 
 export function useSectionMode(viewportRef: ViewportRef) {
+  const { t: tr } = useI18n();
   const selection = useSelection();
   const active = ref(false);
   const source = ref<SectionSource>("XY");
@@ -59,7 +61,7 @@ export function useSectionMode(viewportRef: ViewportRef) {
   function setFace(bodyId: string, faceId: string | number) {
     const frame = viewportRef.value?.faceFrame(bodyId, faceId);
     if (!frame) {
-      toast("Сечение строится только по плоской грани", "info");
+      toast(tr("editorOps.sectionFlat"), "info");
       return;
     }
     place("face", { origin: frame.center, normal: frame.normal });

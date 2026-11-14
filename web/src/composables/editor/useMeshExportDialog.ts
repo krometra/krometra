@@ -1,6 +1,8 @@
 import { computed, ref, watch } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
+import { LOCALE_HTML_LANG } from "@/lib/i18n/locale";
 import { useDebounceFn } from "@vueuse/core";
-import { customQualityError, formatBytes, qualityValues, stlBytes, type QualityPreset } from "@/lib/meshQuality";
+import { ANGLE_RANGE_DEG, TOLERANCE_RANGE, customQualityError, formatBytes, qualityValues, stlBytes, type QualityPreset } from "@/lib/meshQuality";
 import type { ExportApi } from "./useExport";
 import { useExportQuality } from "./useExportQuality";
 
@@ -12,6 +14,7 @@ export function estimateSummary(triangles: number, format: "stl" | "3mf"): strin
 }
 
 export function useMeshExportDialog(exportApi: ExportApi) {
+  const { t, locale } = useI18n();
   const { choice } = useExportQuality();
   const target = exportApi.meshTarget;
   const triangles = ref<number | null>(null);
@@ -36,7 +39,7 @@ export function useMeshExportDialog(exportApi: ExportApi) {
       const count = await exportApi.estimateTriangles(current.bodyIds, values.value);
       if (token === estimateToken) triangles.value = count;
     } catch (error) {
-      if (token === estimateToken) estimateError.value = error instanceof Error ? error.message : "Не удалось оценить сетку.";
+      if (token === estimateToken) estimateError.value = error instanceof Error ? error.message : t("editorOps.estimateFailed");
     }
   }
 
@@ -58,10 +61,18 @@ export function useMeshExportDialog(exportApi: ExportApi) {
   );
 
   const estimateText = computed(() => {
-    if (qualityError.value) return qualityError.value;
+    if (qualityError.value) return qualityError.value.startsWith("Линейный")
+      ? t("editorOps.linearRange", TOLERANCE_RANGE)
+      : t("editorOps.angleRangeExport", ANGLE_RANGE_DEG);
     if (estimateError.value) return estimateError.value;
-    if (triangles.value === null || !target.value) return "Считаю сетку…";
-    return estimateSummary(triangles.value, target.value.format);
+    if (triangles.value === null || !target.value) return t("editorOps.estimating");
+    const count = t("editorOps.triangles", { count: triangles.value.toLocaleString(LOCALE_HTML_LANG[locale.value]) });
+    if (target.value.format !== "stl") return count;
+    const size = formatBytes(stlBytes(triangles.value))
+      .replace("КБ", t("editorOps.kilobyte"))
+      .replace("МБ", t("editorOps.megabyte"))
+      .replace(/ Б$/, ` ${t("editorOps.byte")}`);
+    return t("editorOps.fileSize", { count, size });
   });
 
   function confirm() {

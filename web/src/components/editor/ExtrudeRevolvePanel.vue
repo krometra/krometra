@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { useDocumentModel } from "@/composables/editor/useDocumentModel";
@@ -45,21 +47,21 @@ const { bodies } = useDocumentModel();
 // Итог операции виден прямо на кнопке: значение поля применяется на лету,
 // но раньше это никак не подтверждалось — «Выдавить» молчало о числе.
 const extrudeButtonLabel = computed(() => {
-  if (extrudeLoading.value) return "Выдавливание…";
-  const verb = extrudeOperation.value === "cut" ? "Вырезать" : "Выдавить";
-  if (extentType.value === "through_all") return `${verb} насквозь`;
-  if (extentType.value === "up_to_face") return `${verb} до грани`;
-  if (extentType.value === "up_to_body") return `${verb} до тела`;
-  return `${verb} ${Number(extrudeDistance.value.toFixed(3))} мм`;
+  if (extrudeLoading.value) return t("editorPanels.extruding");
+  const verb = extrudeOperation.value === "cut" ? t("editorPanels.cut") : t("editorPanels.extrude");
+  if (extentType.value === "through_all") return t("editorPanels.action_through", { verb });
+  if (extentType.value === "up_to_face") return t("editorPanels.action_face", { verb });
+  if (extentType.value === "up_to_body") return t("editorPanels.action_body", { verb });
+  return t("editorPanels.action_distance", { verb, distance: Number(extrudeDistance.value.toFixed(3)) });
 });
 
 const upToFaceLabel = computed(() => {
-  if (!upToFace.value) return "Кликните грань во вьюпорте";
-  return `${names.bodyLabel(upToFace.value.bodyId)} · грань ${upToFace.value.faceId}`;
+  if (!upToFace.value) return t("editorPanels.click_face_viewport");
+  return t("editorPanels.face_of_body", { body: names.bodyLabel(upToFace.value.bodyId), face: upToFace.value.faceId });
 });
 
 const directionHint = computed(() =>
-  extrudeSignedDistance.value < 0 ? "против нормали эскиза" : "по нормали эскиза",
+  extrudeSignedDistance.value < 0 ? t("editorPanels.against_normal") : t("editorPanels.along_normal"),
 );
 
 function cancel() {
@@ -69,13 +71,13 @@ function cancel() {
 
 <template>
   <PropsPanelShell
-    :title="panelMode === 'revolve' ? 'Вращать' : 'Выдавить'"
+    :title="panelMode === 'revolve' ? t('editorPanels.revolve') : t('editorPanels.extrude')"
     :kind="panelMode === 'revolve' ? 'REVOLVE' : 'EXTRUDE'"
     dot-color="oklch(0.70 0.13 233)"
   >
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Эскиз</span>
+        <span>{{ t("editorPanels.sketch") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <span :class="$style.fieldValue">{{ names.sketchLabel(lastSavedSketchId ?? '') }}</span>
@@ -84,34 +86,34 @@ function cancel() {
     <ProfileRegionsField :profile="extrude.profile" />
 
     <template v-if="panelMode === 'extrude'">
-    <div :class="$style.panelHead">ПАРАМЕТРЫ ВЫДАВЛИВАНИЯ</div>
+    <div :class="$style.panelHead">{{ t("editorPanels.extrude_parameters") }}</div>
     <div v-if="lastSavedSketchTargetId || bodies.length > 0" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Операция</span>
+        <span>{{ t("editorPanels.operation") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="extrudeOperation" :class="$style.selectInput">
-          <option value="new_body">Новое тело</option>
-          <option value="join">Приклеить</option>
-          <option value="cut">Вырезать</option>
+          <option value="new_body">{{ t("editorPanels.new_body") }}</option>
+          <option value="join">{{ t("editorPanels.join") }}</option>
+          <option value="cut">{{ t("editorPanels.cut") }}</option>
         </select>
       </div>
     </div>
     <div v-if="extrudeOperation === 'cut'" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Тела для выреза · {{ cutTargets.targetIds.value.length }}</span>
+        <span>{{ t("editorPanels.cut_target_count", { count: cutTargets.targetIds.value.length }) }}</span>
       </div>
       <BodyPickList
         :body-ids="cutTargets.targetIds.value"
-        empty="Кликните тела в сцене или в дереве"
+        :empty="t('editorPanels.select_scene_bodies')"
         test-id="extrude-cut-targets"
         @remove="cutTargets.remove"
       />
-      <div :class="$style.note">Клик по телу добавляет или снимает его. Тела, которых вырез не касается, пропускаются.</div>
+      <div :class="$style.note">{{ t("editorPanels.cut_targets_hint") }}</div>
     </div>
     <div v-if="extrudeOperation === 'join' && !lastSavedSketchTargetId" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Целевое тело</span>
+        <span>{{ t("editorPanels.target_body") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="extrudeTargetBodyId" :class="$style.selectInput">
@@ -121,20 +123,20 @@ function cancel() {
     </div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Граница</span>
+        <span>{{ t("editorPanels.extent") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="extentType" :class="$style.selectInput" data-testid="extrude-extent">
-          <option value="distance">На расстояние</option>
-          <option value="through_all">Насквозь</option>
-          <option value="up_to_face">До грани</option>
-          <option value="up_to_body">До тела</option>
+          <option value="distance">{{ t("editorPanels.distance_extent") }}</option>
+          <option value="through_all">{{ t("editorPanels.through_all") }}</option>
+          <option value="up_to_face">{{ t("editorPanels.up_to_face") }}</option>
+          <option value="up_to_body">{{ t("editorPanels.up_to_body") }}</option>
         </select>
       </div>
     </div>
     <div v-if="extentType === 'up_to_face'" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Грань</span>
+        <span>{{ t("editorPanels.face") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <span :class="$style.fieldValue" data-testid="extrude-up-to-face">{{ upToFaceLabel }}</span>
@@ -142,7 +144,7 @@ function cancel() {
     </div>
     <div v-if="extentType === 'up_to_body'" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>До тела</span>
+        <span>{{ t("editorPanels.up_to_body") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="upToBodyId" :class="$style.selectInput" data-testid="extrude-up-to-body">
@@ -152,8 +154,8 @@ function cancel() {
     </div>
     <div v-if="extentType === 'up_to_face' || extentType === 'up_to_body'" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Смещение</span>
-        <span :class="$style.fieldExpr">мм</span>
+        <span>{{ t("editorPanels.offset") }}</span>
+        <span :class="$style.fieldExpr">{{ t("editorPanels.mm") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <input
@@ -161,16 +163,16 @@ function cancel() {
           type="number"
           step="0.5"
           :class="$style.numberInput"
-          title="Положительное — дальше цели, отрицательное — не доходя до неё"
+          :title="t('editorPanels.positive_beyond')"
           data-testid="extrude-offset"
         />
-        <span :class="$style.fieldUnit">мм</span>
+        <span :class="$style.fieldUnit">{{ t("editorPanels.mm") }}</span>
       </div>
     </div>
     <div v-if="extentType === 'distance'" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Расстояние</span>
-        <span :class="$style.fieldExpr">мм</span>
+        <span>{{ t("editorPanels.distance") }}</span>
+        <span :class="$style.fieldExpr">{{ t("editorPanels.mm") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <input
@@ -178,14 +180,14 @@ function cancel() {
           type="text"
           inputmode="decimal"
           :class="[$style.numberInput, extrudeDistanceError && $style.inputInvalid]"
-          title="Только положительное. Колесо мыши: ±1 мм. Можно выражение с единицами: 30/2, 1in + 2mm, width/2 + 5 mm (имена из Параметров)"
+          :title="t('editorPanels.distance_input_hint')"
           data-testid="extrude-distance"
           @wheel.prevent="onDistanceWheel"
           @input="distanceField.onInput"
           @change="distanceField.commit"
           @keyup.enter="distanceField.commit"
         />
-        <span :class="$style.fieldUnit">мм</span>
+        <span :class="$style.fieldUnit">{{ t("editorPanels.mm") }}</span>
       </div>
       <div v-if="extrudeDistanceError" :class="$style.hint" data-testid="extrude-distance-error">
         {{ extrudeDistanceError }}
@@ -193,20 +195,20 @@ function cancel() {
     </div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Направление</span>
+        <span>{{ t("editorPanels.direction") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="extrudeDirection" :class="$style.selectInput">
-          <option value="one_side">Одностороннее</option>
-          <option value="symmetric">Симметричное</option>
-          <option value="two_sided">В обе стороны</option>
+          <option value="one_side">{{ t("editorPanels.one_side") }}</option>
+          <option value="symmetric">{{ t("editorPanels.symmetric") }}</option>
+          <option value="two_sided">{{ t("editorPanels.two_sided") }}</option>
         </select>
       </div>
     </div>
     <div v-if="extrudeDirection === 'two_sided'" :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Обратное расстояние</span>
-        <span :class="$style.fieldExpr">мм</span>
+        <span>{{ t("editorPanels.back_distance") }}</span>
+        <span :class="$style.fieldExpr">{{ t("editorPanels.mm") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <input
@@ -215,16 +217,16 @@ function cancel() {
           min="0"
           step="1"
           :class="$style.numberInput"
-          title="Длина против основного направления"
+          :title="t('editorPanels.back_distance_hint')"
           data-testid="extrude-back-distance"
         />
-        <span :class="$style.fieldUnit">мм</span>
+        <span :class="$style.fieldUnit">{{ t("editorPanels.mm") }}</span>
       </div>
     </div>
     <div :class="$style.field">
       <label :class="$style.toggleRow">
         <input v-model="extrudeReversed" type="checkbox" data-testid="extrude-reverse" />
-        <span>Реверс</span>
+        <span>{{ t("editorPanels.reverse") }}</span>
         <span :class="$style.toggleHint">{{ directionHint }}</span>
       </label>
     </div>
@@ -244,10 +246,10 @@ function cancel() {
     </template>
 
     <template v-else>
-    <div :class="$style.panelHead">ПАРАМЕТРЫ ВРАЩЕНИЯ</div>
+    <div :class="$style.panelHead">{{ t("editorPanels.revolve_parameters") }}</div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Угол</span>
+        <span>{{ t("editorPanels.angle") }}</span>
         <span :class="$style.fieldExpr">°</span>
       </div>
       <div :class="$style.fieldInput">
@@ -256,7 +258,7 @@ function cancel() {
           type="text"
           inputmode="decimal"
           :class="[$style.numberInput, revolveAngleError && $style.inputInvalid]"
-          title="От 0 до 360°. Можно выражение с единицами: 90deg, 0.5 rad, 360/4"
+          :title="t('editorPanels.angle_input_hint')"
           data-testid="revolve-angle"
           @input="revolveAngleField.onInput"
           @change="revolveAngleField.commit"
@@ -270,18 +272,18 @@ function cancel() {
     </div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Ось вращения</span>
+        <span>{{ t("editorPanels.axis") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="revolveAxis" :class="$style.selectInput">
-          <option value="y">Y (вертик.)</option>
-          <option value="x">X (гориз.)</option>
+          <option value="y">{{ t("editorPanels.axis_y") }}</option>
+          <option value="x">{{ t("editorPanels.axis_x") }}</option>
         </select>
       </div>
     </div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Начало оси (X)</span>
+        <span>{{ t("editorPanels.axis_origin_x") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <input
@@ -294,7 +296,7 @@ function cancel() {
     </div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Начало оси (Y)</span>
+        <span>{{ t("editorPanels.axis_origin_y") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <input
@@ -307,12 +309,12 @@ function cancel() {
     </div>
     <div :class="$style.field">
       <div :class="$style.fieldLabel">
-        <span>Направление</span>
+        <span>{{ t("editorPanels.direction") }}</span>
       </div>
       <div :class="$style.fieldInput">
         <select v-model="revolveDirection" :class="$style.selectInput">
-          <option value="one_side">Одностороннее</option>
-          <option value="symmetric">Симметричное</option>
+          <option value="one_side">{{ t("editorPanels.one_side") }}</option>
+          <option value="symmetric">{{ t("editorPanels.symmetric") }}</option>
         </select>
       </div>
     </div>
@@ -326,12 +328,12 @@ function cancel() {
         data-testid="revolve-apply"
         @click="handleRevolve"
       >
-        {{ revolveLoading ? 'Вращение…' : 'Вращать' }}
+        {{ revolveLoading ? t('editorPanels.revolving') : t('editorPanels.revolve') }}
       </button>
     </div>
     </template>
     <template #foot>
-      <button :class="$style.cancelBtn" @click="cancel">Отмена (Esc)</button>
+      <button :class="$style.cancelBtn" @click="cancel">{{ t("editorPanels.cancel_esc") }}</button>
     </template>
   </PropsPanelShell>
 </template>

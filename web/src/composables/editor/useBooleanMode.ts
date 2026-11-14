@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, type Ref } from "vue";
 import { useBodyPick } from "@/composables/shared/useBodyPick";
 import { useDocument } from "@/composables/shared/useDocument";
@@ -18,6 +19,7 @@ export function useBooleanMode(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
   const documentStore = useDocument();
   const names = useDisplayNames();
@@ -103,7 +105,7 @@ export function useBooleanMode(deps: {
 
   async function executeBoolean(targetBodyId: string, toolBodyIds: string[]) {
     if (![targetBodyId, ...toolBodyIds].every(isBrowserBodyId)) {
-      error.value = "Булева операция доступна только для тел браузерного ядра.";
+      error.value = tr("editorOps.booleanUnsupported");
       return null;
     }
     loading.value = true;
@@ -118,7 +120,7 @@ export function useBooleanMode(deps: {
       await undoRedo.execute(command);
       return command.getResult();
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Не удалось выполнить булеву операцию в браузере.";
+      error.value = err instanceof Error ? err.message : tr("editorOps.booleanFailed");
       return null;
     } finally {
       loading.value = false;
@@ -142,7 +144,7 @@ export function useBooleanMode(deps: {
     actions: ["boolean"],
     active: booleanMode,
     loading,
-    busyLabel: "Булева операция…",
+    get busyLabel() { return tr("editorOps.booleanBusy") },
     enter,
     exit,
     onSelectionCleared,

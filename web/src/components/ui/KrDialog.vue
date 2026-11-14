@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { onBeforeUnmount, onMounted, watch } from "vue";
 
 const props = defineProps<{ open: boolean }>();
@@ -44,8 +46,8 @@ onBeforeUnmount(() => {
         <div :class="$style.positioner">
           <div :class="$style.content" role="dialog" aria-modal="true">
             <div :class="$style.head">
-              <h2 :class="$style.title"><slot name="title">Диалог</slot></h2>
-              <button :class="$style.close" type="button" aria-label="Закрыть" @click="close">✕</button>
+              <h2 :class="$style.title"><slot name="title">{{ t("ui.dialog") }}</slot></h2>
+              <button :class="$style.close" type="button" :aria-label="t('ui.close')" @click="close">✕</button>
             </div>
             <div :class="$style.body"><slot /></div>
             <div :class="$style.footer"><slot name="footer" /></div>

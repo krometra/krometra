@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import type { OnboardingHint } from "@/composables/editor/useOnboarding";
@@ -26,8 +28,8 @@ const emit = defineEmits<{ act: []; dismiss: [] }>();
         variant="ghost"
         size="sm"
         :class="$style.dismiss"
-        title="Скрыть подсказку"
-        aria-label="Скрыть подсказку"
+        :title="t('editorPanels.hide_hint')"
+        :aria-label="t('editorPanels.hide_hint')"
         @click="emit('dismiss')"
       >
         <KrIcon name="close" :size="14" />

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import { buildPart, type IsoView } from "@/lib/iso";
 
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     variant?: "viewport" | "thumbnail";
@@ -67,7 +69,7 @@ const part = computed(() => buildPart(view.value));
           font-family="var(--kr-font-mono)"
           font-size="14"
           text-anchor="middle"
-        >120,0 мм</text>
+        >{{ t("viewportText.sampleDimension") }}</text>
       </template>
     </svg>
   </div>

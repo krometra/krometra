@@ -3,11 +3,13 @@
 // сохранение эскизов/геометрии не трогает metadata, поэтому они устойчивы.
 
 import { computed } from "vue";
+import { useI18n } from "./shared/useI18n";
 import { useDocument } from "./shared/useDocument";
 import { bodyNumbering } from "@/lib/bodyNumbering";
 import type { TimelineEntry } from "@/types/api";
 
 export function useDisplayNames() {
+  const { t } = useI18n();
   const documentStore = useDocument();
 
   const names = computed<Record<string, string>>(() => {
@@ -47,7 +49,7 @@ export function useDisplayNames() {
     const custom = names.value[bodyId];
     if (custom) return custom;
     const number = bodyNumbers.value.get(bodyId);
-    return number ? `Тело ${number}` : bodyId.slice(0, 12);
+    return number ? t("editorOps.bodyNumber", { number }) : bodyId.slice(0, 12);
   }
 
   async function rename(projectId: string, id: string, name: string) {

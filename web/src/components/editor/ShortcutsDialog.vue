@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
 import KrButton from "@/components/ui/KrButton.vue";
-import { EDITOR_SHORTCUTS } from "@/composables/editor/useEditorHotkeys";
+import { editorShortcuts, type Shortcut } from "@/composables/editor/useEditorHotkeys";
 
 const open = defineModel<boolean>("open", { required: true });
 
 const groups = computed(() => {
-  const byGroup = new Map<string, typeof EDITOR_SHORTCUTS>();
-  for (const s of EDITOR_SHORTCUTS) {
+  const byGroup = new Map<string, Shortcut[]>();
+  for (const s of editorShortcuts(t)) {
     const list = byGroup.get(s.group) ?? [];
     list.push(s);
     byGroup.set(s.group, list);
@@ -19,7 +21,7 @@ const groups = computed(() => {
 
 <template>
   <KrDialog v-model:open="open">
-    <template #title>Горячие клавиши</template>
+    <template #title>{{ t("editorPanels.keyboard_shortcuts") }}</template>
     <div :class="$style.groups">
       <section v-for="[group, items] in groups" :key="group">
         <h3 :class="$style.groupTitle">{{ group }}</h3>
@@ -30,7 +32,7 @@ const groups = computed(() => {
       </section>
     </div>
     <template #footer>
-      <KrButton variant="secondary" size="md" @click="open = false">Закрыть</KrButton>
+      <KrButton variant="secondary" size="md" @click="open = false">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </KrDialog>
 </template>

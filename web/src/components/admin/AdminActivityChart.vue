@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import type { AdminDailyPoint } from "@/types/api";
 import { buildChart } from "@/lib/admin/chart";
 import { formatDay } from "@/lib/admin/format";
 import { chartSeries } from "@/lib/admin/overviewView";
 
+const { t, locale } = useI18n();
 const props = defineProps<{ points: AdminDailyPoint[] }>();
 
 const WIDTH = 720;
@@ -18,10 +20,10 @@ const COLORS: Record<string, string> = {
 const chart = computed(() =>
   buildChart({
     days: props.points.map((point) => point.date),
-    series: chartSeries(props.points),
+    series: chartSeries(props.points, t),
     width: WIDTH,
     height: HEIGHT,
-    formatDay,
+    formatDay: (value) => formatDay(value, locale.value),
   }),
 );
 const drawOrder = computed(() => [...chart.value.lines].reverse());
@@ -29,7 +31,7 @@ const drawOrder = computed(() => [...chart.value.lines].reverse());
 
 <template>
   <figure :class="$style.root" data-testid="admin-activity-chart">
-    <svg :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" :class="$style.svg" role="img" aria-label="Активность по дням">
+    <svg :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" :class="$style.svg" role="img" :aria-label="t('admin.activity')">
       <g v-for="tick in chart.ticks" :key="tick.value">
         <line :x1="chart.box.left" :x2="chart.box.right" :y1="tick.y" :y2="tick.y" :class="$style.grid" />
         <text :x="chart.box.left - 8" :y="tick.y" :class="$style.tick" text-anchor="end" dominant-baseline="middle">

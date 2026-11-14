@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrCheckbox from "@/components/ui/KrCheckbox.vue";
@@ -12,15 +14,15 @@ import { pickHint, type PatternAxisSlot, type PatternPickKind } from "@/lib/patt
 
 const props = defineProps<{ pattern: PatternApi }>();
 
-const TYPES: { value: PatternType; label: string }[] = [
-  { value: "linear", label: "Линейный" },
-  { value: "circular", label: "Круговой" },
-];
+const TYPES = computed<{ value: PatternType; label: string }[]>(() => [
+  { value: "linear", label: t("editorPanels.linear") },
+  { value: "circular", label: t("editorPanels.circular") },
+]);
 
-const MODES: { value: PatternMode; label: string }[] = [
-  { value: "join", label: "Объединить" },
-  { value: "separate", label: "Отдельные тела" },
-];
+const MODES = computed<{ value: PatternMode; label: string }[]>(() => [
+  { value: "join", label: t("editorPanels.union") },
+  { value: "separate", label: t("editorPanels.separate") },
+]);
 
 const form = computed(() => props.pattern.form.value);
 const circular = computed(() => form.value.type === "circular");
@@ -36,7 +38,7 @@ function hintFor(slot: PatternAxisSlot): string {
 </script>
 
 <template>
-  <PropsPanelShell title="Массив" kind="FEATURE" dot-color="oklch(0.7 0.13 200)">
+  <PropsPanelShell :title="t('editorPanels.pattern')" kind="FEATURE" dot-color="oklch(0.7 0.13 200)">
     <div :class="$style.body" data-testid="pattern-panel">
       <div :class="$style.row">
         <KrButton
@@ -53,17 +55,17 @@ function hintFor(slot: PatternAxisSlot): string {
 
       <div :class="$style.field">
         <KrSelect
-          label="Тело"
+          :label="t('editorPanels.body')"
           :model-value="pattern.sourceBodyId.value ?? ''"
           :options="pattern.availableBodies.value"
-          placeholder="Кликните грань тела"
+          :placeholder="t('editorPanels.click_face')"
           data-testid="pattern-source"
           @update:model-value="pattern.setSource"
         />
       </div>
 
       <PatternAxisPicker
-        :label="circular ? 'Ось вращения' : 'Направление'"
+        :label="circular ? t('editorPanels.axis') : t('editorPanels.direction')"
         :axis="form.axis"
         :picking="pickingIn('axis')"
         :pick-hint="hintFor('axis')"
@@ -75,7 +77,7 @@ function hintFor(slot: PatternAxisSlot): string {
 
       <div :class="$style.pair">
         <KrNumberInput
-          label="Количество"
+          :label="t('editorPanels.quantity')"
           :model-value="form.count"
           :min="2"
           :max="100"
@@ -85,7 +87,7 @@ function hintFor(slot: PatternAxisSlot): string {
         />
         <KrNumberInput
           v-if="circular"
-          label="Полный угол"
+          :label="t('editorPanels.full_angle')"
           :model-value="form.angle"
           :min="1"
           :max="360"
@@ -96,27 +98,27 @@ function hintFor(slot: PatternAxisSlot): string {
         />
         <KrNumberInput
           v-else
-          label="Шаг"
+          :label="t('editorPanels.pitch')"
           :model-value="form.spacing"
           :step="1"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="pattern-spacing"
           @update:model-value="pattern.updateForm({ spacing: $event })"
         />
       </div>
-      <span v-if="circular" :class="$style.hint">360° — копии по всей окружности, меньше — крайние встают на концы дуги</span>
-      <span v-else :class="$style.hint">Отрицательный шаг разворачивает направление</span>
+      <span v-if="circular" :class="$style.hint">{{ t("editorPanels.pattern_circle_hint") }}</span>
+      <span v-else :class="$style.hint">{{ t("editorPanels.negative_pitch") }}</span>
 
       <template v-if="!circular">
         <KrCheckbox
           :model-value="form.secondDirection"
-          label="Второе направление (сетка)"
+          :label="t('editorPanels.second_direction')"
           data-testid="pattern-second"
           @update:model-value="pattern.updateForm({ secondDirection: $event })"
         />
         <template v-if="form.secondDirection">
           <PatternAxisPicker
-            label="Направление 2"
+            :label="t('editorPanels.direction2')"
             :axis="form.axis2"
             :picking="pickingIn('axis2')"
             :pick-hint="hintFor('axis2')"
@@ -127,7 +129,7 @@ function hintFor(slot: PatternAxisSlot): string {
           />
           <div :class="$style.pair">
             <KrNumberInput
-              label="Количество 2"
+              :label="t('editorPanels.count2')"
               :model-value="form.count2"
               :min="1"
               :max="100"
@@ -136,10 +138,10 @@ function hintFor(slot: PatternAxisSlot): string {
               @update:model-value="pattern.updateForm({ count2: $event })"
             />
             <KrNumberInput
-              label="Шаг 2"
+              :label="t('editorPanels.spacing2')"
               :model-value="form.spacing2"
               :step="1"
-              suffix="мм"
+              :suffix="t('editorPanels.mm')"
               data-testid="pattern-spacing2"
               @update:model-value="pattern.updateForm({ spacing2: $event })"
             />
@@ -148,7 +150,7 @@ function hintFor(slot: PatternAxisSlot): string {
       </template>
 
       <div :class="$style.field">
-        <span :class="$style.label">Результат</span>
+        <span :class="$style.label">{{ t("editorPanels.result") }}</span>
         <div :class="$style.row">
           <KrButton
             v-for="option in MODES"
@@ -161,7 +163,7 @@ function hintFor(slot: PatternAxisSlot): string {
             {{ option.label }}
           </KrButton>
         </div>
-        <span :class="$style.hint">Объединённый массив тела-инструмента вырезается из детали одной булевой операцией</span>
+        <span :class="$style.hint">{{ t("editorPanels.pattern_cut_hint") }}</span>
       </div>
 
       <p v-if="pattern.error.value || pattern.formError.value" :class="$style.error" data-testid="pattern-error">
@@ -176,9 +178,9 @@ function hintFor(slot: PatternAxisSlot): string {
         data-testid="pattern-apply"
         @click="pattern.apply"
       >
-        {{ pattern.loading.value ? "Строю…" : "Применить" }}
+        {{ pattern.loading.value ? t("editorPanels.building") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" @click="pattern.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" @click="pattern.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

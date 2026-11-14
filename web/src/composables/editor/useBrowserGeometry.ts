@@ -1,3 +1,5 @@
+import { useI18n } from "@/composables/shared/useI18n";
+import type { GeometryErrorDetails } from "@/workers/geometry/errorDetails";
 import type { PatternMode, PatternSpec } from "@/lib/bodyPattern";
 import type { BodyTransform } from "@/lib/bodyTransform";
 import type { BrowserBooleanOperation, BrowserExtrudeOperation } from "@/lib/browserBoolean";
@@ -93,6 +95,7 @@ interface WorkerResponse {
   id: number;
   ok: boolean;
   error?: string;
+  errorDetails?: GeometryErrorDetails | null;
   step?: ArrayBuffer;
   mesh?: MeshData;
   naming?: SavedNaming;
@@ -123,6 +126,8 @@ interface PendingRequest {
   timeout: number;
   exchange: KernelExchange;
 }
+
+const { tMessage } = useI18n();
 
 const WORKER_TIMEOUT_MS = 30_000;
 const IMPORT_TIMEOUT_MS = 120_000;
@@ -165,7 +170,7 @@ function settle(data: WorkerResponse) {
   if (!data.ok) {
     const message = data.error || "Не удалось выполнить команду браузерного ядра.";
     if (!isFatalKernelError(message)) {
-      request.reject(new Error(message));
+      request.reject(new Error(data.errorDetails ? tMessage(data.errorDetails) : message));
       return;
     }
     const explanation = kernelFailureMessage(message);

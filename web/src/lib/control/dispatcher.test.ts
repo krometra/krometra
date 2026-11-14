@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ApiError, SAVE_FAILED_MESSAGE, saveFailure } from "../apiError";
+import { SAVE_FAILURE_MESSAGES } from "../i18n/saveFailureMessages";
 import { createControlDispatcher, defineOp, type DispatcherHooks } from "./dispatcher";
 import { param } from "./params";
 import { fail, type ControlReply } from "./protocol";
@@ -125,6 +126,14 @@ describe("createControlDispatcher: ошибки обработчика", () => {
       defineOp({ op: "save", description: "Не сохраняет.", run: () => Promise.reject(saveFailure(new ApiError(502, "error", "502"))) }),
     ]);
     expect(errorOf(await dispatcher.request({ op: "save" }))).toEqual({ code: "save_failed", message: SAVE_FAILED_MESSAGE });
+  });
+
+  it("распознаёт локализованный сбой сохранения", async () => {
+    const dispatcher = readyDispatcher();
+    dispatcher.register([
+      defineOp({ op: "save", description: "Save", run: () => Promise.reject(saveFailure(new ApiError(502, "error", "502"), SAVE_FAILURE_MESSAGES.zh)) }),
+    ]);
+    expect(errorOf(await dispatcher.request({ op: "save" }))).toEqual({ code: "save_failed", message: SAVE_FAILURE_MESSAGES.zh });
   });
 
   it("результат приводится к JSON: undefined становится null, несериализуемое — ошибкой", async () => {

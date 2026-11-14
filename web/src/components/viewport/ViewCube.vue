@@ -10,6 +10,7 @@
  * - Home button resets to default isometry
  */
 import { computed, ref } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import * as THREE from "three";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import {
@@ -19,6 +20,7 @@ import {
 import { cubeRotation } from "@/lib/orientation";
 import { beginCubeDrag, moveCubeDrag, type CubeDrag, type CubeOrbit } from "@/lib/navigation/cubeDrag";
 
+const { t } = useI18n();
 const props = defineProps<{
   /** Current camera world position */
   cameraPosition: { x: number; y: number; z: number };
@@ -125,14 +127,14 @@ const vertices = [
   "v-btl", "v-btr", "v-bbl", "v-bbr",
 ];
 
-const faceDefs = [
-  { name: "front",  label: "FRONT",  class: "cubeFaceFront" },
-  { name: "back",   label: "BACK",   class: "cubeFaceBack" },
-  { name: "top",    label: "TOP",    class: "cubeFaceTop" },
-  { name: "bottom", label: "BOTTOM", class: "cubeFaceBottom" },
-  { name: "left",   label: "LEFT",   class: "cubeFaceLeft" },
-  { name: "right",  label: "RIGHT",  class: "cubeFaceRight" },
-];
+const faceDefs = computed(() => [
+  { name: "front",  label: t("viewportText.front"),  class: "cubeFaceFront" },
+  { name: "back",   label: t("viewportText.back"),   class: "cubeFaceBack" },
+  { name: "top",    label: t("viewportText.top"),    class: "cubeFaceTop" },
+  { name: "bottom", label: t("viewportText.bottom"), class: "cubeFaceBottom" },
+  { name: "left",   label: t("viewportText.left"),   class: "cubeFaceLeft" },
+  { name: "right",  label: t("viewportText.right"),  class: "cubeFaceRight" },
+]);
 </script>
 
 <template>
@@ -140,8 +142,8 @@ const faceDefs = [
     <!-- Home button -->
     <button
       :class="$style.homeBtn"
-      title="Изометрия"
-      aria-label="Изометрия"
+      :title="t('viewportText.isometric')"
+      :aria-label="t('viewportText.isometric')"
       @click="handleHomeClick"
     >
       <KrIcon name="home" :size="14" />

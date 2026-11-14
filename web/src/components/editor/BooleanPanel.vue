@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrCheckbox from "@/components/ui/KrCheckbox.vue";
@@ -13,11 +15,11 @@ const props = defineProps<{ boolean: BooleanModeApi }>();
 
 const names = useDisplayNames();
 
-const OPERATIONS: { value: BooleanOperation; label: string }[] = [
-  { value: "union", label: "Объединить" },
-  { value: "subtract", label: "Вычесть" },
-  { value: "intersect", label: "Пересечь" },
-];
+const OPERATIONS = computed<{ value: BooleanOperation; label: string }[]>(() => [
+  { value: "union", label: t("editorPanels.union") },
+  { value: "subtract", label: t("editorPanels.subtract") },
+  { value: "intersect", label: t("editorPanels.intersect") },
+]);
 
 const targetOptions = computed(() => props.boolean.availableBodies.value.map((body) => ({ value: body.id, label: body.label })));
 
@@ -29,9 +31,9 @@ const canApply = computed(() => props.boolean.targetId.value !== null && props.b
 
 const statusText = computed(() => {
   const target = props.boolean.targetId.value;
-  if (!target) return "Кликните целевое тело в сцене или в дереве";
-  if (props.boolean.toolIds.value.length === 0) return `${names.bodyLabel(target)}: кликните одно или несколько тел-инструментов`;
-  return "Клик по выбранному телу снимает его с выбора";
+  if (!target) return t("editorPanels.click_the_target_body_in_the_scene_or_tree");
+  if (props.boolean.toolIds.value.length === 0) return t("editorPanels.tool_select", { name: names.bodyLabel(target) });
+  return t("editorPanels.click_a_selected_body_to_deselect_it");
 });
 
 function addTool(bodyId: string) {
@@ -40,12 +42,12 @@ function addTool(bodyId: string) {
 </script>
 
 <template>
-  <PropsPanelShell title="Комбинировать" kind="CSG" dot-color="oklch(0.65 0.14 300)">
+  <PropsPanelShell :title="t('editorPanels.combine')" kind="CSG" dot-color="oklch(0.65 0.14 300)">
     <div :class="$style.body" data-testid="boolean-panel">
       <p :class="$style.status" data-testid="boolean-status">{{ statusText }}</p>
 
       <div :class="$style.field">
-        <span :class="$style.label">Операция</span>
+        <span :class="$style.label">{{ t("editorPanels.operation") }}</span>
         <div :class="$style.operations">
           <KrButton
             v-for="op in OPERATIONS"
@@ -63,17 +65,17 @@ function addTool(bodyId: string) {
       <KrSelect
         :model-value="boolean.targetId.value ?? ''"
         :options="targetOptions"
-        label="Целевое тело"
-        placeholder="Кликните тело"
+        :label="t('editorPanels.target_body')"
+        :placeholder="t('editorPanels.click_a_body')"
         data-testid="boolean-target"
         @update:model-value="$event && boolean.selectTarget($event)"
       />
 
       <div :class="$style.field">
-        <span :class="$style.label">Тела-инструменты · {{ boolean.toolIds.value.length }}</span>
+        <span :class="$style.label">{{ t("editorPanels.tools_count", { count: boolean.toolIds.value.length }) }}</span>
         <BodyPickList
           :body-ids="boolean.toolIds.value"
-          empty="Кликните тела-инструменты в сцене или в дереве"
+          :empty="t('editorPanels.click_tool_bodies_in_the_scene_or_tree')"
           test-id="boolean-tools"
           @remove="boolean.removeTool"
         />
@@ -82,7 +84,7 @@ function addTool(bodyId: string) {
           :key="boolean.toolIds.value.join()"
           model-value=""
           :options="toolOptions"
-          placeholder="Добавить инструмент"
+          :placeholder="t('editorPanels.add_tool')"
           data-testid="boolean-add-tool"
           @update:model-value="addTool"
         />
@@ -90,12 +92,12 @@ function addTool(bodyId: string) {
 
       <KrCheckbox
         :model-value="boolean.keepTools.value"
-        label="Сохранить инструменты"
+        :label="t('editorPanels.keep_tools')"
         data-testid="boolean-keep-tools"
         @update:model-value="boolean.setKeepTools"
       />
       <span :class="$style.hint">
-        {{ boolean.keepTools.value ? "Инструменты останутся отдельными видимыми телами" : "Инструменты будут поглощены результатом" }}
+        {{ boolean.keepTools.value ? t("editorPanels.tools_will_remain_as_separate_visible_bodies") : t("editorPanels.tools_will_be_absorbed_into_the_result") }}
       </span>
 
       <p v-if="boolean.error.value" :class="$style.error" data-testid="boolean-error">{{ boolean.error.value }}</p>
@@ -103,10 +105,10 @@ function addTool(bodyId: string) {
 
     <template #foot>
       <KrButton variant="primary" :disabled="!canApply" data-testid="boolean-apply" @click="boolean.apply">
-        {{ boolean.loading.value ? "Строю…" : "Применить" }}
+        {{ boolean.loading.value ? t("editorPanels.building") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" data-testid="boolean-clear" @click="boolean.clear">Сбросить</KrButton>
-      <KrButton variant="ghost" @click="boolean.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" data-testid="boolean-clear" @click="boolean.clear">{{ t("editorPanels.reset") }}</KrButton>
+      <KrButton variant="ghost" @click="boolean.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

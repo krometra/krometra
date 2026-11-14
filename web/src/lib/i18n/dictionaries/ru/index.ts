@@ -1,6 +1,20 @@
 import { account } from "./account";
 import { auth } from "./auth";
 import { common } from "./common";
+import { editor } from "./editor";
+import { landing } from "./landing";
+import { sketch } from "./sketch";
+import { errors } from "./errors";
+import { admin } from "./admin";
+import { editorPanels } from "./editorPanels";
+import { sketchDetail } from "./sketchDetail";
+import { property } from "./property";
+import { legalText } from "./legalText";
+import { editorOps } from "./editorOps";
+import { viewportText } from "./viewportText";
+import { timeline } from "./timeline";
+import { geometryErrors } from "./geometryErrors";
+import { projects } from "./projects";
 import { validation } from "./validation";
 
-export const ru = { ...common, ...auth, ...account, ...validation };
+export const ru = { ...common, ...auth, ...account, ...editor, ...landing, ...sketch, ...errors, ...admin, ...editorPanels, ...sketchDetail, ...property, ...legalText, ...editorOps, ...viewportText, ...timeline, ...geometryErrors, ...projects, ...validation };

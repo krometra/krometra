@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { AdminOverview } from "@/types/api";
 import { chartSeries, kpiTiles, operationBars } from "./overviewView";
 import { operationLabel } from "./operationLabels";
+import { admin as en } from "@/lib/i18n/dictionaries/en/admin";
+import { admin as zh } from "@/lib/i18n/dictionaries/zh/admin";
+import { renderMessage } from "@/lib/i18n/message";
+import type { AdminTranslator } from "./i18n";
 
 const overview: AdminOverview = {
   period_days: 7,
@@ -45,5 +49,14 @@ describe("overviewView", () => {
     expect(tiles.find((t) => t.id === "users")).toMatchObject({ value: "12", hint: "+3 за 7 дн." });
     expect(tiles.find((t) => t.id === "storage")?.value).toBe("5.0 МБ");
     expect(tiles.find((t) => t.id === "projects")?.hint).toBe("с телами 15, пустых 5");
+  });
+
+  it("переводит показатели и названия операций", () => {
+    const english: AdminTranslator = (key, ...args) => renderMessage("en", en[key], args[0]);
+    const chinese: AdminTranslator = (key, ...args) => renderMessage("zh", zh[key], args[0]);
+    expect(kpiTiles(overview, english, "en")[0].hint).toBe("+3 in 7 days");
+    expect(operationBars(overview.operations, english)[0].label).toBe("Extrusion");
+    expect(operationBars(overview.operations, chinese)[0].label).toBe("拉伸");
+    expect(chartSeries(overview.series, chinese)[0].label).toBe("注册数");
   });
 });

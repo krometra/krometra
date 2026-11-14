@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
@@ -13,7 +15,13 @@ const props = defineProps<{ exportApi: ExportApi }>();
 const dialog = useMeshExportDialog(props.exportApi);
 const { target, choice, values } = dialog;
 
-const PRESET_TABS = (Object.keys(QUALITY_LABELS) as QualityPreset[]).map((id) => ({ id, label: QUALITY_LABELS[id] }));
+const presetKeys = {
+  draft: "editorOps.qualityDraft",
+  normal: "editorOps.qualityNormal",
+  high: "editorOps.qualityHigh",
+  custom: "editorOps.qualityCustom",
+} as const;
+const PRESET_TABS = computed(() => (Object.keys(QUALITY_LABELS) as QualityPreset[]).map((id) => ({ id, label: t(presetKeys[id]) })));
 
 const formatLabel = computed(() => target.value?.format.toUpperCase() ?? "");
 
@@ -24,7 +32,7 @@ const presetValue = computed({
   },
 });
 
-const presetSummary = computed(() => `Допуск ${values.value.tolerance} мм, угол ${Math.round(values.value.angleDeg * 10) / 10}°`);
+const presetSummary = computed(() => t("editorPanels.mesh_summary", { tolerance: values.value.tolerance, angle: Math.round(values.value.angleDeg * 10) / 10 }));
 
 function onOpenChange(open: boolean) {
   if (!open) dialog.close();
@@ -33,23 +41,23 @@ function onOpenChange(open: boolean) {
 
 <template>
   <KrDialog :open="target !== null" @update:open="onOpenChange">
-    <template #title>Экспорт {{ formatLabel }}</template>
+    <template #title>{{ t("editorPanels.export_title", { format: formatLabel }) }}</template>
     <div v-if="target" :class="$style.body" data-testid="mesh-export-dialog">
       <div :class="$style.scope">{{ exportApi.targetLabel(target.bodyIds) }}</div>
-      <div :class="$style.caption">Качество сетки</div>
+      <div :class="$style.caption">{{ t("editorPanels.mesh_quality") }}</div>
       <KrTabs v-model="presetValue" :tabs="PRESET_TABS" />
       <div v-if="choice.preset === 'custom'" :class="$style.custom">
         <KrNumberInput
           v-model="choice.custom.tolerance"
-          label="Линейный допуск"
-          suffix="мм"
+          :label="t('editorPanels.linear_tolerance')"
+          :suffix="t('editorPanels.mm')"
           :min="TOLERANCE_RANGE.min"
           :max="TOLERANCE_RANGE.max"
           :step="0.001"
         />
         <KrNumberInput
           v-model="choice.custom.angleDeg"
-          label="Угловой допуск"
+          :label="t('editorPanels.angular_tolerance')"
           suffix="°"
           :min="ANGLE_RANGE_DEG.min"
           :max="ANGLE_RANGE_DEG.max"
@@ -62,9 +70,9 @@ function onOpenChange(open: boolean) {
       </div>
     </div>
     <template #footer>
-      <KrButton variant="secondary" size="md" @click="dialog.close">Отмена</KrButton>
+      <KrButton variant="secondary" size="md" @click="dialog.close">{{ t("editorPanels.cancel") }}</KrButton>
       <KrButton variant="primary" size="md" :disabled="Boolean(dialog.qualityError.value)" @click="dialog.confirm">
-        Скачать {{ formatLabel }}
+        {{ t("editorPanels.download_format", { format: formatLabel }) }}
       </KrButton>
     </template>
   </KrDialog>

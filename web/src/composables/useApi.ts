@@ -2,6 +2,7 @@
 // Does NOT use localStorage for tokens — only in-memory
 
 import { useAuth } from "./shared/useAuth";
+import { useI18n } from "./shared/useI18n";
 import { ApiError, saveFailure, toApiError } from "@/lib/apiError";
 import { isTransientFailure, retryTransient } from "@/lib/transientRetry";
 
@@ -11,15 +12,17 @@ function isRefreshEndpoint(path: string): boolean {
   return path.startsWith("/auth/refresh");
 }
 
-async function failure(response: Response, fallback: string): Promise<ApiError> {
+async function failure(response: Response, fallback: string, translateError?: import("@/lib/apiError").ErrorTranslator): Promise<ApiError> {
   const body = await response.json().catch(() => null);
-  return toApiError(response.status, body, fallback);
+  return toApiError(response.status, body, fallback, translateError);
 }
 
 let refreshingPromise: Promise<boolean> | null = null;
 
 export function useApi() {
   const auth = useAuth();
+  const { t, tMessage, locale } = useI18n();
+  const translateError: import("@/lib/apiError").ErrorTranslator = (key, values) => tMessage({ key, values });
 
   async function refreshTokens(): Promise<boolean> {
     if (refreshingPromise) {
@@ -73,7 +76,7 @@ export function useApi() {
         credentials: "include",
       });
     } catch {
-      throw new ApiError(0, "network_error", "Нет связи с сервером. Проверьте подключение.");
+      throw new ApiError(0, "network_error", t("errors.network_error"));
     }
 
     // 401 на самом /auth/refresh — это «сессии нет», а не «токен протух»:
@@ -92,7 +95,7 @@ export function useApi() {
     }
 
     if (!response.ok) {
-      throw await failure(response, response.statusText);
+      throw await failure(response, response.statusText, locale.value === "ru" ? undefined : translateError);
     }
 
     // Handle 204 No Content
@@ -107,7 +110,7 @@ export function useApi() {
     try {
       return await retryTransient(() => multipartOnce<T>(method, path, body));
     } catch (error) {
-      if (isTransientFailure(error)) throw saveFailure(error as ApiError);
+      if (isTransientFailure(error)) throw saveFailure(error as ApiError, t("errors.saveFailed"));
       throw error;
     }
   }
@@ -121,7 +124,7 @@ export function useApi() {
     try {
       response = await fetch(`${BASE_URL}${path}`, { method, headers, body, credentials: "include" });
     } catch {
-      throw new ApiError(0, "network_error", "Нет связи с сервером. Проверьте подключение.");
+      throw new ApiError(0, "network_error", t("errors.network_error"));
     }
     if (response.status === 401 && !auth.isRefreshing.value) {
       const refreshed = await refreshTokens();
@@ -130,7 +133,7 @@ export function useApi() {
         response = await fetch(`${BASE_URL}${path}`, { method, headers, body, credentials: "include" });
       }
     }
-    if (!response.ok) throw await failure(response, response.statusText);
+    if (!response.ok) throw await failure(response, response.statusText, locale.value === "ru" ? undefined : translateError);
     if (response.status === 204) return undefined as T;
     return response.json();
   }
@@ -171,11 +174,11 @@ export function useApi() {
           credentials: "include",
         });
       } catch {
-        throw new ApiError(0, "network_error", "Нет связи с сервером. Проверьте подключение.");
+        throw new ApiError(0, "network_error", t("errors.network_error"));
       }
 
       if (!response.ok) {
-        throw await failure(response, response.statusText);
+        throw await failure(response, response.statusText, locale.value === "ru" ? undefined : translateError);
       }
 
       return response.json();
@@ -202,7 +205,7 @@ export function useApi() {
           });
         }
       }
-      if (!response.ok) throw await failure(response, "Не удалось выгрузить файл.");
+      if (!response.ok) throw await failure(response, t("errors.downloadFailed"), locale.value === "ru" ? undefined : translateError);
       const blob = await response.blob();
       const disposition = response.headers.get("Content-Disposition") ?? "";
       const filenameMatch = disposition.match(/filename="?([^";\n]+)"?/);

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import NavigationMenu from "./NavigationMenu.vue";
@@ -15,12 +18,12 @@ const emit = defineEmits<{
   "toggle-section": [];
 }>();
 
-const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = [
-  { mode: "shaded", icon: "shaded", title: "Заливка" },
-  { mode: "shaded_edges", icon: "shadedEdges", title: "Заливка с рёбрами" },
-  { mode: "hidden_line", icon: "hiddenLine", title: "Без заливки, только видимые рёбра" },
-  { mode: "wireframe", icon: "wireframe", title: "Каркас" },
-];
+const renderingBtns = computed<{ mode: RenderingMode; icon: IconName; title: string }[]>(() => [
+  { mode: "shaded", icon: "shaded", title: t("editorPanels.shaded") },
+  { mode: "shaded_edges", icon: "shadedEdges", title: t("editorPanels.shaded_edges") },
+  { mode: "hidden_line", icon: "hiddenLine", title: t("editorPanels.hidden_line") },
+  { mode: "wireframe", icon: "wireframe", title: t("editorPanels.wireframe") },
+]);
 </script>
 
 <template>
@@ -29,8 +32,8 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       variant="ghost"
       size="sm"
       :class="$style.viewBtn"
-      title="Вписать всё в экран"
-      aria-label="Вписать всё в экран"
+      :title="t('editorPanels.fit_all')"
+      :aria-label="t('editorPanels.fit_all')"
       @click="emit('fit-all')"
     >
       <KrIcon name="fitAll" :size="17" />
@@ -39,8 +42,8 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       variant="ghost"
       size="sm"
       :class="$style.viewBtn"
-      title="Вид по нормали к выбранной грани"
-      aria-label="Вид по нормали к выбранной грани"
+      :title="t('editorPanels.look_normal')"
+      :aria-label="t('editorPanels.look_normal')"
       data-testid="view-look-at"
       @click="emit('look-at')"
     >
@@ -50,8 +53,8 @@ const renderingBtns: { mode: RenderingMode; icon: IconName; title: string }[] = 
       variant="ghost"
       size="sm"
       :class="[$style.viewBtn, sectionActive && $style.viewBtnActive]"
-      title="Сечение модели"
-      aria-label="Сечение модели"
+      :title="t('editorPanels.model_section')"
+      :aria-label="t('editorPanels.model_section')"
       :aria-pressed="!!sectionActive"
       data-testid="view-section"
       @click="emit('toggle-section')"

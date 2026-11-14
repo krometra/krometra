@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
@@ -24,6 +25,7 @@ export function usePattern(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -111,7 +113,7 @@ export function usePattern(deps: {
       const command = new BrowserPatternCommand(projectId, bodyId, spec, patternResult, () => documentStore.document.value);
       await undoRedo.execute(command);
       const result = command.getResult();
-      if (!result) throw new Error("Массив не сохранён.");
+      if (!result) throw new Error(tr("editorOps.patternUnsaved"));
       result.hiddenBodyIds.forEach((hidden) => meshes.untrackMesh(hidden));
       await documentStore.load(projectId);
       result.bodies.forEach((body) => meshes.trackMesh(body.bodyId, body.mesh));
@@ -129,11 +131,11 @@ export function usePattern(deps: {
       await run(sourceBodyId.value, spec, mode.value);
       exit();
     } catch (err) {
-      error.value = apiErrorMessage(err, "Не удалось построить массив");
+      error.value = apiErrorMessage(err, tr("editorOps.patternFailed"));
     }
   }
 
-  const tool: EditorTool = { actions: ["pattern"], active: patternMode, loading, busyLabel: "Построение массива…", enter, exit };
+  const tool: EditorTool = { actions: ["pattern"], active: patternMode, loading, get busyLabel() { return tr("editorOps.patternBusy") }, enter, exit };
 
   return {
     tool,

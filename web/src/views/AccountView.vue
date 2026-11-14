@@ -15,6 +15,7 @@ import McpConnectGuide from "@/components/account/McpConnectGuide.vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
+import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 
 const auth = useAuth();
 const { t } = useI18n();
@@ -58,6 +59,7 @@ async function confirmDelete() {
       <router-link to="/projects" :class="$style.back">
         <KrIcon name="arrowLeft" :size="16" />{{ t("account.backToProjects") }}
       </router-link>
+      <LocaleSwitcher />
     </header>
 
     <main :class="$style.content">
@@ -128,6 +130,7 @@ async function confirmDelete() {
 .header {
   height: 64px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 0 30px;
   border-bottom: 1px solid var(--kr-border-subtle);

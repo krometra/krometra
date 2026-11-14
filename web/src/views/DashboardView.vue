@@ -5,6 +5,7 @@ import { useAuth } from "@/composables/shared/useAuth";
 import { useProjects } from "@/composables/shared/useProjects";
 import { useI18n } from "@/composables/shared/useI18n";
 import KrLogo from "@/components/ui/KrLogo.vue";
+import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrInput from "@/components/ui/KrInput.vue";
 import KrDialog from "@/components/ui/KrDialog.vue";
@@ -12,13 +13,13 @@ import KrIcon from "@/components/ui/KrIcon.vue";
 import ProjectThumbnail from "@/components/projects/ProjectThumbnail.vue";
 import EmailVerifyBanner from "@/components/account/EmailVerifyBanner.vue";
 import type { IconName } from "@/components/ui/icons";
-import { pluralize } from "@/lib/plural";
+import { LOCALE_HTML_LANG } from "@/lib/i18n/locale";
 import type { Project } from "@/types/api";
 
 const router = useRouter();
 const auth = useAuth();
 const projectsStore = useProjects();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const search = ref("");
 
@@ -32,9 +33,9 @@ const renameProjectId = ref("");
 const renameProjectName = ref("");
 const renaming = ref(false);
 
-const navItems: { label: string; icon: IconName; active?: boolean }[] = [
-  { label: "Все проекты", icon: "grid", active: true },
-];
+const navItems = computed<{ label: string; icon: IconName; active?: boolean }[]>(() => [
+  { label: t("projects.all"), icon: "grid", active: true },
+]);
 
 const thumbTops = [
   "oklch(0.42 0.03 250)",
@@ -50,7 +51,7 @@ const filtered = computed(() => {
 });
 
 const userInitial = computed(() => (auth.user.value?.display_name || auth.user.value?.email || "?").charAt(0).toUpperCase());
-const userName = computed(() => auth.user.value?.display_name || auth.user.value?.email || "Пользователь");
+const userName = computed(() => auth.user.value?.display_name || auth.user.value?.email || t("projects.user"));
 // Без введённого имени backend кладёт в display_name почту — не дублируем её строкой ниже
 const userEmail = computed(() => {
   const u = auth.user.value;
@@ -120,7 +121,7 @@ async function handleLogout() {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  return new Date(dateStr).toLocaleDateString(LOCALE_HTML_LANG[locale.value], { day: "numeric", month: "short" });
 }
 </script>
 
@@ -130,7 +131,7 @@ function formatDate(dateStr: string) {
     <aside :class="$style.sidebar">
       <KrLogo :size="24" :class="$style.brand" @click="router.push('/')" />
       <button :class="$style.newBtn" @click="showCreateDialog = true">
-        <KrIcon name="plus" :size="16" />Новый проект
+        <KrIcon name="plus" :size="16" />{{ t("projects.new") }}
       </button>
 
       <nav :class="$style.nav">
@@ -154,8 +155,8 @@ function formatDate(dateStr: string) {
           v-if="auth.user.value?.is_admin"
           to="/admin"
           :class="[$style.userAction, $style.account]"
-          title="Администрирование"
-          aria-label="Администрирование"
+          :title="t('projects.admin')"
+          :aria-label="t('projects.admin')"
           data-testid="admin-link"
         >
           <KrIcon name="shield" :size="16" />
@@ -169,7 +170,7 @@ function formatDate(dateStr: string) {
         >
           <KrIcon name="user" :size="16" />
         </router-link>
-        <button :class="$style.userAction" title="Выйти" aria-label="Выйти" @click="handleLogout">
+        <button :class="$style.userAction" :title="t('projects.logout')" :aria-label="t('projects.logout')" @click="handleLogout">
           <KrIcon name="logout" :size="16" />
         </button>
       </div>
@@ -178,32 +179,33 @@ function formatDate(dateStr: string) {
     <!-- main -->
     <div :class="$style.main">
       <header :class="$style.header">
-        <div :class="$style.headerTitle">Мои проекты</div>
+        <div :class="$style.headerTitle">{{ t("projects.title") }}</div>
         <div :class="$style.search">
           <KrIcon name="search" :size="15" />
-          <input v-model="search" :class="$style.searchInput" placeholder="Поиск по проектам…" aria-label="Поиск по проектам" />
+          <input v-model="search" :class="$style.searchInput" :placeholder="t('projects.search')" :aria-label="t('projects.search')" />
         </div>
+        <LocaleSwitcher />
       </header>
       <EmailVerifyBanner />
 
       <div :class="$style.content">
-        <div v-if="projectsStore.isLoading.value" :class="$style.muted">Загрузка проектов…</div>
+        <div v-if="projectsStore.isLoading.value" :class="$style.muted">{{ t("projects.loading") }}</div>
 
         <template v-else>
           <div v-if="filtered.length > 0" :class="$style.sectionLabel">
-            {{ pluralize(filtered.length, "проект", "проекта", "проектов") }}
+            {{ t("projects.count", { count: filtered.length }) }}
           </div>
 
           <div v-if="filtered.length === 0 && search.trim()" :class="$style.empty">
-            <p :class="$style.emptyTitle">Ничего не нашлось</p>
-            <p :class="$style.muted">По запросу «{{ search.trim() }}» нет проектов.</p>
+            <p :class="$style.emptyTitle">{{ t("projects.emptySearch") }}</p>
+            <p :class="$style.muted">{{ t("projects.emptySearchDetail", { query: search.trim() }) }}</p>
           </div>
 
           <div v-else-if="filtered.length === 0" :class="$style.empty">
-            <p :class="$style.emptyTitle">Пока нет проектов</p>
-            <p :class="$style.muted">Создайте первый проект, чтобы начать.</p>
+            <p :class="$style.emptyTitle">{{ t("projects.empty") }}</p>
+            <p :class="$style.muted">{{ t("projects.emptyDetail") }}</p>
             <button :class="$style.newBtn" @click="showCreateDialog = true">
-              <KrIcon name="plus" :size="16" />Новый проект
+              <KrIcon name="plus" :size="16" />{{ t("projects.new") }}
             </button>
           </div>
 
@@ -216,12 +218,12 @@ function formatDate(dateStr: string) {
             >
               <div :class="$style.cardThumb">
                 <ProjectThumbnail :project-id="p.id" :top-color="thumbTops[i % thumbTops.length]" />
-                <span :class="$style.badge">Личный</span>
+                <span :class="$style.badge">{{ t("projects.personal") }}</span>
                 <div :class="$style.cardActions" @click.stop>
-                  <button :class="$style.actionBtn" title="Переименовать" aria-label="Переименовать" @click="openRename(p)">
+                  <button :class="$style.actionBtn" :title="t('projects.rename')" :aria-label="t('projects.rename')" @click="openRename(p)">
                     <KrIcon name="pencil" :size="14" />
                   </button>
-                  <button :class="$style.actionBtn" title="Удалить" aria-label="Удалить" @click="deleteTarget = p">
+                  <button :class="$style.actionBtn" :title="t('projects.delete')" :aria-label="t('projects.delete')" @click="deleteTarget = p">
                     <KrIcon name="trash" :size="14" />
                   </button>
                 </div>
@@ -230,7 +232,7 @@ function formatDate(dateStr: string) {
                 <div :class="$style.cardName">{{ p.name }}</div>
                 <div v-if="p.description" :class="$style.cardDesc">{{ p.description }}</div>
                 <div :class="$style.cardMeta">
-                  <span>изменён {{ formatDate(p.updated_at) }}</span>
+                  <span>{{ t("projects.updated", { date: formatDate(p.updated_at) }) }}</span>
                 </div>
               </div>
             </div>
@@ -240,34 +242,34 @@ function formatDate(dateStr: string) {
     </div>
 
     <KrDialog v-model:open="showCreateDialog">
-      <template #title>Новый проект</template>
+      <template #title>{{ t("projects.new") }}</template>
       <div :class="$style.dialogForm">
-        <KrInput v-model="newProjectName" label="Название проекта" placeholder="Мой CAD-проект" />
-        <KrInput v-model="newProjectDesc" label="Описание (необязательно)" placeholder="О чём этот проект?" />
+        <KrInput v-model="newProjectName" :label="t('projects.name')" :placeholder="t('projects.namePlaceholder')" />
+        <KrInput v-model="newProjectDesc" :label="t('projects.description')" :placeholder="t('projects.descriptionPlaceholder')" />
       </div>
       <template #footer>
-        <KrButton variant="secondary" size="md" @click="showCreateDialog = false">Отмена</KrButton>
-        <KrButton variant="primary" size="md" :loading="creating" @click="handleCreate">Создать</KrButton>
+        <KrButton variant="secondary" size="md" @click="showCreateDialog = false">{{ t("projects.cancel") }}</KrButton>
+        <KrButton variant="primary" size="md" :loading="creating" @click="handleCreate">{{ t("projects.create") }}</KrButton>
       </template>
     </KrDialog>
 
     <KrDialog v-model:open="renameDialog">
-      <template #title>Переименовать проект</template>
-      <KrInput v-model="renameProjectName" label="Название проекта" />
+      <template #title>{{ t("projects.renameTitle") }}</template>
+      <KrInput v-model="renameProjectName" :label="t('projects.name')" />
       <template #footer>
-        <KrButton variant="secondary" size="md" @click="renameDialog = false">Отмена</KrButton>
-        <KrButton variant="primary" size="md" :loading="renaming" @click="handleRename">Сохранить</KrButton>
+        <KrButton variant="secondary" size="md" @click="renameDialog = false">{{ t("projects.cancel") }}</KrButton>
+        <KrButton variant="primary" size="md" :loading="renaming" @click="handleRename">{{ t("projects.save") }}</KrButton>
       </template>
     </KrDialog>
 
     <KrDialog :open="deleteTarget !== null" @update:open="deleteTarget = null">
-      <template #title>Удалить проект?</template>
+      <template #title>{{ t("projects.deleteTitle") }}</template>
       <p :class="$style.muted">
-        Проект «{{ deleteTarget?.name }}» и вся его история построения будут удалены безвозвратно.
+        {{ t("projects.deleteDetail", { name: deleteTarget?.name ?? "" }) }}
       </p>
       <template #footer>
-        <KrButton variant="secondary" size="md" @click="deleteTarget = null">Отмена</KrButton>
-        <KrButton variant="danger" size="md" :loading="deleting" @click="confirmDelete">Удалить</KrButton>
+        <KrButton variant="secondary" size="md" @click="deleteTarget = null">{{ t("projects.cancel") }}</KrButton>
+        <KrButton variant="danger" size="md" :loading="deleting" @click="confirmDelete">{{ t("projects.delete") }}</KrButton>
       </template>
     </KrDialog>
   </div>

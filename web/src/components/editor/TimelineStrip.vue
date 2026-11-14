@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t, tMessage } = useI18n();
 import { computed, ref } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import { useTimelineMarkerDrag } from "@/composables/editor/useTimelineMarkerDrag";
@@ -10,6 +12,7 @@ import { LOFT_ICON, loftSummary } from "@/lib/loftFeature";
 import { patternSpecFromParams, patternSummary } from "@/lib/bodyPatternParams";
 import { pressPullDetail } from "@/lib/browserPressPull";
 import { booleanToolsOf, isFailed, isRolledBack, isSuppressed } from "@/lib/timelineFlags";
+import { timelineText } from "@/lib/timelineText";
 import { entryStateHint, timelineSlots } from "@/lib/timelineMarker";
 import type { TimelineEntry } from "@/types/api";
 
@@ -37,6 +40,13 @@ const drag = useTimelineMarkerDrag({
   onDrop: (index) => emit("rollback", index),
 });
 const slots = computed(() => timelineSlots(props.entries, drag.shown.value));
+
+function localizedEntryState(entry: TimelineEntry): string | undefined {
+  const hint = entryStateHint(entry);
+  if (!hint) return undefined;
+  if (hint.startsWith("Ошибка: ")) return t("timeline.failed", { error: hint.slice(8) });
+  return isSuppressed(entry) ? t("timeline.suppressed") : t("timeline.rolledBack");
+}
 
 function isEntryDirty(entry: TimelineEntry): boolean {
   return entry.status === "dirty";
@@ -67,57 +77,57 @@ function timelineIcon(kind: string): string {
 function timelineDetail(entry: TimelineEntry): string {
   switch (entry.kind) {
     case "sketch":
-      return `${entry.plane ?? '?'} · ${entry.entity_count ?? 0} об.`;
+      return t("editorPanels.timeline_objects", { plane: entry.plane ?? "?", count: entry.entity_count ?? 0 });
     case "extrude": {
       const p = entry.params ?? {};
-      const dir = p.direction === 'symmetric' ? 'симм.' : 'одност.';
-      return `${p.distance ?? '?'} мм · ${dir}`;
+      const dir = p.direction === 'symmetric' ? t('editorPanels.timeline_symmetric') : t('editorPanels.timeline_one_side');
+      return t('editorPanels.timeline_distance', { distance: String(p.distance ?? '?'), direction: dir });
     }
     case "boolean":
       return `${entry.operation ?? '?'} · ${entry.target_body_id ? names.bodyLabel(entry.target_body_id) : '?'} + ${booleanToolsOf(entry).map(names.bodyLabel).join(', ') || '?'}`;
     case "revolve": {
       const p = entry.params ?? {};
-      const dir = p.direction === 'symmetric' ? 'симм.' : 'одност.';
+      const dir = p.direction === 'symmetric' ? t('editorPanels.timeline_symmetric') : t('editorPanels.timeline_one_side');
       return `${p.angle ?? '?'}° · ${p.axis ?? 'y'} · ${dir}`;
     }
     case "sweep": {
       const p = entry.params ?? {};
-      const op = p.operation === 'cut' ? 'вырез' : p.operation === 'join' ? 'приклеить' : 'тело';
+      const op = p.operation === 'cut' ? t('editorPanels.timeline_cut') : p.operation === 'join' ? t('editorPanels.timeline_join') : t('editorPanels.timeline_body');
       return `${op} · ${typeof p.path_sketch_id === 'string' ? names.sketchLabel(p.path_sketch_id) : '?'}`;
     }
     case "loft":
-      return loftSummary(entry.params ?? {});
+      return timelineText(loftSummary(entry.params ?? {}), tMessage);
     case "fillet": {
       const p = entry.params ?? {};
       const edges = Array.isArray(p.edge_ids) ? p.edge_ids.length : 0;
-      return `R${p.radius ?? '?'}мм · ${edges} реб.`;
+      return t('editorPanels.timeline_radius', { radius: String(p.radius ?? '?'), count: edges });
     }
     case "chamfer": {
       const p = entry.params ?? {};
       const edges = Array.isArray(p.edge_ids) ? p.edge_ids.length : 0;
-      return `${p.distance1 ?? '?'}×${p.distance2 ?? '?'}мм · ${edges} реб.`;
+      return t('editorPanels.timeline_chamfer', { first: String(p.distance1 ?? '?'), second: String(p.distance2 ?? '?'), count: edges });
     }
     case "thread": {
       const p = entry.params ?? {};
-      const kind = p.kind === 'internal' ? 'внутр.' : 'внеш.';
-      return `${kind} · шаг ${p.pitch ?? '?'}мм`;
+      const kind = p.kind === 'internal' ? t('editorPanels.timeline_internal') : t('editorPanels.timeline_external');
+      return t('editorPanels.timeline_thread', { kind, pitch: String(p.pitch ?? '?') });
     }
     case "hole":
-      return holeDetail(entry.params ?? {});
+      return timelineText(holeDetail(entry.params ?? {}), tMessage);
     case "import":
       return typeof entry.params?.file_name === 'string' ? entry.params.file_name : 'STEP';
     case "transform":
-      return entry.params?.copy === true ? 'копия' : 'сдвиг';
+      return entry.params?.copy === true ? t('editorPanels.timeline_copy') : t('editorPanels.timeline_move');
     case "shell":
-      return `${entry.params?.thickness ?? '?'}мм · ${entry.params?.direction === 'outward' ? 'наружу' : 'внутрь'}`;
+      return t('editorPanels.timeline_shell', { thickness: String(entry.params?.thickness ?? '?'), direction: entry.params?.direction === 'outward' ? t('editorPanels.outward') : t('editorPanels.inward') });
     case "mirror":
-      return mirrorDetail(entry.params ?? {});
+      return timelineText(mirrorDetail(entry.params ?? {}), tMessage);
     case "draft":
-      return draftDetail(entry.params ?? {});
+      return timelineText(draftDetail(entry.params ?? {}), tMessage);
     case "pattern":
-      return patternSummary(patternSpecFromParams(entry.params ?? {}));
+      return timelineText(patternSummary(patternSpecFromParams(entry.params ?? {})), tMessage);
     case "press_pull":
-      return pressPullDetail(entry.params ?? {});
+      return timelineText(pressPullDetail(entry.params ?? {}), tMessage);
     default:
       return '';
   }
@@ -133,12 +143,12 @@ function timelineDetail(entry: TimelineEntry): string {
           data-testid="timeline-marker"
           role="slider"
           tabindex="0"
-          aria-label="Маркер отката истории"
+          :aria-label="t('editorPanels.timeline_marker')"
           :aria-valuemin="0"
           :aria-valuemax="entries.length"
           :aria-valuenow="drag.shown.value"
           :aria-disabled="lockReason ? true : undefined"
-          :title="lockReason ?? 'Маркер отката: перетащите, чтобы показать модель на этом шаге (стрелки влево/вправо)'"
+          :title="lockReason ?? t('editorPanels.timeline_marker_hint')"
           :class="[$style.marker, drag.dragging.value && $style.markerDragging, lockReason && $style.markerLocked]"
           @pointerdown.prevent="drag.start"
           @pointermove="drag.move"
@@ -151,7 +161,7 @@ function timelineDetail(entry: TimelineEntry): string {
           v-else
           data-testid="timeline-node"
           :data-state="isFailed(slot.entry) ? 'error' : isSuppressed(slot.entry) ? 'suppressed' : isRolledBack(slot.entry) ? 'rolled-back' : 'active'"
-          :title="entryStateHint(slot.entry) ?? undefined"
+          :title="localizedEntryState(slot.entry)"
           :class="[$style.node, (isSuppressed(slot.entry) || isRolledBack(slot.entry)) && $style.nodeInactive]"
           @click="emit('select', slot.entry.id)"
           @contextmenu.prevent="emit('context-menu', $event, slot.entry.id)"
@@ -177,7 +187,7 @@ function timelineDetail(entry: TimelineEntry): string {
         size="sm"
         :class="$style.addNode"
         :disabled="!!lockReason"
-        :title="lockReason ?? 'Новая операция — начните с эскиза (S)'"
+        :title="lockReason ?? t('editorPanels.timeline_add_hint')"
         @click="emit('add-sketch')"
         >＋</KrButton
       >

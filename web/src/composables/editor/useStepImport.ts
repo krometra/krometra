@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSketch } from "@/composables/shared/useSketch";
@@ -28,6 +29,7 @@ function chooseStepFile(): Promise<File | null> {
 }
 
 export function useStepImport(deps: { projectId: string; viewportRef: ViewportRef; meshes: BodyMeshesApi }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, meshes } = deps;
   const documentStore = useDocument();
   const undoRedo = useUndoRedo();
@@ -44,7 +46,7 @@ export function useStepImport(deps: { projectId: string; viewportRef: ViewportRe
     );
     await undoRedo.execute(command);
     const bodies = command.getResult();
-    if (bodies.length === 0) throw new Error("Импорт не выполнен: редактор был занят другой операцией. Повторите импорт.");
+    if (bodies.length === 0) throw new Error(tr("editorOps.importBusy"));
     bodies.forEach((body) => meshes.trackMesh(body.bodyId, body.mesh));
     return bodies.map((body) => body.bodyId);
   }
@@ -52,8 +54,8 @@ export function useStepImport(deps: { projectId: string; viewportRef: ViewportRe
   async function importStep(file: File): Promise<string[]> {
     const rejection = importFileError(file.name, file.size);
     if (rejection) throw new Error(rejection);
-    if (sketch.sketchMode.value) throw new Error("Завершите эскиз, прежде чем импортировать STEP.");
-    if (undoRedo.isExecuting.value) throw new Error("Дождитесь завершения текущей операции и повторите импорт.");
+    if (sketch.sketchMode.value) throw new Error(tr("editorOps.importSketch"));
+    if (undoRedo.isExecuting.value) throw new Error(tr("editorOps.importWait"));
     loading.value = true;
     try {
       const bodyIds = await saveImport(file);
@@ -69,7 +71,7 @@ export function useStepImport(deps: { projectId: string; viewportRef: ViewportRe
     try {
       toast(importSummary(file.name, (await importStep(file)).length), "success");
     } catch (error) {
-      toast(error instanceof Error && error.message ? error.message : "Не удалось импортировать STEP-файл.", "error");
+      toast(error instanceof Error && error.message ? error.message : tr("editorOps.importFailed"), "error");
     }
   }
 

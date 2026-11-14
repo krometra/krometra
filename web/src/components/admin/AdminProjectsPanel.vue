@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import { KTable } from "@krometra/ui-kit";
 import { useAdminProjects } from "@/composables/admin/useAdminProjects";
 import { formatCount, formatDate, formatRelative, formatStorage } from "@/lib/admin/format";
@@ -7,23 +8,32 @@ import { operationLabel } from "@/lib/admin/operationLabels";
 import type { AdminKindCount } from "@/types/api";
 import AdminTableToolbar from "./AdminTableToolbar.vue";
 
+const { t, locale } = useI18n();
 const projects = useAdminProjects();
 
-const columns = [
-  { key: "name", label: "Проект", sortable: true },
-  { key: "owner_email", label: "Владелец", sortable: true },
-  { key: "created_at", label: "Создан", sortable: true, nowrap: true },
-  { key: "updated_at", label: "Изменён", sortable: true, nowrap: true },
-  { key: "operations", label: "Операции", sortable: true, align: "right" },
-  { key: "bodies", label: "Тела", sortable: true, align: "right" },
-  { key: "sketches", label: "Эскизы", sortable: true, align: "right" },
-  { key: "top_operations", label: "Чаще всего" },
-  { key: "storage_bytes", label: "Хранилище", sortable: true, align: "right", nowrap: true },
-  { key: "document_version", label: "Версия", sortable: true, align: "right" },
-];
+const paginationTranslations = computed(() => ({
+  rootLabel: t("admin.pagination"),
+  prevTriggerLabel: t("admin.previous"),
+  nextTriggerLabel: t("admin.next"),
+  itemLabel: ({ page, totalPages }: { page: number; totalPages: number }) => t("admin.pageOf", { page, totalPages }),
+  rangeLabel: ({ from, to, total }: { from: number; to: number; total: number }) => t("admin.range", { from, to, total }),
+}));
+
+const columns = computed(() => [
+  { key: "name", label: t("admin.project"), sortable: true },
+  { key: "owner_email", label: t("admin.owner"), sortable: true },
+  { key: "created_at", label: t("admin.created"), sortable: true, nowrap: true },
+  { key: "updated_at", label: t("admin.updated"), sortable: true, nowrap: true },
+  { key: "operations", label: t("admin.operations"), sortable: true, align: "right" },
+  { key: "bodies", label: t("admin.bodies"), sortable: true, align: "right" },
+  { key: "sketches", label: t("admin.sketches"), sortable: true, align: "right" },
+  { key: "top_operations", label: t("admin.topOperations") },
+  { key: "storage_bytes", label: t("admin.storage"), sortable: true, align: "right", nowrap: true },
+  { key: "document_version", label: t("admin.version"), sortable: true, align: "right" },
+]);
 
 function topOperations(kinds: AdminKindCount[]) {
-  return kinds.length ? kinds.map((k) => `${operationLabel(k.kind)} ${k.count}`).join(", ") : "—";
+  return kinds.length ? kinds.map((k) => `${operationLabel(k.kind, t)} ${k.count}`).join(", ") : "—";
 }
 
 onMounted(projects.load);
@@ -33,15 +43,17 @@ onMounted(projects.load);
   <div :class="$style.root" data-testid="admin-projects">
     <AdminTableToolbar
       :search="projects.search.value"
-      placeholder="Поиск по названию или почте владельца"
+      :placeholder="t('admin.projectSearch')"
       :total="projects.total.value"
       :failure="projects.failure.value"
-      failure-text="Не удалось загрузить проекты."
+      :failure-text="t('admin.projectsFailed')"
       data-testid="admin-projects-search"
       @search="projects.setSearch"
     />
     <KTable
       :columns="columns"
+      :loading-text="t('admin.tableLoading')"
+      :pagination-translations="paginationTranslations"
       :rows="projects.rows.value"
       :loading="projects.loading.value && !projects.rows.value.length"
       :sort-key="projects.state.value.sort"
@@ -49,18 +61,18 @@ onMounted(projects.load);
       :page="projects.state.value.page"
       :page-size="projects.state.value.pageSize"
       :total="projects.total.value"
-      empty-text="Проекты не найдены"
+      :empty-text="t('admin.projectsEmpty')"
       dense
       @update:sort-key="projects.setSortKey"
       @update:sort-dir="projects.setSortOrder"
       @update:page="projects.setPage"
     >
       <template #cell-name="{ row }"><span :class="$style.name">{{ row.name }}</span></template>
-      <template #cell-created_at="{ row }">{{ formatDate(row.created_at) }}</template>
-      <template #cell-updated_at="{ row }">{{ formatRelative(row.updated_at) }}</template>
-      <template #cell-operations="{ row }">{{ formatCount(row.operations) }}</template>
+      <template #cell-created_at="{ row }">{{ formatDate(row.created_at, locale) }}</template>
+      <template #cell-updated_at="{ row }">{{ formatRelative(row.updated_at, new Date(), locale, t) }}</template>
+      <template #cell-operations="{ row }">{{ formatCount(row.operations, locale) }}</template>
       <template #cell-top_operations="{ row }"><span :class="$style.sub">{{ topOperations(row.top_operations) }}</span></template>
-      <template #cell-storage_bytes="{ row }">{{ formatStorage(row.storage_bytes) }}</template>
+      <template #cell-storage_bytes="{ row }">{{ formatStorage(row.storage_bytes, locale) }}</template>
       <template #cell-document_version="{ row }">{{ row.document_version ?? "—" }}</template>
     </KTable>
   </div>

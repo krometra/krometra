@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed, watch } from "vue";
 import * as combobox from "@zag-js/combobox";
 import { ListCollection } from "@zag-js/collection";
@@ -18,7 +20,6 @@ const props = withDefaults(
   {
     modelValue: "",
     options: () => [],
-    placeholder: "Выбрать…",
   }
 );
 
@@ -83,7 +84,7 @@ watch(
     <div :class="$style.control" v-bind="api.getControlProps()">
       <input
         :class="$style.input"
-        :placeholder="placeholder"
+        :placeholder="placeholder ?? t('ui.select')"
         v-bind="api.getInputProps()"
       />
       <button v-if="api.value?.[0]" :class="$style.clear" v-bind="api.getClearTriggerProps()">✕</button>

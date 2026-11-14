@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
@@ -22,7 +24,7 @@ const names = useDisplayNames();
       <KrButton
         variant="ghost"
         size="sm"
-        :aria-label="`Убрать из списка: ${names.bodyLabel(bodyId)}`"
+        :aria-label="t('editorPanels.remove_list', { name: names.bodyLabel(bodyId) })"
         :data-testid="`${testId}-remove`"
         @click="emit('remove', bodyId)"
       >

@@ -1,5 +1,5 @@
 import { isClosedPolyline, polylineLength } from "@/lib/brepEdge";
-import { pluralize } from "@/lib/plural";
+import { translateViewportRu, type ViewportTranslator } from "./i18n";
 import type { Vec3 } from "@/lib/threadGeometry";
 import { cross, dot, magnitude, subtract } from "@/lib/vec3";
 import type { BrepTopo } from "@/types/api";
@@ -74,24 +74,24 @@ function rounded(value: number): string {
   return String(Number(value.toFixed(2)));
 }
 
-export function edgeLabel(shape: EdgeShape): string {
-  if (shape.kind === "line") return `Отрезок ${rounded(shape.length)} мм`;
-  if (shape.kind === "arc") return `Дуга R${rounded(shape.radius)} · ${rounded(shape.length)} мм`;
-  if (shape.kind === "circle") return `Окружность ⌀${rounded(2 * shape.radius)} мм`;
-  return `Кривая ${rounded(shape.length)} мм`;
+export function edgeLabel(shape: EdgeShape, t: ViewportTranslator = translateViewportRu): string {
+  if (shape.kind === "line") return t("viewportText.edgeLine", { length: rounded(shape.length) });
+  if (shape.kind === "arc") return t("viewportText.edgeArc", { radius: rounded(shape.radius), length: rounded(shape.length) });
+  if (shape.kind === "circle") return t("viewportText.edgeCircle", { diameter: rounded(2 * shape.radius) });
+  return t("viewportText.edgeCurve", { length: rounded(shape.length) });
 }
 
-export function edgeGroupLabel(shapes: EdgeShape[]): string {
-  if (shapes.length === 1) return edgeLabel(shapes[0]);
+export function edgeGroupLabel(shapes: EdgeShape[], t: ViewportTranslator = translateViewportRu): string {
+  if (shapes.length === 1) return edgeLabel(shapes[0], t);
   const total = shapes.reduce((sum, shape) => sum + shape.length, 0);
-  return `Цепочка: ${pluralize(shapes.length, "ребро", "ребра", "рёбер")} · ${rounded(total)} мм`;
+  return t("viewportText.edgeChain", { count: shapes.length, length: rounded(total) });
 }
 
-export function edgeGroupRows(topo: BrepTopo | null, groups: EdgeId[][]): EdgeGroupRow[] {
+export function edgeGroupRows(topo: BrepTopo | null, groups: EdgeId[][], t: ViewportTranslator = translateViewportRu): EdgeGroupRow[] {
   const polylines = new Map((topo?.edges ?? []).map((edge) => [edge.edge_id, edge.polyline]));
   return groups.map((edgeIds) => ({
     key: String(edgeIds[0]),
     edgeIds,
-    label: edgeGroupLabel(edgeIds.map((id) => describeEdge(polylines.get(id)))),
+    label: edgeGroupLabel(edgeIds.map((id) => describeEdge(polylines.get(id))), t),
   }));
 }

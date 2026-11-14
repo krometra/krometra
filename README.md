@@ -1,5 +1,7 @@
 # Крометра
 
+**Русский** · [English](./README.en.md) · [中文](./README.zh-CN.md)
+
 [![CI](https://github.com/krometra/krometra/actions/workflows/ci.yml/badge.svg)](https://github.com/krometra/krometra/actions/workflows/ci.yml)
 [![License: FSL-1.1-ALv2](https://img.shields.io/badge/License-FSL--1.1--ALv2-blue.svg)](./LICENSE.md)
 
@@ -11,7 +13,6 @@
 
 ![Редактор Крометры](.docs/media/editor.png)
 
-**English:** Krometra is a browser-based parametric 3D CAD system (think Onshape): a real OpenCASCADE B-rep kernel compiled to WebAssembly and running in a browser Web Worker, a Vue 3 + Three.js client, a 2D sketcher with a constraint solver, extrude/revolve/fillet/chamfer/boolean operations, persistent topological naming, and STEP/STL export. Source-available under FSL-1.1-ALv2 (not an OSI open-source license: you may read, modify and use the code, including internally at your company, but not to offer a competing product; each release converts to Apache-2.0 two years after publication). Hosted version: <https://krometra.ru>. Documentation is currently in Russian; contributions are welcome in both languages.
 
 ## Видение
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import KrButton from "@/components/ui/KrButton.vue";
 
 defineProps<{ error: string | null }>();
@@ -8,9 +10,9 @@ const emit = defineEmits<{ cancel: [] }>();
 
 <template>
   <div :class="$style.banner" data-testid="sketch-plane-pick-banner">
-    <span>Кликните базовую плоскость или плоскую грань тела, либо рабочую плоскость</span>
+    <span>{{ t("editorPanels.click_a_base_plane_a_planar_body_face_or_a_wo") }}</span>
     <span v-if="error" :class="$style.error">{{ error }}</span>
-    <KrButton variant="secondary" size="sm" @click="emit('cancel')">Отмена (Esc)</KrButton>
+    <KrButton variant="secondary" size="sm" @click="emit('cancel')">{{ t("editorPanels.cancel_esc") }}</KrButton>
   </div>
 </template>
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSketchText } from "@/composables/sketcher/useSketchText";
+const tr = useSketchText();
 import type { SketchConstraint } from "@/types/api";
 import KrButton from "@/components/ui/KrButton.vue";
 import { CONSTRAINT_ICONS, CONSTRAINT_TITLES } from "@/sketcher/constraintNames";
@@ -14,9 +16,9 @@ const emit = defineEmits<{
 <template>
   <div :class="$style.bar" data-sketch-ui data-testid="selected-constraint-bar">
     <span :class="$style.icon">{{ CONSTRAINT_ICONS[constraint.type] }}</span>
-    <span :class="$style.title">Ограничение: {{ CONSTRAINT_TITLES[constraint.type] }}</span>
-    <KrButton size="sm" variant="danger" data-testid="delete-constraint" @click="emit('delete')">Удалить (Del)</KrButton>
-    <KrButton size="sm" variant="ghost" @click="emit('clear')">Снять выбор</KrButton>
+    <span :class="$style.title">{{ tr("Ограничение") }}: {{ tr(CONSTRAINT_TITLES[constraint.type]) }}</span>
+    <KrButton size="sm" variant="danger" data-testid="delete-constraint" @click="emit('delete')">{{ tr("Удалить (Del)") }}</KrButton>
+    <KrButton size="sm" variant="ghost" @click="emit('clear')">{{ tr("Снять выбор") }}</KrButton>
   </div>
 </template>
 

@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, onUnmounted, ref, watch } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useOperationSketches } from "@/composables/shared/useOperationSketches";
@@ -40,6 +41,7 @@ export function useExtrudeRevolve(deps: {
   meshes: BodyMeshesApi;
   model: ReturnType<typeof useDocumentModel>;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, meshes, model } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -57,7 +59,7 @@ export function useExtrudeRevolve(deps: {
     dimension: "length",
     initial: 30,
     variables: parameterVariables,
-    rangeError: (value) => (value > 0 ? null : "Расстояние должно быть больше нуля — сторону задаёт «Реверс»."),
+    rangeError: (value) => (value > 0 ? null : tr("editorOps.distanceRange")),
   });
   const extrudeDistance = distanceField.value;
   const extrudeDirection = ref<"one_side" | "symmetric" | "two_sided">("one_side");
@@ -77,7 +79,7 @@ export function useExtrudeRevolve(deps: {
     dimension: "angle",
     initial: 360,
     variables: parameterVariables,
-    rangeError: (value) => (value > 0 && value <= 360 ? null : "Угол вращения должен быть больше 0 и не больше 360°"),
+    rangeError: (value) => (value > 0 && value <= 360 ? null : tr("editorOps.angleRange")),
   });
   const revolveAngle = revolveAngleField.value;
   const revolveAxis = ref<"x" | "y">("y");
@@ -218,11 +220,11 @@ export function useExtrudeRevolve(deps: {
   });
 
   function extrudeValidationError(browserTarget: boolean): string | null {
-    if (previewSketchData.value === null) return "Эскиз не найден в документе.";
+    if (previewSketchData.value === null) return tr("editorOps.sketchMissing");
     if (profile.merged.value.error) return profile.merged.value.error;
-    if (extrudeOperation.value !== "new_body" && !browserTarget) return "Целевое тело не загружено в браузерное ядро.";
-    if (extent.extentType.value === "up_to_face" && !extent.upToFace.value) return "Кликните грань, до которой выдавливать.";
-    if (extent.extentType.value === "up_to_body" && !isBrowserBody(extent.upToBodyId.value)) return "Выберите browser-тело, до которого выдавливать.";
+    if (extrudeOperation.value !== "new_body" && !browserTarget) return tr("editorOps.targetMissing");
+    if (extent.extentType.value === "up_to_face" && !extent.upToFace.value) return tr("editorOps.pickFace");
+    if (extent.extentType.value === "up_to_body" && !isBrowserBody(extent.upToBodyId.value)) return tr("editorOps.pickBody");
     return null;
   }
 
@@ -232,8 +234,8 @@ export function useExtrudeRevolve(deps: {
   }
 
   function cutValidationError(): string | null {
-    if (cutTargets.targetIds.value.length === 0) return "Выберите тела для выреза: кликните их в сцене или в дереве.";
-    return cutTargets.targetIds.value.every(isBrowserBody) ? null : "Тело для выреза не загружено в браузерное ядро.";
+    if (cutTargets.targetIds.value.length === 0) return tr("editorOps.pickCut");
+    return cutTargets.targetIds.value.every(isBrowserBody) ? null : tr("editorOps.cutMissing");
   }
 
   async function runExtrude(execute: () => Promise<void>, failure: string) {
@@ -264,7 +266,7 @@ export function useExtrudeRevolve(deps: {
       return;
     }
     if (extrudeOperation.value === "join" && !extrudeEffectiveTargetId.value) {
-      extrudeError.value = "Выберите целевое тело для операции";
+      extrudeError.value = tr("editorOps.targetRequired");
       return;
     }
     const browserTarget = extrudeOperation.value !== "new_body" && isBrowserBody(baseTargetId());
@@ -275,7 +277,7 @@ export function useExtrudeRevolve(deps: {
     }
     await runExtrude(async () => {
       const savedSketch = previewSketchData.value;
-      if (!savedSketch) throw new Error("Эскиз не найден в документе.");
+      if (!savedSketch) throw new Error(tr("editorOps.sketchMissing"));
       const { BrowserExtrudeCommand } = await import("@/core/commands/BrowserExtrudeCommand");
       const command = new BrowserExtrudeCommand(
         projectId,
@@ -289,7 +291,7 @@ export function useExtrudeRevolve(deps: {
       await undoRedo.execute(command);
       const result = command.getResult();
       if (result) meshes.trackMesh(result.bodyId, result.mesh);
-    }, "Ошибка выдавливания");
+    }, tr("editorOps.extrudeFailed"));
   }
 
   async function handleMultiCut(sketchId: string) {
@@ -300,7 +302,7 @@ export function useExtrudeRevolve(deps: {
     }
     await runExtrude(async () => {
       const savedSketch = previewSketchData.value;
-      if (!savedSketch) throw new Error("Эскиз не найден в документе.");
+      if (!savedSketch) throw new Error(tr("editorOps.sketchMissing"));
       const { BrowserExtrudeCutsCommand } = await import("@/core/commands/BrowserExtrudeCutsCommand");
       const command = new BrowserExtrudeCutsCommand(
         projectId,
@@ -313,13 +315,13 @@ export function useExtrudeRevolve(deps: {
       );
       await undoRedo.execute(command);
       command.getResult().forEach((body) => meshes.trackMesh(body.bodyId, body.mesh));
-    }, "Ошибка выреза");
+    }, tr("editorOps.cutFailed"));
   }
 
   async function handleRevolve() {
     if (!lastSavedSketchId.value) return;
     if (!(revolveAngle.value > 0) || revolveAngle.value > 360) {
-      revolveError.value = "Угол вращения должен быть больше 0 и не больше 360°";
+      revolveError.value = tr("editorOps.angleRange");
       return;
     }
     if (profile.merged.value.error) {
@@ -331,7 +333,7 @@ export function useExtrudeRevolve(deps: {
     const opStart = performance.now();
     try {
       const savedSketch = previewSketchData.value;
-      if (!savedSketch) throw new Error("Эскиз не найден в документе.");
+      if (!savedSketch) throw new Error(tr("editorOps.sketchMissing"));
       const [{ BrowserRevolveCommand }, { disposeBrowserGeometry }] = await Promise.all([
         import("@/core/commands/BrowserRevolveCommand"),
         import("./useBrowserGeometry"),
@@ -364,7 +366,7 @@ export function useExtrudeRevolve(deps: {
       await documentStore.load(projectId);
       lastOpMs.value = Math.round(performance.now() - opStart);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Ошибка вращения";
+      const msg = err instanceof Error ? err.message : tr("editorOps.revolveFailed");
       revolveError.value = msg;
       console.error("Revolve failed:", err);
     } finally {
@@ -407,11 +409,11 @@ export function useExtrudeRevolve(deps: {
       startExtrudeFromSketch(freeSketch.id, mode);
       return;
     }
-    const actionLabel = mode === "revolve" ? "«Вращать»" : "«Выдавить»";
+    const actionLabel = mode === "revolve" ? tr("editorOps.actionRevolve") : tr("editorOps.actionExtrude");
     if (model.sketches.value.length === 0) {
-      toast("Сначала создайте эскиз — кнопка «Эскиз» или клавиша S", "info");
+      toast(tr("editorOps.needSketch"), "info");
     } else {
-      toast(`Выберите эскиз в дереве модели, затем нажмите ${actionLabel}`, "info");
+      toast(tr("editorOps.chooseSketch", { action: actionLabel }), "info");
     }
   }
 

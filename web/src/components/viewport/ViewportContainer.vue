@@ -30,6 +30,7 @@ import { useViewportNavigation } from "@/composables/viewport/useViewportNavigat
 import { useNavigationSettings } from "@/composables/shared/useNavigationSettings";
 import { useRegionPicking } from "@/composables/viewport/useRegionPicking";
 import { useWorkPlaneView } from "@/composables/viewport/useWorkPlaneView";
+import { useViewportLabels } from "@/composables/viewport/useViewportLabels";
 
 export type { SketchFrame } from "@/composables/viewport/types";
 
@@ -49,16 +50,9 @@ const emit = defineEmits<{
   workPlanePicked: [planeId: string];
 }>();
 
-const RENDERING_MODE_LABELS: Record<RenderingMode, string> = {
-  shaded: "Заливка",
-  shaded_edges: "Заливка с рёбрами",
-  wireframe: "Каркас",
-  hidden_line: "Видимые рёбра",
-};
-
 const canvasContainer = ref<HTMLDivElement>();
 const renderingMode = ref<RenderingMode>(props.renderingMode ?? "shaded");
-const renderingModeLabel = computed(() => RENDERING_MODE_LABELS[renderingMode.value]);
+const { t, renderingModeLabel } = useViewportLabels(renderingMode);
 const selectionMode = computed<SelectionMode>(() => props.selectionMode ?? "face");
 
 const entries: MeshEntry[] = [];
@@ -354,16 +348,16 @@ defineExpose({
     </div>
 
     <div v-if="selectionMode === 'body'" :class="$style.selectionModeBadge">
-      Выбор тела
+      {{ t("viewportText.selectBody") }}
     </div>
     <div v-else-if="selectionMode === 'edge'" :class="$style.selectionModeBadge">
-      Выбор рёбер
+      {{ t("viewportText.selectEdges") }}
     </div>
     <div v-else-if="selectionMode === 'measure'" :class="$style.selectionModeBadge">
-      Измерение
+      {{ t("viewportText.measure") }}
     </div>
     <div v-else-if="selectionMode === 'pick'" :class="$style.selectionModeBadge">
-      Выбор опоры плоскости
+      {{ t("viewportText.selectPlaneReference") }}
     </div>
   </div>
 </template>

@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
@@ -19,6 +20,7 @@ export function useMirror(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const documentStore = useDocument();
   const selection = useSelection();
   const undoRedo = useUndoRedo();
@@ -95,7 +97,7 @@ export function useMirror(deps: {
   function selectFacePlane() {
     planeSource.value = "face";
     faceId.value = null;
-    faceHint.value = bodyId.value ? "Кликните плоскую грань тела — по ней пройдёт плоскость зеркала." : null;
+    faceHint.value = bodyId.value ? tr("editorOps.mirrorPick") : null;
   }
 
   function setOffset(value: number) {
@@ -109,7 +111,7 @@ export function useMirror(deps: {
   function pickFace(body: string, face: string) {
     const flat = faceFrame(body, face) !== null;
     faceId.value = flat ? face : null;
-    faceHint.value = flat ? null : "Грань не плоская — выберите плоскую грань тела.";
+    faceHint.value = flat ? null : tr("editorOps.mirrorFlat");
   }
 
   function onFaceSelected(payload: { bodyId: string; faceId: string | number; brepTopo: BrepTopo }): boolean {
@@ -132,7 +134,7 @@ export function useMirror(deps: {
       const command = new BrowserMirrorCommand(deps.projectId, body, mirrorPlane, mergeResult, () => documentStore.document.value);
       await undoRedo.execute(command);
       const result = command.getResult();
-      if (!result) throw new Error("Зеркало не сохранено.");
+      if (!result) throw new Error(tr("editorOps.mirrorUnsaved"));
       result.hiddenBodyIds.forEach((hidden) => deps.meshes.untrackMesh(hidden));
       await documentStore.load(deps.projectId);
       deps.meshes.trackMesh(result.bodyId, result.mesh);
@@ -151,11 +153,11 @@ export function useMirror(deps: {
       await run(body, current, merge.value);
       exit();
     } catch (err) {
-      error.value = apiErrorMessage(err, "Не удалось построить зеркало");
+      error.value = apiErrorMessage(err, tr("editorOps.mirrorFailed"));
     }
   }
 
-  const tool: EditorTool = { actions: ["mirror"], active: mirrorMode, loading, busyLabel: "Зеркало…", enter, exit, onFaceSelected, onSelectionCleared };
+  const tool: EditorTool = { actions: ["mirror"], active: mirrorMode, loading, get busyLabel() { return tr("editorOps.mirrorBusy") }, enter, exit, onFaceSelected, onSelectionCleared };
 
   return {
     tool,

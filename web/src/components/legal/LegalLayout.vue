@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { useI18n } from "@/composables/shared/useI18n";
 import KrLogo from "@/components/ui/KrLogo.vue";
+import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 import { LEGAL_EDITION } from "@/lib/legal";
 
 defineProps<{
@@ -8,23 +10,25 @@ defineProps<{
 }>();
 
 const router = useRouter();
+const { t } = useI18n();
 </script>
 
 <template>
-  <div :class="$style.page" lang="ru">
+  <div :class="$style.page">
     <header :class="$style.header">
       <KrLogo :class="$style.logo" @click="router.push('/')" />
+      <LocaleSwitcher />
     </header>
 
     <article :class="$style.doc">
       <h1 :class="$style.title">{{ title }}</h1>
-      <p :class="$style.edition">Редакция от {{ LEGAL_EDITION }}</p>
+      <p :class="$style.edition">{{ t("legalText.edition", { date: LEGAL_EDITION }) }}</p>
       <slot />
     </article>
 
     <footer :class="$style.footer">
-      <router-link to="/privacy">Политика обработки персональных данных</router-link>
-      <router-link to="/consent">Согласие на обработку персональных данных</router-link>
+      <router-link to="/privacy">{{ t("legalText.privacyTitle") }}</router-link>
+      <router-link to="/consent">{{ t("legalText.consentTitle") }}</router-link>
     </footer>
   </div>
 </template>
@@ -41,6 +45,9 @@ const router = useRouter();
 .header {
   max-width: 760px;
   margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .logo {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
+import { useI18n } from "@/composables/shared/useI18n";
 import { useSelection } from "@/composables/shared/useSelection";
 import { useSketch } from "@/composables/shared/useSketch";
 import { useApi } from "@/composables/useApi";
@@ -62,7 +63,7 @@ import AiControlBadge from "@/components/editor/AiControlBadge.vue";
 import ViewInspectOverlay from "@/components/editor/ViewInspectOverlay.vue";
 import SketchPlanePickBanner from "@/components/editor/SketchPlanePickBanner.vue";
 import WorkPlaneDeleteDialog from "@/components/editor/WorkPlaneDeleteDialog.vue";
-import { pluralize } from "@/lib/plural";
+
 import type { RenderingMode, RibbonAction, SelectionMode } from "@/composables/editor/types";
 import type { BrepTopo, Project } from "@/types/api";
 
@@ -121,7 +122,8 @@ const tools = useEditorTools([
   filletChamfer.tool, thread.tool, shell.tool, mirror.tool, booleanMode.tool, sweep.tool, loft.tool, hole.tool, measure.tool, pattern.tool, draft.tool,
   pressPull.tool, workPlanes.tool,
 ]);
-const projectName = ref("Проект");
+const { t } = useI18n();
+const projectName = ref(t("editorOps.project"));
 const exportApi = useExport({ projectName, bodies: model.bodies });
 const stepImport = useStepImport({ projectId: props.id, viewportRef, meshes });
 useProjectThumbnail({ projectId: props.id, viewportRef, visibleBodies: meshes.totalBodies, legacyProject: meshes.legacyProject });
@@ -196,7 +198,7 @@ const contextMenu = useTreeContextMenu({ tree: treeRef, model, sketchFlow, extru
 // В эскизе Ctrl+Z правит эскиз, а не историю фич модели: раньше он проваливался
 // в CommandHistory и откатывал ПРЕДЫДУЩУЮ операцию модели вместо линии эскиза.
 async function handleHistory(direction: HistoryDirection) {
-  const nothing = direction === "undo" ? "Отменять нечего" : "Повторять нечего";
+  const nothing = direction === "undo" ? t("editorOps.nothingUndo") : t("editorOps.nothingRedo");
   if (sketch.sketchMode.value) {
     if (!(await (direction === "undo" ? sketch.undo() : sketch.redo()))) toast(nothing, "info");
     return;
@@ -204,7 +206,7 @@ async function handleHistory(direction: HistoryDirection) {
   try {
     if (!(await history.step(direction))) toast(nothing, "info");
   } catch (error) {
-    toast(apiErrorMessage(error, "Не удалось изменить историю"), "warning");
+    toast(apiErrorMessage(error, t("editorOps.historyFailed")), "warning");
   }
 }
 
@@ -264,8 +266,8 @@ if (!props.watch) useEditorHotkeys({
 // --- Вспомогательные вычисления для оверлеев ---
 
 const busyLabel = computed(() => {
-  if (extrude.extrudeLoading.value) return "Выдавливание…";
-  if (extrude.revolveLoading.value) return "Вращение…";
+  if (extrude.extrudeLoading.value) return t("editorOps.extrudeBusy");
+  if (extrude.revolveLoading.value) return t("editorOps.revolveBusy");
   return tools.busyLabel.value;
 });
 
@@ -402,9 +404,9 @@ const selectionLabel = useSelectionLabel();
 
         <div v-if="!sketch.sketchMode.value" :class="$style.readout">
           <div>
-            {{ pluralize(visibleBodyCount, "тело", "тела", "тел") }} ·
-            {{ pluralize(meshes.totalFaces.value, "грань", "грани", "граней") }} ·
-            {{ pluralize(meshes.totalEdges.value, "ребро", "ребра", "рёбер") }}
+            {{ t("editorOps.bodyCount", { count: visibleBodyCount }) }} ·
+            {{ t("editorOps.faceCount", { count: meshes.totalFaces.value }) }} ·
+            {{ t("editorOps.edgeCount", { count: meshes.totalEdges.value }) }}
           </div>
           <div :class="$style.readoutSel">{{ selectionLabel }}</div>
         </div>

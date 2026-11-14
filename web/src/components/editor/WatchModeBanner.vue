@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t, locale } = useI18n();
 import { computed } from "vue";
+import { LOCALE_HTML_LANG } from "@/lib/i18n/locale";
 import KrButton from "@/components/ui/KrButton.vue";
 
 const props = defineProps<{ projectId: string; lastSyncedAt: Date | null }>();
 
 const syncedLabel = computed(() =>
-  props.lastSyncedAt ? props.lastSyncedAt.toLocaleTimeString("ru-RU") : "подключение…",
+  props.lastSyncedAt ? props.lastSyncedAt.toLocaleTimeString(LOCALE_HTML_LANG[locale.value]) : t("editorPanels.connecting"),
 );
 
 function edit() {
@@ -18,11 +21,11 @@ function edit() {
     :class="$style.banner"
     role="status"
     data-testid="watch-mode"
-    title="Режим наблюдения: модель обновляется сама, правки и автосохранение отключены, чтобы не мешать ИИ-агенту"
+    :title="t('editorPanels.watch_hint')"
   >
     <span :class="$style.dot" />
-    <span>Наблюдение · {{ syncedLabel }}</span>
-    <KrButton variant="secondary" size="sm" @click="edit">Редактировать</KrButton>
+    <span>{{ t("editorPanels.watch_status", { time: syncedLabel }) }}</span>
+    <KrButton variant="secondary" size="sm" @click="edit">{{ t("editorPanels.edit") }}</KrButton>
   </div>
 </template>
 

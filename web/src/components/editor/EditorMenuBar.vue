@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "@/composables/shared/useAuth";
 import KrLogo from "@/components/ui/KrLogo.vue";
 import KrButton from "@/components/ui/KrButton.vue";
+import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 import ExportMenu from "@/components/editor/ExportMenu.vue";
 import ImportStepButton from "@/components/editor/ImportStepButton.vue";
 import type { DocStatus } from "@/composables/editor/useDocumentStatus";
@@ -33,19 +35,21 @@ const avatarInitial = computed(() => {
   const source = auth.user.value?.display_name?.trim() || auth.user.value?.email || "?";
   return source[0].toUpperCase();
 });
+const { t } = useI18n();
 </script>
 
 <template>
   <header :class="$style.menuBar">
     <KrLogo :size="22" :show-text="false" :class="$style.homeBtn" @click="router.push('/projects')" />
     <div :class="$style.breadcrumb">
-      <span :class="$style.crumbLink" @click="router.push('/projects')">Мои проекты</span>
+      <span :class="$style.crumbLink" @click="router.push('/projects')">{{ t("projects.title") }}</span>
       <span :class="$style.crumbSep">/</span>
       <span :class="$style.crumbActive">{{ projectName }}</span>
       <span :class="[$style.versionTag, $style[docStatus]]">v{{ docVersion }} · {{ statusLabel }}</span>
-      <KrButton v-if="docStatus === 'conflict'" variant="ghost" size="sm" :class="$style.reloadBtn" @click="emit('reload')">Обновить</KrButton>
+      <KrButton v-if="docStatus === 'conflict'" variant="ghost" size="sm" :class="$style.reloadBtn" @click="emit('reload')">{{ t("editor.reload") }}</KrButton>
     </div>
     <div :class="$style.menuRight">
+      <LocaleSwitcher />
       <ImportStepButton :loading="importLoading" @import="emit('import-step')" />
       <ExportMenu
         :loading="exportLoading"

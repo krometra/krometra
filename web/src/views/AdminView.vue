@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useI18n } from "@/composables/shared/useI18n";
 import { KSegmented } from "@krometra/ui-kit";
 import { ADMIN_PERIODS, useAdminOverview, type AdminPeriod } from "@/composables/admin/useAdminOverview";
 import { errorMessage } from "@/lib/apiError";
@@ -13,16 +14,18 @@ import AdminUsersPanel from "@/components/admin/AdminUsersPanel.vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import KrTabs from "@/components/ui/KrTabs.vue";
+import LocaleSwitcher from "@/components/i18n/LocaleSwitcher.vue";
 
+const { t, locale } = useI18n();
 const overview = useAdminOverview();
 const tab = ref("users");
 
-const periodOptions = ADMIN_PERIODS.map((days) => ({ value: days, label: `${days} дней` }));
-const tabs = [
-  { id: "users", label: "Пользователи" },
-  { id: "projects", label: "Проекты" },
-];
-const tiles = computed(() => (overview.overview.value ? kpiTiles(overview.overview.value) : []));
+const periodOptions = computed(() => ADMIN_PERIODS.map((days) => ({ value: days, label: t("admin.days", { count: days }) })));
+const tabs = computed(() => [
+  { id: "users", label: t("admin.users") },
+  { id: "projects", label: t("admin.projects") },
+]);
+const tiles = computed(() => (overview.overview.value ? kpiTiles(overview.overview.value, t, locale.value) : []));
 
 onMounted(overview.load);
 </script>
@@ -30,16 +33,16 @@ onMounted(overview.load);
 <template>
   <div :class="$style.page">
     <header :class="$style.header">
-      <router-link to="/projects" :class="$style.back"><KrIcon name="arrowLeft" :size="16" />К проектам</router-link>
+      <router-link to="/projects" :class="$style.back"><KrIcon name="arrowLeft" :size="16" />{{ t("admin.back") }}</router-link>
+      <LocaleSwitcher />
     </header>
 
     <main :class="$style.content">
       <div :class="$style.heading">
         <div>
-          <h1 :class="$style.title">Администрирование</h1>
+          <h1 :class="$style.title">{{ t("admin.title") }}</h1>
           <p v-if="overview.overview.value" :class="$style.muted">
-            Данные на {{ formatDate(overview.overview.value.generated_at) }}, период с
-            {{ formatDate(overview.overview.value.since) }}
+            {{ t("admin.overviewDate", { date: formatDate(overview.overview.value.generated_at, locale), since: formatDate(overview.overview.value.since, locale) }) }}
           </p>
         </div>
         <KSegmented
@@ -52,19 +55,19 @@ onMounted(overview.load);
       </div>
 
       <div v-if="overview.failure.value" :class="$style.failure" role="alert">
-        {{ errorMessage(overview.failure.value, "Не удалось загрузить аналитику.") }}
-        <KrButton variant="secondary" size="sm" @click="overview.load">Повторить</KrButton>
+        {{ errorMessage(overview.failure.value, t("admin.loadFailed")) }}
+        <KrButton variant="secondary" size="sm" @click="overview.load">{{ t("admin.retry") }}</KrButton>
       </div>
 
       <template v-if="overview.overview.value">
         <AdminKpiGrid :tiles="tiles" :class="{ [$style.stale]: overview.loading.value }" />
         <div :class="$style.panels">
           <section :class="$style.card">
-            <h2 :class="$style.cardTitle">Активность по дням</h2>
+            <h2 :class="$style.cardTitle">{{ t("admin.activity") }}</h2>
             <AdminActivityChart :points="overview.overview.value.series" />
           </section>
           <section :class="$style.card">
-            <h2 :class="$style.cardTitle">Операции по типам</h2>
+            <h2 :class="$style.cardTitle">{{ t("admin.operationsByType") }}</h2>
             <AdminOperationBars
               :operations="overview.overview.value.operations"
               :period-days="overview.overview.value.period_days"
@@ -72,7 +75,7 @@ onMounted(overview.load);
           </section>
         </div>
       </template>
-      <p v-else-if="overview.loading.value" :class="$style.muted">Загрузка аналитики…</p>
+      <p v-else-if="overview.loading.value" :class="$style.muted">{{ t("admin.loading") }}</p>
 
       <KrTabs v-model="tab" :tabs="tabs">
         <AdminUsersPanel v-if="tab === 'users'" />
@@ -93,6 +96,7 @@ onMounted(overview.load);
 .header {
   height: 64px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 0 30px;
   border-bottom: 1px solid var(--kr-border-subtle);

@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, watch } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useOperationSketches } from "@/composables/shared/useOperationSketches";
@@ -32,6 +33,7 @@ export interface LoftSettings {
 }
 
 export function useLoft(deps: { projectId: string; viewportRef: ViewportRef; meshes: BodyMeshesApi; model: ReturnType<typeof useDocumentModel> }) {
+  const { t: tr } = useI18n();
   const { projectId, meshes, model } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -92,7 +94,7 @@ export function useLoft(deps: { projectId: string; viewportRef: ViewportRef; mes
 
   function enter() {
     if (model.sketches.value.length < 2) {
-      toast("Для лофта нужны минимум два эскиза с замкнутыми контурами на разных плоскостях", "info");
+      toast(tr("editorOps.loftSketch"), "info");
       return;
     }
     profileSketchIds.value = defaultLoftSketches(candidates.value, selectedSketchId());
@@ -157,13 +159,13 @@ export function useLoft(deps: { projectId: string; viewportRef: ViewportRef; mes
       documentStore.markDirty();
       await documentStore.load(projectId);
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Не удалось построить лофт.";
+      error.value = err instanceof Error ? err.message : tr("editorOps.loftFailed");
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["loft"], active: loftMode, loading, busyLabel: "Лофт…", enter, exit };
+  const tool: EditorTool = { actions: ["loft"], active: loftMode, loading, get busyLabel() { return tr("editorOps.loftBusy") }, enter, exit };
 
   return {
     tool,

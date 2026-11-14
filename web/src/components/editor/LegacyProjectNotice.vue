@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { useRouter } from "vue-router";
 import KrButton from "@/components/ui/KrButton.vue";
 
@@ -8,13 +10,11 @@ const router = useRouter();
 <template>
   <div :class="$style.backdrop" role="alertdialog" aria-labelledby="legacy-project-title" data-testid="legacy-project">
     <div :class="$style.card">
-      <h2 id="legacy-project-title" :class="$style.title">Проект создан серверным ядром</h2>
+      <h2 id="legacy-project-title" :class="$style.title">{{ t("editorPanels.legacy_title") }}</h2>
       <p :class="$style.text">
-        Геометрию этого проекта строило серверное ядро OpenCASCADE, которое больше не поддерживается.
-        Крометра теперь считает модель в браузере, и такие тела нельзя открыть или изменить.
-        Создайте новый проект и постройте деталь заново.
+        {{ t("editorPanels.legacy_text", { product: t("common.productName") }) }}
       </p>
-      <KrButton @click="router.push('/projects')">К проектам</KrButton>
+      <KrButton @click="router.push('/projects')">{{ t("editorPanels.back_projects") }}</KrButton>
     </div>
   </div>
 </template>

@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { ref, type Ref } from "vue";
 import { useDocument } from "@/composables/shared/useDocument";
 import { useSelection } from "@/composables/shared/useSelection";
@@ -25,6 +26,7 @@ export function useThread(deps: {
   viewportSelectionMode: Ref<SelectionMode>;
   meshes: BodyMeshesApi;
 }) {
+  const { t: tr } = useI18n();
   const { projectId, viewportRef, viewportSelectionMode, meshes } = deps;
   const documentStore = useDocument();
   const selection = useSelection();
@@ -71,7 +73,7 @@ export function useThread(deps: {
 
   async function fetchBrowserCylinder(body: string, face: string | number): Promise<ThreadCylinderResponse> {
     const mesh = meshes.meshBodies.value.find((entry) => entry.body_id === body)?.mesh;
-    if (!mesh) return { cylindrical: false, reason: "Геометрия тела ещё не загружена." };
+    if (!mesh) return { cylindrical: false, reason: tr("editorOps.threadNoMesh") };
     const { browserThreadFace, describeBrowserThreadCylinder } = await import("./browserThread");
     browserFace = browserThreadFace(mesh, body, face);
     const info = await describeBrowserThreadCylinder(browserFace);
@@ -81,13 +83,13 @@ export function useThread(deps: {
   function fetchCylinder(body: string, face: string | number): Promise<ThreadCylinderResponse> {
     browserFace = null;
     if (isBrowserBodyId(body)) return fetchBrowserCylinder(body, face);
-    return Promise.resolve({ cylindrical: false, reason: "Тело не загружено в браузерное ядро." });
+    return Promise.resolve({ cylindrical: false, reason: tr("editorOps.threadNoBody") });
   }
 
   async function createCommand(body: string, face: string | number, params: ThreadParams) {
     const getDoc = () => documentStore.document.value;
     if (!browserFace || browserFace.bodyId !== body || browserFace.faceId !== face) {
-      throw new Error("Грань ещё не разобрана браузерным ядром — выберите её заново.");
+      throw new Error(tr("editorOps.threadStale"));
     }
     const { BrowserThreadCommand } = await import("@/core/commands/BrowserThreadCommand");
     return new BrowserThreadCommand(projectId, browserFace, params, getDoc);
@@ -100,7 +102,7 @@ export function useThread(deps: {
 
     if (!info.cylindrical) {
       clearCylinder();
-      faceHint.value = info.reason ?? "На этой грани резьба не строится.";
+      faceHint.value = info.reason ?? tr("editorOps.threadFace");
       return;
     }
     cylinder.value = {
@@ -153,7 +155,7 @@ export function useThread(deps: {
     clearCylinder();
     loadCylinder(payload.bodyId, payload.faceId).catch((err: unknown) => {
       const apiError = err as { error_description?: string };
-      faceHint.value = apiError?.error_description ?? "Не удалось разобрать грань.";
+      faceHint.value = apiError?.error_description ?? tr("editorOps.threadParse");
     });
   }
 
@@ -187,14 +189,14 @@ export function useThread(deps: {
       const apiError = err as { error_description?: string };
       error.value =
         apiError?.error_description ??
-        (err instanceof Error ? err.message : "Ошибка построения резьбы");
+        (err instanceof Error ? err.message : tr("editorOps.threadFailed"));
       console.error("Ошибка резьбы:", err);
     } finally {
       loading.value = false;
     }
   }
 
-  const tool: EditorTool = { actions: ["thread"], active: threadMode, loading, busyLabel: "Нарезка резьбы…", enter, exit, onFaceSelected, onSelectionCleared };
+  const tool: EditorTool = { actions: ["thread"], active: threadMode, loading, get busyLabel() { return tr("editorOps.threadBusy") }, enter, exit, onFaceSelected, onSelectionCleared };
 
   return {
     tool,

@@ -1,3 +1,4 @@
+import { useI18n } from "@/composables/shared/useI18n";
 import { computed, ref, type Ref } from "vue";
 import type { useDocumentModel } from "./useDocumentModel";
 
@@ -12,35 +13,38 @@ export interface OnboardingHint {
   variant: "center" | "pill";
 }
 
-const HINTS: Record<OnboardingStep, Omit<OnboardingHint, "step">> = {
-  sketch: {
-    title: "Начните с эскиза",
-    body: "Выберите плоскость, нарисуйте замкнутый контур — и выдавите его в твёрдое тело.",
-    cta: "Создать эскиз",
-    hotkey: "S",
-    variant: "center",
-  },
-  extrude: {
-    title: "Эскиз готов",
-    body: "Теперь придайте ему толщину — выдавливание превратит контур в тело.",
-    cta: "Выдавить",
-    hotkey: "E",
-    variant: "center",
-  },
-  refine: {
-    title: "Тело построено",
-    body: "Скруглите рёбра или выгрузите модель в STEP или STL кнопкой «Экспорт».",
-    cta: "Скруглить рёбра",
-    hotkey: "F",
-    variant: "pill",
-  },
-};
 
 export function useOnboarding(deps: {
   model: ReturnType<typeof useDocumentModel>;
   loading: Ref<boolean>;
   busy: Ref<boolean>;
 }) {
+  const { t: tr } = useI18n();
+  const HINTS = computed<Record<OnboardingStep, Omit<OnboardingHint, "step">>>(() => ({
+    sketch: {
+      title: tr("editorOps.onboardSketch"),
+      body: tr("editorOps.onboardSketchBody"),
+      cta: tr("editorOps.createSketch"),
+      hotkey: "S",
+      variant: "center",
+    },
+    extrude: {
+      title: tr("editorOps.onboardExtrude"),
+      body: tr("editorOps.onboardExtrudeBody"),
+      cta: tr("editorOps.extrude"),
+      hotkey: "E",
+      variant: "center",
+    },
+    refine: {
+      title: tr("editorOps.onboardRefine"),
+      body: tr("editorOps.onboardRefineBody"),
+      cta: tr("editorOps.onboardFillet"),
+      hotkey: "F",
+      variant: "pill",
+    },
+  }));
+
+
   const { model, loading, busy } = deps;
   const dismissed = ref(new Set<OnboardingStep>());
 
@@ -61,7 +65,7 @@ export function useOnboarding(deps: {
   const hint = computed<OnboardingHint | null>(() => {
     const step = currentStep.value;
     if (!step || dismissed.value.has(step)) return null;
-    const base = HINTS[step];
+    const base = HINTS.value[step];
     return { step, ...base, variant: model.bodies.value.length > 0 ? "pill" : base.variant };
   });
 

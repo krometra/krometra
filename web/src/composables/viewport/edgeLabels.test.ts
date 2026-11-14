@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { describeEdge, edgeGroupLabel, edgeGroupRows, edgeLabel } from "./edgeLabels";
 import { arcEdge, lineEdge, ROUNDED_LOOP, roundedBoxTopo } from "./edgeFixtures";
+import { viewportText as en } from "@/lib/i18n/dictionaries/en/viewportText";
+import { viewportText as zh } from "@/lib/i18n/dictionaries/zh/viewportText";
+import { renderMessage } from "@/lib/i18n/message";
+import type { ViewportTranslator } from "./i18n";
 
 describe("describeEdge", () => {
   it("отрезок", () => {
@@ -37,6 +41,15 @@ describe("describeEdge", () => {
 });
 
 describe("подписи", () => {
+  it("переводит единичные рёбра и цепочки", () => {
+    const english: ViewportTranslator = (key, ...args) => renderMessage("en", en[key], args[0]);
+    const chinese: ViewportTranslator = (key, ...args) => renderMessage("zh", zh[key], args[0]);
+    expect(edgeLabel({ kind: "line", length: 20 }, english)).toBe("Segment 20 mm");
+    expect(edgeGroupLabel([{ kind: "line", length: 2 }, { kind: "line", length: 3 }], english))
+      .toBe("Chain: 2 edges · 5 mm");
+    expect(edgeGroupLabel([{ kind: "line", length: 2 }, { kind: "line", length: 3 }], chinese))
+      .toBe("链：2 条边 · 5 毫米");
+  });
   it("называют форму и размер ребра", () => {
     expect(edgeLabel({ kind: "line", length: 20 })).toBe("Отрезок 20 мм");
     expect(edgeLabel({ kind: "arc", length: 4.7124, radius: 3 })).toBe("Дуга R3 · 4.71 мм");

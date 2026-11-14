@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed, ref, watch } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrNumberInput from "@/components/ui/KrNumberInput.vue";
@@ -24,13 +26,13 @@ interface Preset {
   starts: number;
 }
 
-const PRESETS: Preset[] = [
-  { id: "m-fine", label: "Метрическая мелкая", hint: "шаг 1 мм, острый профиль", pitch: 1, depthPercent: 61, crestPercent: 0, starts: 1 },
-  { id: "m-std", label: "Метрическая", hint: "шаг 1.5 мм, острый профиль", pitch: 1.5, depthPercent: 61, crestPercent: 0, starts: 1 },
-  { id: "trapez", label: "Трапецеидальная", hint: "шаг 4 мм, плоская вершина", pitch: 4, depthPercent: 50, crestPercent: 35, starts: 1 },
-  { id: "jar", label: "Банка", hint: "шаг 6 мм, широкий паз, 2 захода", pitch: 6, depthPercent: 30, crestPercent: 55, starts: 2 },
-  { id: "cap", label: "Крышка", hint: "шаг 9 мм, очень крупная, 3 захода", pitch: 9, depthPercent: 25, crestPercent: 60, starts: 3 },
-];
+const PRESETS = computed<Preset[]>(() => [
+  { id: "m-fine", label: t("editorPanels.metric_fine"), hint: t("editorPanels.pitch1_hint"), pitch: 1, depthPercent: 61, crestPercent: 0, starts: 1 },
+  { id: "m-std", label: t("editorPanels.metric"), hint: t("editorPanels.pitch15_hint"), pitch: 1.5, depthPercent: 61, crestPercent: 0, starts: 1 },
+  { id: "trapez", label: t("editorPanels.trapezoidal"), hint: t("editorPanels.pitch4_hint"), pitch: 4, depthPercent: 50, crestPercent: 35, starts: 1 },
+  { id: "jar", label: t("editorPanels.jar"), hint: t("editorPanels.pitch6_hint"), pitch: 6, depthPercent: 30, crestPercent: 55, starts: 2 },
+  { id: "cap", label: t("editorPanels.cap"), hint: t("editorPanels.pitch9_hint"), pitch: 9, depthPercent: 25, crestPercent: 60, starts: 3 },
+]);
 
 const pitch = ref(1.5);
 // Глубину и профиль держим в процентах от шага: у крупной резьбы абсолютная
@@ -55,12 +57,12 @@ const hasCylinder = computed(() => props.thread.cylinder.value !== null);
 const statusText = computed(() => {
   if (props.thread.faceHint.value) return props.thread.faceHint.value;
   if (!hasFace.value) {
-    return "Кликните цилиндрическую грань: стержень — внешняя резьба, отверстие — внутренняя";
+    return t("editorPanels.choose_cylinder");
   }
   const cylinder = props.thread.cylinder.value;
-  if (!cylinder) return "Разбираю грань…";
-  const kind = cylinder.external ? "внешняя" : "внутренняя";
-  return `Грань ⌀${(cylinder.radius * 2).toFixed(1)} мм, ${kind} резьба — призрак показывает будущие витки`;
+  if (!cylinder) return t("editorPanels.parsing_face");
+  const kind = cylinder.external ? t("editorPanels.external") : t("editorPanels.internal");
+  return t("editorPanels.thread_preview", { diameter: (cylinder.radius * 2).toFixed(1), kind });
 });
 
 /**
@@ -85,10 +87,10 @@ watch(
 
 /** Словесная характеристика профиля — понятнее, чем доля шага. */
 const profileLabel = computed(() => {
-  if (crestPercent.value < 5) return "острый треугольник";
-  if (crestPercent.value < 30) return "притуплённый";
-  if (crestPercent.value < 50) return "трапеция";
-  return "широкий паз";
+  if (crestPercent.value < 5) return t("editorPanels.sharp_triangle");
+  if (crestPercent.value < 30) return t("editorPanels.blunt");
+  if (crestPercent.value < 50) return t("editorPanels.trapezium");
+  return t("editorPanels.wide_groove");
 });
 
 function applyPreset(preset: Preset) {
@@ -119,7 +121,7 @@ function handleApply() {
 </script>
 
 <template>
-  <PropsPanelShell title="Резьба" kind="FEATURE" dot-color="oklch(0.72 0.14 60)">
+  <PropsPanelShell :title="t('editorPanels.thread')" kind="FEATURE" dot-color="oklch(0.72 0.14 60)">
     <div :class="$style.body" data-testid="thread-panel">
       <p :class="[$style.status, hasCylinder && $style.statusReady]" data-testid="thread-status">
         {{ statusText }}
@@ -141,48 +143,48 @@ function handleApply() {
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Шаг</span>
+        <span :class="$style.label">{{ t("editorPanels.thread_pitch") }}</span>
         <KrNumberInput
           v-model="pitch"
           :min="0.2"
           :max="30"
           :step="0.5"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="thread-pitch"
           @update:model-value="markCustom"
         />
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Глубина профиля</span>
+        <span :class="$style.label">{{ t("editorPanels.profile_depth") }}</span>
         <KrNumberInput
           v-model="depthPercent"
           :min="5"
           :max="90"
           :step="5"
-          suffix="% шага"
+          :suffix="t('editorPanels.percent_pitch')"
           data-testid="thread-depth-ratio"
           @update:model-value="markCustom"
         />
-        <span :class="$style.hint">{{ depthMm.toFixed(2) }} мм при текущем шаге</span>
+        <span :class="$style.hint">{{ t("editorPanels.depth_at_pitch", { depth: depthMm.toFixed(2) }) }}</span>
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Профиль</span>
+        <span :class="$style.label">{{ t("editorPanels.profile") }}</span>
         <KrNumberInput
           v-model="crestPercent"
           :min="0"
           :max="90"
           :step="5"
-          suffix="% шага"
+          :suffix="t('editorPanels.percent_pitch')"
           data-testid="thread-crest"
           @update:model-value="markCustom"
         />
-        <span :class="$style.hint">Вершина клина: {{ profileLabel }}</span>
+        <span :class="$style.hint">{{ t("editorPanels.thread_crest", { profile: profileLabel }) }}</span>
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Заходы</span>
+        <span :class="$style.label">{{ t("editorPanels.thread_starts") }}</span>
         <KrNumberInput
           v-model="starts"
           :min="1"
@@ -191,28 +193,28 @@ function handleApply() {
           data-testid="thread-starts"
           @update:model-value="markCustom"
         />
-        <span :class="$style.hint">Подъём за оборот {{ leadMm.toFixed(1) }} мм</span>
+        <span :class="$style.hint">{{ t("editorPanels.thread_lead", { lead: leadMm.toFixed(1) }) }}</span>
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Длина</span>
+        <span :class="$style.label">{{ t("editorPanels.length") }}</span>
         <KrNumberInput
           v-model="length"
           :min="0"
           :step="1"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="thread-length"
         />
-        <span :class="$style.hint">0 — на всю грань</span>
+        <span :class="$style.hint">{{ t("editorPanels.whole_face") }}</span>
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.label">Отступ</span>
+        <span :class="$style.label">{{ t("editorPanels.thread_offset") }}</span>
         <KrNumberInput
           v-model="offset"
           :min="0"
           :step="1"
-          suffix="мм"
+          :suffix="t('editorPanels.mm')"
           data-testid="thread-offset"
         />
       </div>
@@ -224,7 +226,7 @@ function handleApply() {
           data-testid="thread-right"
           @click="rightHanded = true"
         >
-          Правая
+          {{ t("editorPanels.right_hand") }}
         </KrButton>
         <KrButton
           size="sm"
@@ -232,7 +234,7 @@ function handleApply() {
           data-testid="thread-left"
           @click="rightHanded = false"
         >
-          Левая
+          {{ t("editorPanels.left_hand") }}
         </KrButton>
       </div>
 
@@ -248,9 +250,9 @@ function handleApply() {
         data-testid="thread-apply"
         @click="handleApply"
       >
-        {{ thread.loading.value ? "Строю…" : "Применить" }}
+        {{ thread.loading.value ? t("editorPanels.building") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" @click="thread.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" @click="thread.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

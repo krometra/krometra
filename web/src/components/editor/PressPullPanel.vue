@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed } from "vue";
 import KrButton from "@/components/ui/KrButton.vue";
 import KrIcon from "@/components/ui/KrIcon.vue";
 import KrInput from "@/components/ui/KrInput.vue";
 import { useDisplayNames } from "@/composables/useDisplayNames";
 import { pressPullDirectionHint } from "@/lib/browserPressPull";
-import { pluralize } from "@/lib/plural";
 import PropsPanelShell from "./PropsPanelShell.vue";
 import type { PressPullApi } from "@/composables/editor/usePressPull";
 
@@ -18,8 +19,8 @@ const hasFaces = computed(() => props.pressPull.faceIds.value.length > 0);
 
 const statusText = computed(() => {
   const body = props.pressPull.bodyId.value;
-  if (!body) return "Кликните грани тела, которые нужно сдвинуть: плоские или цилиндрические. Повторный клик снимает грань.";
-  return `${names.bodyLabel(body)}: ${pluralize(props.pressPull.faceIds.value.length, "грань", "грани", "граней")}`;
+  if (!body) return t("editorPanels.offset_faces_select");
+  return `${names.bodyLabel(body)}: ${t("editorPanels.faces", { count: props.pressPull.faceIds.value.length })}`;
 });
 
 const hint = computed(() => (field.invalid.value ? null : pressPullDirectionHint(field.value.value, props.pressPull.newBody.value)));
@@ -31,7 +32,7 @@ function updateDistance(text: string) {
 </script>
 
 <template>
-  <PropsPanelShell title="Сдвиг грани" kind="FEATURE" dot-color="oklch(0.72 0.14 150)">
+  <PropsPanelShell :title="t('editorPanels.offset_face')" kind="FEATURE" dot-color="oklch(0.72 0.14 150)">
     <div :class="$style.body" data-testid="press-pull-panel">
       <p :class="[$style.status, hasFaces && $style.statusReady]" data-testid="press-pull-status">{{ statusText }}</p>
 
@@ -42,7 +43,7 @@ function updateDistance(text: string) {
           <KrButton
             variant="ghost"
             size="sm"
-            :aria-label="`Снять с выбора: ${row.label}`"
+            :aria-label="t('editorPanels.remove_selection', { name: row.label })"
             data-testid="press-pull-face-remove"
             @click="pressPull.removeFace(row.faceId)"
           >
@@ -52,12 +53,12 @@ function updateDistance(text: string) {
       </ul>
 
       <div :class="$style.field" data-testid="press-pull-distance">
-        <span :class="$style.fieldLabel">Смещение, мм</span>
+        <span :class="$style.fieldLabel">{{ t("editorPanels.offset_mm") }}</span>
         <KrInput
           :model-value="field.text.value"
           :error="field.error.value ?? undefined"
           inputmode="decimal"
-          title="Со знаком: плюс наружу по нормали, минус внутрь. Можно выражение с единицами: -0.07, 1/2 in, gap"
+          :title="t('editorPanels.offset_hint')"
           @update:model-value="updateDistance"
           @keydown.enter.prevent="field.commit()"
         />
@@ -65,7 +66,7 @@ function updateDistance(text: string) {
       </div>
 
       <div :class="$style.field">
-        <span :class="$style.fieldLabel">Результат</span>
+        <span :class="$style.fieldLabel">{{ t("editorPanels.result") }}</span>
         <div :class="$style.modes">
           <KrButton
             size="sm"
@@ -73,7 +74,7 @@ function updateDistance(text: string) {
             data-testid="press-pull-move"
             @click="pressPull.setNewBody(false)"
           >
-            Сдвинуть грань
+            {{ t("editorPanels.move_face") }}
           </KrButton>
           <KrButton
             size="sm"
@@ -81,7 +82,7 @@ function updateDistance(text: string) {
             data-testid="press-pull-new-body"
             @click="pressPull.setNewBody(true)"
           >
-            Новое тело
+            {{ t("editorPanels.new_body") }}
           </KrButton>
         </div>
       </div>
@@ -96,10 +97,10 @@ function updateDistance(text: string) {
         data-testid="press-pull-apply"
         @click="pressPull.apply"
       >
-        {{ pressPull.loading.value ? "Строю…" : "Применить" }}
+        {{ pressPull.loading.value ? t("editorPanels.building") : t("editorPanels.apply") }}
       </KrButton>
-      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="press-pull-clear" @click="pressPull.clear">Сброс</KrButton>
-      <KrButton variant="ghost" @click="pressPull.exit">Закрыть</KrButton>
+      <KrButton variant="ghost" :disabled="!hasFaces" data-testid="press-pull-clear" @click="pressPull.clear">{{ t("editorPanels.reset_2") }}</KrButton>
+      <KrButton variant="ghost" @click="pressPull.exit">{{ t("editorPanels.close") }}</KrButton>
     </template>
   </PropsPanelShell>
 </template>

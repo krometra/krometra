@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "@/composables/shared/useI18n";
+const { t } = useI18n();
 import { computed, watch } from "vue";
 import * as select from "@zag-js/select";
 import { ListCollection } from "@zag-js/collection";
@@ -19,7 +21,6 @@ const props = withDefaults(
   {
     modelValue: "",
     options: () => [],
-    placeholder: "Выбрать…",
   }
 );
 
@@ -86,8 +87,8 @@ watch(
         {{
           api.value?.[0]
             ? props.options.find((o) => o.value === api.value[0])?.label ??
-              props.placeholder
-            : props.placeholder
+              (props.placeholder ?? t("ui.select"))
+            : (props.placeholder ?? t("ui.select"))
         }}
       </span>
       <span :class="[$style.arrow, api.open ? $style.arrowOpen : '']">▾</span>
